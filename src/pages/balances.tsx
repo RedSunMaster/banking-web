@@ -20,6 +20,7 @@ export const Balances = () => {
     const fetchBalances = async () => {
       try {
         const authToken = Cookies.get('authToken');
+        console.log(authToken);
         const response = await axios.get('/api/balances', {
           headers: { Authorization: `Bearer ${authToken}` },
         });
@@ -57,6 +58,9 @@ export const Balances = () => {
   };
 
   const options = {
+    responsive: true,
+    maintainAspectRatio: true,
+    devicePixelRatio: 4,
     plugins: {
       legend: {
         display: true,
@@ -67,7 +71,7 @@ export const Balances = () => {
   return (
     <div>
         <h2 className='pageTitle on-background-text'>Balances</h2>
-        <div style={{ display: 'flex' }} >
+        <div className="parent-div" >
         <div style={{ flex: 1 }} >
             <ul>
             {balances.map(balance => (

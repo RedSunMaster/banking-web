@@ -45,14 +45,56 @@ html {
 
 
 .balanceList {
-    list-style-type: none;
-    padding:1.5%;
+  list-style-type: none;
+  padding: 2%;
+  margin: 1%;
 }
 
+
 .balanceChart {
-    padding:1.5%;
+  width: 100%;
 }
 
 .pageTitle {
     text-align: center;
+}
+
+.parent-div {
+  display: flex;
+}
+
+@media screen and (max-width: 768px) {
+  .parent-div {
+    flex-direction: column;
+  }
+}  
+
+@media screen and (min-width: 1280px) {
+  .parent-div {
+    flex-direction: row;
+  }
+}  
+
+
+ul {
+  padding: 0;
+}
+
+.burger-menu {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .burger-menu {
+    display: block;
+  }
+
+  .menu {
+    display: none;
+    flex-direction: column;
+  }
+
+  .menu.show {
+    display: flex;
+  }
 }
