@@ -70,7 +70,7 @@ export const Balances = () => {
 
   return (
     <div>
-        <h2 className='pageTitle on-background-text'>Balances</h2>
+        <h2 className='pageTitle'>Balances</h2>
         <div className="parent-div" >
         <div style={{ flex: 1 }} >
             <ul>
@@ -81,7 +81,7 @@ export const Balances = () => {
                     background: `rgba(${parseInt(balance.Colour.slice(-6, -4), 16)}, ${parseInt(balance.Colour.slice(-4, -2), 16)}, ${parseInt(balance.Colour.slice(-2), 16)}, 0.4)`,
                 }}
                 >
-                <li className="balanceList on-background-text" key={balance.Category}>
+                <li className="balanceList" key={balance.Category}>
                     {balance.Category}: ${balance.Amount}
                     <input
                     type="checkbox"

@@ -1,62 +1,193 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import Cookies from 'js-cookie';
+import * as React from 'react';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import Menu from '@mui/material/Menu';
+import MenuIcon from '@mui/icons-material/Menu';
+import Container from '@mui/material/Container';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
+import MenuItem from '@mui/material/MenuItem';
+import AdbIcon from '@mui/icons-material/Adb';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useNavigate } from 'react-router-dom';
+import checkIsLoggedIn from '../auth/auth';
+import { Divider } from '@mui/material';
 
-interface NavBarProps {
-  isLoggedIn: boolean;
-}
+const pages = [
+  { name: 'Balances', destination: '/balances' },
+  { name: 'Transactions', destination: '/transactions' },
+  { name: 'Money Owed', destination: '/money-owed' },
+];
+const settings = [
+  { name: 'Account', destination: '/account' },
+  { name: 'Logout', destination: '/logout' },
+];
 
-export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
-  const [showModal, setShowModal] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+function NavBar() {
+  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElNav(event.currentTarget);
+  };
+  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElUser(event.currentTarget);
+  };
+
+  const handleCloseNavMenu = () => {
+    setAnchorElNav(null);
+  };
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
+
+  React.useEffect(() => {
+    checkIsLoggedIn().then(setIsLoggedIn);
+  }, []);
+
+
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      console.log(Cookies.get('authToken'))
-      await axios.post('/api/logout', {}, {
-        headers: { Authorization: `Bearer ${Cookies.get('authToken')}` }
-      });
-      Cookies.set('authToken', "");
-      navigate('/login');
-      window.location.reload()
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   return (
     <>
-      <div className="topnav on-background">
-        <a className="burger-menu" onClick={() => setShowMenu(!showMenu)}>☰</a>
-        <div className={`menu ${showMenu ? 'show' : ''}`}>
-          <a href="balances" className='background-text'>Balances</a>
-          <a href="transactions" className='background-text'>Transactions</a>
-          <a href="money-owed" className='background-text'>Money Owed</a>
-          {isLoggedIn ? (
-            <>
-              <a className='split' onClick={() => setShowModal(true)}>Logout</a>
-              {showModal && (
-                <div className="modal">
-                  <div className="modal-content">
-                    <h2>Are you sure you want to log out?</h2>
-                    <a onClick={handleLogout}>Logout</a>
-                    <a onClick={() => setShowModal(false)}>Cancel</a>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <a href="login" className="split background-text">Login / Register</a>
-          )}
-        </div>
-      </div>
-
-      {/* Add this style tag to your code */}
-      <style>{`
-
-      `}</style>
+      {isLoggedIn && (
+        <AppBar position="static">
+          <Container maxWidth="xl">
+            <Toolbar disableGutters>
+              <AttachMoneyIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+              <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+                <IconButton
+                  size="large"
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  onClick={handleOpenNavMenu}
+                  color="inherit"
+                >
+                  <MenuIcon />
+                </IconButton>
+                <Menu
+                  id="menu-appbar"
+                  anchorEl={anchorElNav}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'left',
+                  }}
+                  open={Boolean(anchorElNav)}
+                  onClose={handleCloseNavMenu}
+                  sx={{
+                    display: { xs: 'block', md: 'none' },
+                  }}
+                >
+                  {pages.map((page) => (
+                    <MenuItem key={page.name} onClick={() => {
+                      handleCloseNavMenu();
+                      navigate(page.name)
+                    }}>
+                      <Typography textAlign="center">{page.name}</Typography>
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </Box>
+              <AttachMoneyIcon sx={{ display: { xs: 'flex', md: 'none',  }, mr: 1 }} />
+              <Typography
+                variant="h5"
+                noWrap
+                component="a"
+                href="/"
+                sx={{
+                  mr: 2,
+                  display: { xs: 'flex', md: 'none' },
+                  flexGrow: 1,
+                  fontFamily: 'monospace',
+                  fontWeight: 700,
+                  letterSpacing: '.3rem',
+                  color: 'inherit',
+                  textDecoration: 'none',
+                }}
+              >
+              </Typography>
+              <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+              {pages.map((page) => (
+                <Button
+                  key={page.name}
+                  onClick={() => {
+                    handleCloseNavMenu();
+                    navigate(page.name)
+                  }}
+                  sx={{ my: 2, color: 'white', display: 'block' }}
+                >
+                  {page.name}
+                </Button>
+              ))}
+            </Box>
+              <Box sx={{ flexGrow: 0 }}>
+                <Tooltip title="Open settings">
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                    <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id="menu-appbar"
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                >
+                  {settings.map((page) => (
+                    <MenuItem key={page.name} onClick={() => {
+                      handleCloseNavMenu();
+                      navigate(page.name)
+                    }}>
+                      <Typography textAlign="center">{page.name}</Typography>
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </Box>
+            </Toolbar>
+          </Container>
+        </AppBar>
+      )}
+      {!isLoggedIn && (
+        <AppBar position="static">
+          <Toolbar>
+            <IconButton
+              size="large"
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Divider sx={{ flexGrow: 1 }}></Divider>
+            <Button color="inherit" onClick={() => {navigate('/login')}}>Login</Button>
+          </Toolbar>
+        </AppBar>
+      )}
     </>
   );
-};
+}
+
+export default NavBar

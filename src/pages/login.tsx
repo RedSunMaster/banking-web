@@ -2,11 +2,33 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import Input from '@mui/material/Input';
+import FilledInput from '@mui/material/FilledInput';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputLabel from '@mui/material/InputLabel';
+import InputAdornment from '@mui/material/InputAdornment';
+import FormHelperText from '@mui/material/FormHelperText';
+import FormControl from '@mui/material/FormControl';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+  const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+  };
+
   const navigate = useNavigate();
+
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
@@ -19,27 +41,39 @@ export const Login = () => {
     }
   };
 
-    return (
-        <form onSubmit={handleSubmit}>
-            <label className="on-background-text">
-            Email:
-            <input
-                type="email"
-                value={email}
-                onChange={event => setEmail(event.target.value)}
-            />
-        </label>
-        <br />
-        <label className="on-background-text">
-            Password:
-                <input
-                type="password"
-                value={password}
-                onChange={event => setPassword(event.target.value)}
-                />
-      </label>
-      <br />
-      <button type="submit">Login</button>
-    </form>
+  return (
+    <Box justifyContent="center" sx={{ display: 'flex', flexWrap: 'wrap' }}>
+      
+      <div>
+        <h2 className='pageTitle'>Login</h2>
+        <FormControl fullWidth variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-email">Email</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-email"
+            label="Email"
+          />
+        </FormControl>
+        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-password"
+            type={showPassword ? 'text' : 'password'}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={handleClickShowPassword}
+                  onMouseDown={handleMouseDownPassword}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            }
+            label="Password"
+          />
+        </FormControl>
+    </div>
+    </Box>
   );
 };
