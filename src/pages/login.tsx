@@ -39,7 +39,7 @@ export function Login({setIsLoggedIn}: LoginProps) {
       const response = await axios.post('/api/login', { email, password });
       Cookies.set('authToken', response.data);
       setIsLoggedIn(true)
-      navigate('/balances')
+      navigate('/dashboard')
     } catch (error) {
       console.error(error);
     }

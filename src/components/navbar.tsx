@@ -16,9 +16,11 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useNavigate } from 'react-router-dom';
 import checkIsLoggedIn from '../auth/auth';
 import { Divider } from '@mui/material';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const pages = [
-  { name: 'Balances', destination: '/balances' },
+  { name: 'Dashboard', destination: '/dashboard' },
   { name: 'Transactions', destination: '/transactions' },
   { name: 'Money Owed', destination: '/money-owed' },
 ];
@@ -29,9 +31,10 @@ const settings = [
 
 interface NavBarProps {
   isLoggedIn: boolean;
+  setIsLoggedIn: (value: boolean) => void;
 }
 
-function NavBar({ isLoggedIn }: NavBarProps) {
+function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -49,8 +52,22 @@ function NavBar({ isLoggedIn }: NavBarProps) {
     setAnchorElUser(null);
   };
 
-
   const navigate = useNavigate();
+
+
+  const logoutUser = async () => {
+    try {
+      const authToken = Cookies.get('authToken');
+      await axios.post('/api/logout', null, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      Cookies.remove('authToken');
+      setIsLoggedIn(false)
+      navigate('/login');
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
 
   return (
@@ -153,14 +170,19 @@ function NavBar({ isLoggedIn }: NavBarProps) {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  {settings.map((page) => (
-                    <MenuItem key={page.name} onClick={() => {
-                      handleCloseNavMenu();
-                      navigate(page.name)
-                    }}>
-                      <Typography textAlign="center">{page.name}</Typography>
-                    </MenuItem>
-                  ))}
+                  <MenuItem key={"Account"} onClick={() => {
+                    handleCloseUserMenu();
+                    navigate('/account')
+                  }}>
+                    <Typography textAlign="center">{"Account"}</Typography>
+                  </MenuItem>
+                  <MenuItem key={"Logout"} onClick={() => {
+                    handleCloseUserMenu();
+                    logoutUser();
+
+                  }}>
+                    <Typography textAlign="center">{"Logout"}</Typography>
+                  </MenuItem>
                 </Menu>
               </Box>
             </Toolbar>
@@ -170,18 +192,11 @@ function NavBar({ isLoggedIn }: NavBarProps) {
       {!isLoggedIn && (
         <AppBar position="static">
           <Toolbar>
-            <IconButton
-              size="large"
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
+            <Typography>
+                McNut Banking
+            </Typography>
             <Divider sx={{ flexGrow: 1 }}></Divider>
-            <Button color="inherit" onClick={() => {navigate('/login')}}>Login</Button>
-          </Toolbar>
+            </Toolbar>
         </AppBar>
       )}
     </>
