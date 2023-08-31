@@ -92,3 +92,8 @@ ul {
     display: flex;
   }
 }
+
+.MuiCardContent-root {
+  display: flex;
+  position: relative;
+}

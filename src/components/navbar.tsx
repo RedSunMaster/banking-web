@@ -27,11 +27,13 @@ const settings = [
   { name: 'Logout', destination: '/logout' },
 ];
 
-function NavBar() {
+interface NavBarProps {
+  isLoggedIn: boolean;
+}
+
+function NavBar({ isLoggedIn }: NavBarProps) {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -46,10 +48,6 @@ function NavBar() {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-
-  React.useEffect(() => {
-    checkIsLoggedIn().then(setIsLoggedIn);
-  }, []);
 
 
   const navigate = useNavigate();

@@ -3,37 +3,22 @@ import axios from 'axios';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Cookies from 'js-cookie'
+import TransactionItem from '../types/Transaction';
+import BalanceItem from '../types/BalanceItem';
+import CategoryItem from '../types/CategoryItem';
 
 
-interface TransactionItem {
-    transactionID: number;
-    userId: number;
-    Date: Date;
-    Amount: number;
-    Category: string;
-    Description: string;
-    Transaction: string;
+  
+  interface TransactionsProps {
+    DatabaseInformation: {
+      transactions: TransactionItem[];
+      balances: BalanceItem[];
+      categories: CategoryItem[];
+    };
   }
-  
 
-export const Transactions = () => {
-  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  export const Transactions = ({ DatabaseInformation }: TransactionsProps) => {
   
-  useEffect(() => {
-    const fetchTransactions = async () => {
-        const authToken = Cookies.get('authToken');
-        const response = await axios.get('/api/transactions', {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        const formattedData = response.data.map((transaction: TransactionItem) => ({
-          ...transaction,
-          Date: new Date(transaction.Date).toLocaleDateString(),
-        }));
-        setTransactions(formattedData);
-      };      
-    fetchTransactions();
-  }, []);
-
   const columns: GridColDef[] = [
     { field: 'transactionID', headerName: 'ID', flex: 1 },
     { field: 'Date', headerName: 'Date', flex: 1 },
@@ -47,7 +32,7 @@ export const Transactions = () => {
       <div style={{ height: 600, width: '100%' }}>
         <DataGrid
         getRowId={(row) => `${row.transactionID}`}
-        rows={transactions}
+        rows={DatabaseInformation.transactions}
         columns={columns}
         slots={{
             toolbar: GridToolbar,
