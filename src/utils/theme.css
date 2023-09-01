@@ -38,24 +38,8 @@
     float: right;
   }
 
-
-.balanceList {
-  list-style-type: none;
-  padding: 2%;
-  margin: 1%;
-}
-
-
-.balanceChart {
-  width: 100%;
-}
-
 .pageTitle {
     text-align: center;
-}
-
-.parent-div {
-  display: flex;
 }
 
 @media screen and (max-width: 768px) {

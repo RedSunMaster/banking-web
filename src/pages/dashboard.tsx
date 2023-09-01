@@ -11,56 +11,18 @@ import TransactionItem from '../types/Transaction';
 import BalanceItem from '../types/BalanceItem';
 import CategoryItem from '../types/CategoryItem';
 import UserItem from '../types/UserItem';
-import { useNavigate } from 'react-router-dom';
-import checkIsLoggedIn from '../auth/auth';
-import axios from 'axios';
-import {fetchBalances, fetchCategories, fetchTransactions, fetchUser} from '../utils/DatabaseInformation';
+import Marquee from "react-fast-marquee";
+import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 
-const emptyUserItem: UserItem = {
-  fName: "",
-  lName: "",
-  authToken: "",
-  userId: 0,
-  email: "",
-  phone: "",
-};
+
+
+
 
 export const Dashboard = () => {
-  const [DatabaseInformation, setDatabaseInformation] = React.useState<{
-    transactions: TransactionItem[];
-    balances: BalanceItem[];
-    categories: CategoryItem[];
-    user: UserItem;
-  }>({
-    transactions: [],
-    balances: [],
-    categories: [],
-    user: emptyUserItem,
-  });
-  const [isLoading, setIsLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      const transactions = await fetchTransactions();
-      const balances = await fetchBalances();
-      const categories = await fetchCategories();
-      const user = await fetchUser();
-  
-      if (balances && transactions && categories && user) {
-        setDatabaseInformation({
-          transactions,
-          balances,
-          categories,
-          user,
-        });
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-  
+  const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
 
-  if (isLoading) {
+  if (!databaseInformation) {
     return <div>Loading...</div>;
   }
 
@@ -70,9 +32,8 @@ export const Dashboard = () => {
   const dayOfWeek = today.getDay() || 7; // getDay returns 0 for Sunday, so we use 7 instead
   const startOfWeek = new Date(today.getTime() - (dayOfWeek - 1) * oneDay);
   const startOfLastWeek = new Date(startOfWeek.getTime() - 7 * oneDay);
-  
-  
-  const filteredTransactions = DatabaseInformation.transactions.filter(
+
+  const filteredTransactions = databaseInformation.transactions.filter(
     (transaction) =>
       transaction.Amount < 0 &&
       !transaction.Description.includes("Balance") &&
@@ -101,7 +62,7 @@ export const Dashboard = () => {
   const pieChartData = {
     series: [
       {
-        data: DatabaseInformation.balances.sort((a, b) => a.Amount - b.Amount).map((balance) => ({
+        data: databaseInformation.balances.sort((a, b) => a.Amount - b.Amount).map((balance) => ({
           id: balance.Category,
           value: balance.Amount,
           color: balance.Colour,
@@ -125,7 +86,7 @@ export const Dashboard = () => {
       return { year, sums: sums.map((sum) => Math.abs(Number(sum.toFixed(2)))) };
     });
 
-    const categories = DatabaseInformation.categories;
+    const categories = databaseInformation.categories;
 
     const weeklySums = Object.entries(groupedWeekTransactions).map(([week, transactions]) => {
       const sums = transactions.reduce((acc, transaction) => {
@@ -155,7 +116,6 @@ export const Dashboard = () => {
       label: week
     }));
 
-    console.log(barSeries)
     
     const lineSeries = monthlySums.map(({ year, sums }) => ({
       data: sums,
@@ -163,7 +123,7 @@ export const Dashboard = () => {
     }));
     
 
-    const totalBalance = DatabaseInformation.balances.reduce(
+    const totalBalance = databaseInformation.balances.reduce(
       (sum, balance) => sum + balance.Amount,
       0
     );
@@ -177,18 +137,29 @@ export const Dashboard = () => {
     return (
       <Box sx={{ flexGrow: 1 }}>
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12 }}>
-          <Grid container direction="column" xs={2} sm={8} md={12}>
-            <Typography variant="h5" style={{ fontWeight: 'bold' }}>
-              Welcome Back {DatabaseInformation.user.fName} <br/>
-            </Typography>
-            <Typography variant="h4">
-              <b style={{color: 'darkgreen',border: '4px solid lightgreen', borderRadius: '10px', padding: '5px', float: 'right', backgroundColor: 'lightgreen'}}>${totalBalance.toFixed(2)}</b>
-            </Typography>
-            <Typography variant="subtitle1">
-              Current Week Spending ${moneySpentCurrentWeek.toFixed(2)}  
-            </Typography>
+          <Grid xs={2} sm={8} md={12}>
+            <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
+              <CardContent>
+              <Grid container direction="column" width='100%'>
+                  <Grid>
+                  <Typography variant="h5" style={{ fontWeight: 'bold' }}>
+                    Welcome Back {databaseInformation.user.fName}
+                  </Typography>
+                  <Typography variant="h6">
+                    Total Balance <b style={{color: 'green'}}>${totalBalance.toFixed(2)}</b>
+                  </Typography>
+                  </Grid>
+                  <Grid>
+                    <Marquee pauseOnHover={true} autoFill={true}>
+                      <Typography variant='h5' alignItems='center'>
+                      {databaseInformation.balances.map((balance) => (<b style={{color: balance.Colour,lineHeight: '50px',border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', float: 'left', width:'150px', backgroundColor: balance.Colour + '40', textAlign: 'center'}}>${balance.Amount.toFixed(2)}</b>))}
+                      </Typography>
+                    </Marquee>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
           </Grid>
-
           <Grid xs={2} sm={4} md={4}>
             <Card elevation={4}>
               <CardContent>
@@ -240,7 +211,6 @@ export const Dashboard = () => {
               />
             </CardContent>
           </Card>
-
           </Grid>
         </Grid>
       </Box>

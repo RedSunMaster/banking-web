@@ -8,17 +8,31 @@ import { Login } from './pages/login';
 import { Transactions } from './pages/transactions';
 import { Home } from './pages/home'
 import checkIsLoggedIn from './auth/auth';
-import TransactionItem from './types/Transaction';
-import CategoryItem from './types/CategoryItem';
-import BalanceItem from './types/BalanceItem';
 import UserItem from './types/UserItem';
 import { Navigate } from "react-router-dom";
-
 import {
   createTheme,
   ThemeProvider
 } from "@mui/material/styles";
 import { Dashboard } from './pages/dashboard';
+import { fetchTransactions, fetchBalances, fetchCategories, fetchUser } from './utils/DatabaseInformation';
+import BalanceItem from './types/BalanceItem';
+import CategoryItem from './types/CategoryItem';
+import TransactionItem from './types/Transaction';
+import { DatabaseInformationProvider } from './utils/DatabaseInformation';
+
+
+const emptyUserItem: UserItem = {
+  fName: "",
+  lName: "",
+  authToken: "",
+  userId: 0,
+  email: "",
+  phone: "",
+};
+
+
+
 
 const themeOptions = createTheme({
   typography: {
@@ -41,6 +55,17 @@ const themeOptions = createTheme({
 function App() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [databaseInformation, setDatabaseInformation] = React.useState<{
+    transactions: TransactionItem[];
+    balances: BalanceItem[];
+    categories: CategoryItem[];
+    user: UserItem;
+  }>({
+    transactions: [],
+    balances: [],
+    categories: [],
+    user: emptyUserItem,
+  });
 
   React.useEffect(() => {
     checkIsLoggedIn().then((result) => {
@@ -49,27 +74,74 @@ function App() {
     });
   }, []);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  React.useEffect(() => {
+    if (isLoggedIn) {
+      const fetchData = async () => {
+        const transactions = await fetchTransactions();
+        const balances = await fetchBalances();
+        const categories = await fetchCategories();
+        const user = await fetchUser();
+
+        if (balances && transactions && categories && user) {
+          setDatabaseInformation({
+            transactions,
+            balances,
+            categories,
+            user,
+          });
+        }
+      };
+      fetchData();
+    }
+  }, [isLoggedIn]);
+
+  // Check if the databaseInformation state is undefined
+
 
   return (
     <div>
       <Router>
         <ThemeProvider theme={themeOptions}>
           <NavBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-            <div className='content'>
+          <div className="content">
             <Routes>
-            <Route path="/" element={isLoggedIn ? (<Home />) : (<Navigate to="/login" />)}/>
-            <Route path="/dashboard" element={isLoggedIn ? (<Dashboard />) : (<Navigate to="/login" />)}  />
-            <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
-            <Route path="/money-owed" element={<></>} />
+              <Route
+                path="/"
+                element={isLoggedIn ? <Home /> : <Navigate to="/login" />}
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  isLoggedIn ? (
+                    <DatabaseInformationProvider>
+                      <Dashboard />
+                    </DatabaseInformationProvider>
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
+              <Route
+                path="/login"
+                element={<Login setIsLoggedIn={setIsLoggedIn} />}
+              />
+              <Route
+                path="/transactions"
+                element={
+                  isLoggedIn ? (
+                    <DatabaseInformationProvider>
+                    <Transactions />
+                    </DatabaseInformationProvider>
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
             </Routes>
-            </div>
-          </ThemeProvider>
-        </Router>
-      </div>
-    
+          </div>
+        </ThemeProvider>
+      </Router>
+    </div>
   );
 }
 
