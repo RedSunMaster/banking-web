@@ -548,7 +548,7 @@ export const Transactions = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={2}>
+          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={0}>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
           <Card elevation={4}>
               <CardContent>

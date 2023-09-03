@@ -13,7 +13,7 @@ import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import format from 'date-fns/format';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Modal, Fade, Theme, Button, FormControl,Switch, IconButton, InputAdornment, InputLabel, OutlinedInput, Select, MenuItem, SelectChangeEvent, Alert, Snackbar } from '@mui/material';
+import { Modal, Fade, Theme, Button, FormControl,Switch, IconButton, InputAdornment, InputLabel, OutlinedInput, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, Divider } from '@mui/material';
 import { VisibilityOff, Visibility, Transcribe } from '@mui/icons-material';
 import dayjs, { Dayjs } from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -27,8 +27,13 @@ import { AutoSizer, List } from 'react-virtualized';
 import TransactionItem from '../types/Transaction';
 import BalanceItem from '../types/BalanceItem';
 import Masonry from '@mui/lab/Masonry';
-
-
+import OwedItem from '../types/OwedItem';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 
 
 interface TransactionGroup {
@@ -66,8 +71,12 @@ export const MoneyOwed = () => {
     const [inputAmount, setAmount] = React.useState(0)
     const [person, setPerson] = React.useState('')
     const [inputDate, setDate] = React.useState<Dayjs | null>(dayjs())
-    const [filterTransactions, setFilterTransactions] = React.useState<TransactionItem[]>([])
-    const [filterBalance, setFilterBalance] = React.useState<BalanceItem>()
+    const [payedItems, setPayedItems] = React.useState<OwedItem[]>([])
+    const [notPayedItems, setNotPayedItems] = React.useState<OwedItem[]>([])
+
+
+    const [payedTab, setPayedTab] = React.useState(false)
+
 
     const [newCategory, setNewCategory] = React.useState('')
     const [newDescription, setNewDescription] = React.useState('')
@@ -77,28 +86,39 @@ export const MoneyOwed = () => {
     const [OwedItemId, setOwedItemId] = React.useState(0)
 
 
+
+    
+    function renderRow(props: ListChildComponentProps) {
+      const { index, style } = props;
+      const item = payedItems[index];
+    
+      return (
+        <ListItem style={style} key={item?.ID} sx={{ display: 'flex' }}
+        secondaryAction={
+          <IconButton edge="end" aria-label="payed">
+            <CloseIcon />
+          </IconButton>
+        }
+        >
+          <ListItemButton >
+            <ListItemText primary={item?.Person} secondary={item?.Description} />
+            <Box sx={{ flexGrow: 1 }} />
+            <Typography align="right" variant="body2">
+              ${item?.Amount}
+            </Typography>
+          </ListItemButton>
+        </ListItem>
+      );
+    }
     
     React.useEffect(() => {
       if (databaseInformation) {
-        if (filterCategory == "") {
-          setFilterCategory(databaseInformation.categories[0].categoryName)
-          setCategory(databaseInformation.categories[0].categoryName)
-          setFilterBalance(databaseInformation.balances.find((balance) => balance.Category === databaseInformation.categories[0].categoryName))
-          setFilterTransactions(
-            databaseInformation?.transactions.filter(
-              (transaction) => transaction.Category === databaseInformation.categories[0].categoryName
-            )
-          );
-        } else {
-            setFilterTransactions(
-              databaseInformation?.transactions.filter(
-                (transaction) => transaction.Category === filterCategory
-              )
-            );
-            setFilterBalance(databaseInformation.balances.find((balance) => balance.Category === filterCategory))
+        setNotPayedItems(databaseInformation.owedItems.filter((owedItem) => (owedItem.Payed == false)))
+        setPayedItems(databaseInformation.owedItems.filter((owedItem) => (owedItem.Payed == true)))
+      } else {
 
-          }
       }
+        
     }, [databaseInformation]);
 
     const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -113,10 +133,11 @@ export const MoneyOwed = () => {
       return <div>Loading...</div>;
     }
 
-    const notPayedItems = databaseInformation.owedItems.filter((owedItem) => (owedItem.bpayed == false))
     console.log(notPayedItems)
 
-
+    const handleSwitchTab = () => {
+      setPayedTab(!payedTab)
+    }
 
     const handleAddOwedItem = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
@@ -148,7 +169,29 @@ export const MoneyOwed = () => {
         setOpenAlert(true);
       };
 
+      const totalOwed = notPayedItems.reduce(
+        (sum, owedItem) => sum + owedItem.Amount,
+        0
+      );
 
+    const notPayedItemsGrouped = notPayedItems.reduce((acc, owedItem) => {
+        const person = owedItem.Person
+        if (!acc[person]) acc[person] = [];
+        acc[person].push(owedItem);
+        return acc;
+      }, {} as Record<string, OwedItem[]>);
+
+      const totalPayed = payedItems.reduce(
+        (sum, owedItem) => sum + owedItem.Amount,
+        0
+      );
+
+    const payedItemsGrouped = payedItems.reduce((acc, owedItem) => {
+        const person = owedItem.Person
+        if (!acc[person]) acc[person] = [];
+        acc[person].push(owedItem);
+        return acc;
+      }, {} as Record<string, OwedItem[]>);
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -238,7 +281,7 @@ export const MoneyOwed = () => {
         </Snackbar>
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
-            <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column', backgroundColor: filterBalance?.Colour + '40'}}>
+            <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
               <CardContent>
               <Grid container direction="column" width='100%'>
                   <Grid>
@@ -247,22 +290,103 @@ export const MoneyOwed = () => {
                   </Typography>
                   </Grid>
                   <Grid>
+                    <Button variant="contained" sx={{float: 'right'}} onClick={handleSwitchTab}>{!payedTab ? `Payed Tab` : `Not Payed Tab`}</Button>
+                  </Grid>
+                  <Grid>
                   <Typography variant="h6">
-                    Total Money Owed: <b>{filterTransactions.length}</b>
+                    {!payedTab
+                      ? `Total Money Owed: $${totalOwed.toFixed(2)}`
+                      : `Total Money Payed: $${totalPayed.toFixed(2)}`}
                   </Typography>
+
                   </Grid>
                 </Grid>
               </CardContent>
             </Card>
           </Grid>
-          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={2}>
-          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
-          <Card elevation={4}>
-              <CardContent>
-              </CardContent>
-            </Card>
-          </Grid>
-          </Masonry>
+          {payedTab ? (
+            <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={0}>
+                <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
+                  <Grid>
+                    <Card elevation={4} sx={{height:300}}>
+                      <CardContent sx={{height:'100%'}}>
+                        <AutoSizer>
+                          {({height, width}) => (
+                              <FixedSizeList
+                                width={width}
+                                height={height}
+                                itemSize={75}
+                                itemCount={payedItems.length}
+                                overscanCount={5}
+                              >
+                              {renderRow}
+                            </FixedSizeList>
+                          )}
+                      </AutoSizer>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+                </Masonry>
+          ) : (
+            <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={0}>
+              {Object.entries(notPayedItemsGrouped).map(([person, owedItems]) => (
+                <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
+                  <Card elevation={4}>
+                    <CardContent>
+                      <Accordion sx={{ width: '100%' }}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                          <Typography align="center" variant="body2" width={'100%'}>
+                            <b>{person}</b>
+                          </Typography>
+                        </AccordionSummary>
+                        <AccordionDetails style={{ height: 300 }}>
+                          <AutoSizer>
+                            {({ height, width }) => (
+                              <FixedSizeList
+                                width={width}
+                                height={height}
+                                itemSize={75}
+                                itemCount={owedItems.length}
+                                overscanCount={5}
+                              >
+                                {({ index, style }) => {
+                                  const item = owedItems[index];
+                                  return (
+                                    <ListItem
+                                      style={style}
+                                      key={item?.ID}
+                                      sx={{ display: 'flex' }}
+                                      secondaryAction={
+                                        <IconButton edge="end" aria-label="payed">
+                                          <CheckIcon />
+                                        </IconButton>
+                                      }
+                                    >
+                                      <ListItemButton>
+                                        <ListItemText
+                                          primary={item?.Description}
+                                          secondary={item?.['Days Elapsed'] + ' Days'}
+                                        />
+                                        <Box sx={{ flexGrow: 1 }} />
+                                        <Typography align="right" variant="body2">
+                                          ${item?.Amount}
+                                        </Typography>
+                                      </ListItemButton>
+                                    </ListItem>
+                                  );
+                                }}
+                              </FixedSizeList>
+                            )}
+                          </AutoSizer>
+                        </AccordionDetails>
+                      </Accordion>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Masonry>
+          )}
         </Grid>
       </Box>
   );

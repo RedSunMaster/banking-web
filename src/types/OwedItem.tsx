@@ -1,15 +1,15 @@
 import { NumberLiteralType } from "typescript";
 
 interface OwedItem {
-    owedId: number;
+    ID: number;
     userId: number;
-    person: string;
-    amount: number;
-    category: string;
-    description: string;
-    date: Date;
-    daysElapsed: number;
-    bpayed: boolean
+    Person: string;
+    Amount: number;
+    Category: string;
+    Description: string;
+    Date: Date;
+    "Days Elapsed": number;
+    Payed: boolean
   }
 
 export default OwedItem

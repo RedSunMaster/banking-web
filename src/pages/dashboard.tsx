@@ -24,9 +24,9 @@ export const Dashboard = () => {
 
   const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
 
-  if (!databaseInformation) {
-    return <div>Loading...</div>;
-  }
+
+
+
 
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
   const oneDay = 24 * 60 * 60 * 1000;
@@ -34,6 +34,15 @@ export const Dashboard = () => {
   const dayOfWeek = today.getDay() || 7; // getDay returns 0 for Sunday, so we use 7 instead
   const startOfWeek = new Date(today.getTime() - (dayOfWeek - 1) * oneDay);
   const startOfLastWeek = new Date(startOfWeek.getTime() - 7 * oneDay);
+
+
+
+    
+  if (!databaseInformation) {
+    return <div>Loading...</div>;
+  }
+
+
 
   const filteredTransactions = databaseInformation.transactions.filter(
     (transaction) =>
@@ -131,10 +140,6 @@ export const Dashboard = () => {
       (sum, balance) => sum + balance.Amount,
       0
     );
-    const moneySpentCurrentWeek = groupedWeekTransactions['This Week'].reduce(
-      (sum, transaction) => sum + Math.abs(transaction.Amount),
-      0
-    );
 
 
 
@@ -164,7 +169,7 @@ export const Dashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={2}>
+          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={0}>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
             <Card elevation={4} >
               <CardContent>

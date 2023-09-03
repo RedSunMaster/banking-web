@@ -108,7 +108,7 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
                 {pages.map((page) => (
                   <MenuItem key={page.name} onClick={() => {
                     handleCloseNavMenu();
-                    navigate(page.name)
+                    navigate(page.destination)
                   }}>
                     <Typography textAlign="center">{page.name}</Typography>
                   </MenuItem>
@@ -139,7 +139,7 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
                 key={page.name}
                 onClick={() => {
                   handleCloseNavMenu();
-                  navigate(page.name)
+                  navigate(page.destination)
                 }}
                 sx={{ my: 2, color: 'white', display: 'block' }}
               >
