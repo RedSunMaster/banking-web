@@ -20,6 +20,7 @@ import BalanceItem from './types/BalanceItem';
 import CategoryItem from './types/CategoryItem';
 import TransactionItem from './types/Transaction';
 import { DatabaseInformationProvider } from './utils/DatabaseInformation';
+import MoneyOwed from './pages/money-owed';
 
 
 const emptyUserItem: UserItem = {
@@ -131,6 +132,18 @@ function App() {
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
                     <Transactions />
+                    </DatabaseInformationProvider>
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
+              <Route
+                path="/owed"
+                element={
+                  isLoggedIn ? (
+                    <DatabaseInformationProvider>
+                    <MoneyOwed />
                     </DatabaseInformationProvider>
                   ) : (
                     <Navigate to="/login" />

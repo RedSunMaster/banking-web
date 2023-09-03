@@ -4,13 +4,18 @@
 
 *{
     font-family: 'Poppins', sans-serif;
+
 }
 .pageTitle {
   text-align: center;
 }
 
+.select {
+  overflow-x: hidden;
+}
+
 .content {
-    margin:3%;
+    margin:10px;
 }
 
 /* Create a top navigation bar with a black background color  */

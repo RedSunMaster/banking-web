@@ -5,6 +5,7 @@ import TransactionItem from "../types/Transaction";
 import UserItem from "../types/UserItem";
 import Cookies from "js-cookie";
 import React from 'react';
+import OwedItem from "../types/OwedItem";
 
 interface DatabaseInformationProviderProps {
     children: React.ReactNode;
@@ -62,6 +63,23 @@ const fetchTransactions = async () => {
       return null;
     }
   };
+
+    
+  const fetchOwedItems = async () => {
+    try {
+      const authToken = Cookies.get('authToken');
+      const response = await axios.get<OwedItem[]>('/api/moneyOwed', {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status !== 200) {
+        return null;
+      }
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  };
   
   const fetchUser = async () => {
     try {
@@ -83,6 +101,7 @@ interface DatabaseInformation {
   transactions: TransactionItem[];
   balances: BalanceItem[];
   categories: CategoryItem[];
+  owedItems: OwedItem[];
   user: UserItem;
 }
 
@@ -94,12 +113,14 @@ export const getDatabaseInformation = async () => {
       const balances = await fetchBalances();
       const categories = await fetchCategories();
       const user = await fetchUser();
+      const owedItems = await fetchOwedItems();
   
-      if (balances && transactions && categories && user) {
+      if (balances && transactions && categories && user && owedItems) {
         databaseInformation = {
           transactions,
           balances,
           categories,
+          owedItems,
           user,
         };
       } else {

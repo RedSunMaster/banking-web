@@ -12,7 +12,9 @@ import BalanceItem from '../types/BalanceItem';
 import CategoryItem from '../types/CategoryItem';
 import UserItem from '../types/UserItem';
 import Marquee from "react-fast-marquee";
+import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
+import { List, ListItem, ListItemText } from '@mui/material';
 
 
 
@@ -58,11 +60,13 @@ export const Dashboard = () => {
     }
     return acc;
   }, {} as Record<string, TransactionItem[]>);
+
+  const balances = [...databaseInformation.balances];
   
   const pieChartData = {
     series: [
       {
-        data: databaseInformation.balances.sort((a, b) => a.Amount - b.Amount).map((balance) => ({
+        data: balances.sort((a, b) => a.Amount - b.Amount).map((balance) => ({
           id: balance.Category,
           value: balance.Amount,
           color: balance.Colour,
@@ -136,8 +140,8 @@ export const Dashboard = () => {
 
     return (
       <Box sx={{ flexGrow: 1 }}>
-        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12 }}>
-          <Grid xs={2} sm={8} md={12}>
+        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
+          <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
               <CardContent>
               <Grid container direction="column" width='100%'>
@@ -152,7 +156,7 @@ export const Dashboard = () => {
                   <Grid>
                     <Marquee pauseOnHover={true} autoFill={true}>
                       <Typography variant='h5' alignItems='center'>
-                      {databaseInformation.balances.map((balance) => (<b style={{color: balance.Colour,lineHeight: '50px',border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', float: 'left', width:'150px', backgroundColor: balance.Colour + '40', textAlign: 'center'}}>${balance.Amount.toFixed(2)}</b>))}
+                      {databaseInformation.balances.map((balance) => (<b style={{lineHeight: '50px',border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', float: 'left', width:'150px', backgroundColor: balance.Colour + '40', textAlign: 'center'}}>${balance.Amount.toFixed(2)}</b>))}
                       </Typography>
                     </Marquee>
                   </Grid>
@@ -160,7 +164,28 @@ export const Dashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={2} sm={4} md={4}>
+          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={2}>
+          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
+            <Card elevation={4} >
+              <CardContent>
+              <List sx={{width:'100%'}}>
+                {databaseInformation.balances.map((balance) => (
+                  <Box sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}>
+                    <ListItem>
+                      <ListItemText primary={balance.Category.toUpperCase()}/>
+                      <Box sx={{ flexGrow: 1 }} />
+                      <Typography align="right" variant="body2">
+                        {<b>${balance?.Amount}</b>}
+                      </Typography>
+                    </ListItem>
+                  </Box>
+                ))}
+              </List>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
             <Card elevation={4}>
               <CardContent>
                   <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
@@ -168,13 +193,13 @@ export const Dashboard = () => {
                   </Typography>
                   <PieChart 
                     series={pieChartData.series} 
-                    height={300} 
+                    height={400} 
                     width={500} 
                     />
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={2} sm={4} md={4}>
+          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
             <Card elevation={4}>
               <CardContent>
                   <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
@@ -182,7 +207,7 @@ export const Dashboard = () => {
                   </Typography>
                 <LineChart
                   series={lineSeries}
-                  height={300}
+                  height={400}
                   width={500}
                   xAxis={[{
                     data: months,
@@ -193,13 +218,13 @@ export const Dashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={2} sm={4} md={4}>
+          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
           <Card elevation={4}>
           <CardContent>
               <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                 Weekly Spending Comparison
               </Typography>
-              <BarChart width={600} height={300} series={barSeries}
+              <BarChart width={600} height={400} series={barSeries} 
                 xAxis={[
                   {
                     data: categories.map((category) => category.categoryName.slice(0, 5)),
@@ -212,6 +237,7 @@ export const Dashboard = () => {
             </CardContent>
           </Card>
           </Grid>
+          </Masonry>
         </Grid>
       </Box>
     );    

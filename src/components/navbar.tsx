@@ -22,7 +22,7 @@ import Cookies from 'js-cookie';
 const pages = [
   { name: 'Dashboard', destination: '/dashboard' },
   { name: 'Transactions', destination: '/transactions' },
-  { name: 'Money Owed', destination: '/money-owed' },
+  { name: 'Money Owed', destination: '/owed' },
 ];
 const settings = [
   { name: 'Account', destination: '/account' },
@@ -70,137 +70,135 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
   };
 
 
+  if (isLoggedIn) {
   return (
-    <>
-      {isLoggedIn && (
-        <AppBar position="static">
-          <Container maxWidth="xl">
-            <Toolbar disableGutters>
-              <AttachMoneyIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
-              <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-                <IconButton
-                  size="large"
-                  aria-label="account of current user"
-                  aria-controls="menu-appbar"
-                  aria-haspopup="true"
-                  onClick={handleOpenNavMenu}
-                  color="inherit"
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Menu
-                  id="menu-appbar"
-                  anchorEl={anchorElNav}
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left',
-                  }}
-                  open={Boolean(anchorElNav)}
-                  onClose={handleCloseNavMenu}
-                  sx={{
-                    display: { xs: 'block', md: 'none' },
-                  }}
-                >
-                  {pages.map((page) => (
-                    <MenuItem key={page.name} onClick={() => {
-                      handleCloseNavMenu();
-                      navigate(page.name)
-                    }}>
-                      <Typography textAlign="center">{page.name}</Typography>
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </Box>
-              <AttachMoneyIcon sx={{ display: { xs: 'flex', md: 'none',  }, mr: 1 }} />
-              <Typography
-                variant="h5"
-                noWrap
-                component="a"
-                href="/"
+      <AppBar position="static">
+        <Container maxWidth={false}>
+          <Toolbar disableGutters>
+            <AttachMoneyIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+            <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+              <IconButton
+                size="large"
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleOpenNavMenu}
+                color="inherit"
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorElNav}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+                open={Boolean(anchorElNav)}
+                onClose={handleCloseNavMenu}
                 sx={{
-                  mr: 2,
-                  display: { xs: 'flex', md: 'none' },
-                  flexGrow: 1,
-                  fontFamily: 'monospace',
-                  fontWeight: 700,
-                  letterSpacing: '.3rem',
-                  color: 'inherit',
-                  textDecoration: 'none',
+                  display: { xs: 'block', md: 'none' },
                 }}
               >
-              </Typography>
-              <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-              {pages.map((page) => (
-                <Button
-                  key={page.name}
-                  onClick={() => {
+                {pages.map((page) => (
+                  <MenuItem key={page.name} onClick={() => {
                     handleCloseNavMenu();
                     navigate(page.name)
-                  }}
-                  sx={{ my: 2, color: 'white', display: 'block' }}
-                >
-                  {page.name}
-                </Button>
-              ))}
+                  }}>
+                    <Typography textAlign="center">{page.name}</Typography>
+                  </MenuItem>
+                ))}
+              </Menu>
             </Box>
-              <Box sx={{ flexGrow: 0 }}>
-                <Tooltip title="Open settings">
-                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  sx={{ mt: '45px' }}
-                  id="menu-appbar"
-                  anchorEl={anchorElUser}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(anchorElUser)}
-                  onClose={handleCloseUserMenu}
-                >
-                  <MenuItem key={"Account"} onClick={() => {
-                    handleCloseUserMenu();
-                    navigate('/account')
-                  }}>
-                    <Typography textAlign="center">{"Account"}</Typography>
-                  </MenuItem>
-                  <MenuItem key={"Logout"} onClick={() => {
-                    handleCloseUserMenu();
-                    logoutUser();
-
-                  }}>
-                    <Typography textAlign="center">{"Logout"}</Typography>
-                  </MenuItem>
-                </Menu>
-              </Box>
-            </Toolbar>
-          </Container>
-        </AppBar>
-      )}
-      {!isLoggedIn && (
-        <AppBar position="static">
-          <Toolbar>
-            <Typography>
-                McNut Banking
+            <AttachMoneyIcon sx={{ display: { xs: 'flex', md: 'none',  }, mr: 1 }} />
+            <Typography
+              variant="h5"
+              noWrap
+              component="a"
+              href="/"
+              sx={{
+                mr: 2,
+                display: { xs: 'flex', md: 'none' },
+                flexGrow: 1,
+                fontFamily: 'monospace',
+                fontWeight: 700,
+                letterSpacing: '.3rem',
+                color: 'inherit',
+                textDecoration: 'none',
+              }}
+            >
             </Typography>
-            <Divider sx={{ flexGrow: 1 }}></Divider>
-            </Toolbar>
-        </AppBar>
-      )}
-    </>
-  );
+            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+            {pages.map((page) => (
+              <Button
+                key={page.name}
+                onClick={() => {
+                  handleCloseNavMenu();
+                  navigate(page.name)
+                }}
+                sx={{ my: 2, color: 'white', display: 'block' }}
+              >
+                {page.name}
+              </Button>
+            ))}
+          </Box>
+            <Box sx={{ flexGrow: 0 }}>
+              <Tooltip title="Open settings">
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                </IconButton>
+              </Tooltip>
+              <Menu
+                sx={{ mt: '45px' }}
+                id="menu-appbar"
+                anchorEl={anchorElUser}
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
+              >
+                <MenuItem key={"Account"} onClick={() => {
+                  handleCloseUserMenu();
+                  navigate('/account')
+                }}>
+                  <Typography textAlign="center">{"Account"}</Typography>
+                </MenuItem>
+                <MenuItem key={"Logout"} onClick={() => {
+                  handleCloseUserMenu();
+                  logoutUser();
+
+                }}>
+                  <Typography textAlign="center">{"Logout"}</Typography>
+                </MenuItem>
+              </Menu>
+            </Box>
+          </Toolbar>
+        </Container>
+      </AppBar>
+    )} else {
+    return (
+      <AppBar position="static">
+        <Toolbar>
+          <Typography>
+              McNut Banking
+          </Typography>
+          <Divider sx={{ flexGrow: 1 }}></Divider>
+          </Toolbar>
+      </AppBar>
+    )};
+  return(<div></div>)
 }
 
 export default NavBar
