@@ -15,6 +15,10 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { Button } from '@mui/material';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 
 interface LoginProps {
   setIsLoggedIn: (value: boolean) => void;
@@ -22,8 +26,19 @@ interface LoginProps {
 
 export function Login({setIsLoggedIn}: LoginProps) {
   const [email, setEmail] = useState('');
+  const [fName, setfName] = useState('');
+  const [lName, setlName] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  const [value, setValue] = React.useState('1');
+
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setValue(newValue);
+  };
+
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -44,44 +59,158 @@ export function Login({setIsLoggedIn}: LoginProps) {
       console.error(error);
     }
   };
+
+  const handleRegister = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    try {
+      if (password == confirmPassword) {
+        const response = await axios.post('/api/register', { email, password });
+        Cookies.set('authToken', response.data);
+        setIsLoggedIn(true)
+        navigate('/dashboard')
+      }
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
   
 
   return (
     <Box justifyContent="center" sx={{ display: 'flex', flexWrap: 'wrap' }}>
-      
-      <div>
-        <h2 className='pageTitle'>Login</h2>
-        <FormControl fullWidth variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-email">Email</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-email"
-            label="Email"
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-password"
-            type={showPassword ? 'text' : 'password'}
-            onChange={(event) => setPassword(event.target.value)}
-            endAdornment={
-              <InputAdornment position="end">
-                <IconButton
-                  aria-label="toggle password visibility"
-                  onClick={handleClickShowPassword}
-                  onMouseDown={handleMouseDownPassword}
-                  edge="end"
-                >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            }
-            label="Password"
-          />
-        </FormControl>
-        <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleSubmit}>Login</Button>
-    </div>
+      <TabContext value={value}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <TabList onChange={handleChange} aria-label="lab API tabs example">
+              <Tab label="Login" value="1" />
+              <Tab label="Register" value="2" />
+            </TabList>
+          </Box>
+          <TabPanel value="1">
+          <div>
+            <h2 className='pageTitle'>Login</h2>
+            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-email">Email</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-email"
+                label="Email"
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-password"
+                type={showPassword ? 'text' : 'password'}
+                onChange={(event) => setPassword(event.target.value)}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                }
+                label="Password"
+              />
+            </FormControl>
+            <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleSubmit}>Login</Button>
+          </div>
+          </TabPanel>
+          <TabPanel value="2">
+          <div>
+            <h2 className='pageTitle'>Register</h2>
+            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-fName">First Name</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-fName"
+                label="First Name"
+                type="text"
+                onChange={(event) => setfName(event.target.value)}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-lName">Last Name</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-lNmae"
+                label="Last Name"
+                type="text"
+                onChange={(event) => setlName(event.target.value)}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-email">Email</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-email"
+                label="Email"
+                type="email"
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-phone">Phone</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-phone"
+                label="Phone"
+                type="number"
+                onChange={(event) => setPhone(event.target.value)}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-password"
+                type={showPassword ? 'text' : 'password'}
+                onChange={(event) => setPassword(event.target.value)}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                }
+                label="Password"
+                inputProps={{
+                  autoComplete: 'new-password',
+                }}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+            <InputLabel htmlFor="outlined-adornment-confirm-password">Confirm Password</InputLabel>
+            <OutlinedInput
+              id="outlined-adornment-confirm-password"
+              type={showPassword ? 'text' : 'password'}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              endAdornment={
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              }
+              label="Confirm Password"
+              inputProps={{
+                autoComplete: '',
+              }}
+            />
+          </FormControl>
+            <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleRegister}>Register</Button>
+          </div>
+          </TabPanel>
+      </TabContext>
     </Box>
   );
 };
