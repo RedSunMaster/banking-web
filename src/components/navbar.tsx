@@ -27,7 +27,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-
+import SavingsIcon from '@mui/icons-material/Savings';
 
 const drawerWidth = 240;
 
@@ -40,6 +40,7 @@ const pages = [
   { name: 'Dashboard', destination: '/dashboard', icon: <DashboardIcon /> },
   { name: 'Transactions', destination: '/transactions', icon: <AddShoppingCartIcon /> },
   { name: 'Money Owed', destination: '/owed', icon: <ReceiptLongIcon /> },
+  { name: 'Budget', destination: '/budget', icon: <SavingsIcon /> },
 ];
 
 const settings = [

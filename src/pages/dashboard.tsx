@@ -256,7 +256,7 @@ export const Dashboard = () => {
 
 
     return (
-      <Box sx={{ flexGrow: 1, overflow:'hidden' }}>
+      <Box sx={{ flexGrow: 1 }}>
       <Fab
         color="primary"
         aria-label="add"

@@ -22,6 +22,8 @@ import TransactionItem from './types/Transaction';
 import { DatabaseInformationProvider } from './utils/DatabaseInformation';
 import MoneyOwed from './pages/money-owed';
 import { Account } from './pages/account';
+import { Budget } from './pages/budget';
+
 
 
 const emptyUserItem: UserItem = {
@@ -165,6 +167,18 @@ function McNutBanking() {
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
                     <Account />
+                    </DatabaseInformationProvider>
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
+              <Route
+                path="/budget"
+                element={
+                  isLoggedIn ? (
+                    <DatabaseInformationProvider>
+                    <Budget />
                     </DatabaseInformationProvider>
                   ) : (
                     <Navigate to="/login" />
