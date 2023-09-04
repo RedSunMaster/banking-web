@@ -21,6 +21,7 @@ import CategoryItem from './types/CategoryItem';
 import TransactionItem from './types/Transaction';
 import { DatabaseInformationProvider } from './utils/DatabaseInformation';
 import MoneyOwed from './pages/money-owed';
+import { Account } from './pages/account';
 
 
 const emptyUserItem: UserItem = {
@@ -53,7 +54,7 @@ const themeOptions = createTheme({
   },
 });
 
-function App() {
+function McNutBanking() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
   const [databaseInformation, setDatabaseInformation] = React.useState<{
@@ -98,6 +99,9 @@ function App() {
 
   // Check if the databaseInformation state is undefined
 
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <div>
@@ -108,7 +112,12 @@ function App() {
             <Routes>
               <Route
                 path="/"
-                element={isLoggedIn ? <Home /> : <Navigate to="/login" />}
+                element={isLoggedIn ? 
+                (
+                <DatabaseInformationProvider>
+                  <Dashboard />
+                </DatabaseInformationProvider>
+                 ): (<Navigate to="/login" />)}
               />
               <Route
                 path="/dashboard"
@@ -150,6 +159,18 @@ function App() {
                   )
                 }
               />
+              <Route
+                path="/account"
+                element={
+                  isLoggedIn ? (
+                    <DatabaseInformationProvider>
+                    <Account />
+                    </DatabaseInformationProvider>
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
             </Routes>
           </div>
         </ThemeProvider>
@@ -158,4 +179,4 @@ function App() {
   );
 }
 
-export default App;
+export default McNutBanking;

@@ -87,6 +87,7 @@ export const MoneyOwed = () => {
     const [OwedItemId, setOwedItemId] = React.useState(0)
 
     React.useEffect(() => {
+      try {
       if (databaseInformation) {
         if (databaseInformation.owedItems.length != 0) {
           if (filterPerson == "") {
@@ -106,6 +107,9 @@ export const MoneyOwed = () => {
           setNotPayedItems(databaseInformation.owedItems.filter((owedItem) => (owedItem.Payed == false)))
           setPayedItems(databaseInformation.owedItems.filter((owedItem) => (owedItem.Payed == true)))
       }
+    }}
+    catch (error) {
+      console.log("No Items")
     }
     }, [databaseInformation]);
 
@@ -184,114 +188,6 @@ export const MoneyOwed = () => {
         
     if (!databaseInformation) {
       return <div>Loading...</div>;
-    } else {
-      if (databaseInformation.owedItems.length === 0) {
-        return (
-          <Box sx={{ flexGrow: 1 }}>
-          <Fab
-            color="primary"
-            aria-label="add"
-            size='large'
-            onClick={handleOpen}
-            sx={{ position: 'fixed', bottom: 32, right: 32}}
-          >
-            <AddIcon />
-          </Fab>
-          <Modal
-            aria-labelledby="transition-modal-title"
-            aria-describedby="transition-modal-description"
-            open={open}
-            onClose={handleClose}
-            closeAfterTransition
-          >
-            <Fade in={open}>
-              <Box sx={style}>
-              <h2 className='pageTitle'>Add Transaction</h2>
-              <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Date"
-                  defaultValue={inputDate}
-                  onChange={(newValue: Dayjs | null) => {
-                    setDate(newValue);
-                  }}
-                />
-              </LocalizationProvider>
-              </FormControl>
-            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-              <InputLabel htmlFor="outlined-adornment-category">Category</InputLabel>
-              <Select
-                label="Category"
-                className='select'
-                value={category}
-                onChange={(event: SelectChangeEvent<string>) => {setCategory(event.target.value as string)}}
-                inputProps={{
-                  name: 'category',
-                  id: 'outlined-adornment-category',
-                }}>
-                {databaseInformation.categories.map((category) => (
-                  <MenuItem key={category.categoryId} value={category.categoryName}>
-                    {category.categoryName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-              <InputLabel htmlFor="outlined-adornment-person">Person</InputLabel>
-              <OutlinedInput
-                id="outlined-adornment-person"
-                type="text"
-                label="Person"
-                value={person}
-                onChange={(event) => setPerson(event.target.value)}
-              />
-            </FormControl>
-            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-              <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
-              <OutlinedInput
-                id="outlined-adornment-amount"
-                label="Amount"
-                type='number'
-                onChange={(event) => setAmount(Number(event.target.value))}
-              />
-            </FormControl>
-            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-              <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
-              <OutlinedInput
-                id="outlined-adornment-description"
-                label="Description"
-                type='text'
-                onChange={(event) => setDescription(event.target.value)}
-              />
-            </FormControl>
-            <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddOwedItem}>Add</Button>
-              </Box>
-            </Fade>
-          </Modal>
-            <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
-            <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
-              {postMsg}
-            </Alert>
-            </Snackbar>
-            <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
-          <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
-            <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
-              <CardContent>
-              <Grid container direction="column" width='100%'>
-                  <Grid>
-                  <Typography variant="h5" style={{ fontWeight: 'bold' }}>
-                     Please Add An Item To Continue
-                  </Typography>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-          </Grid>
-        </Box>
-        )
-
-      }
     }
 
     function renderAllRow(props: ListChildComponentProps) {
@@ -583,62 +479,63 @@ export const MoneyOwed = () => {
             <Typography variant="h6">
               You don't have any payed items yet.
             </Typography>
-          )) : (
+          )) : ( notPayedItems.length != 0 ? (
             <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={0}>
-                <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
-                  <Card elevation={4}>
-                    <CardContent>
-                      <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-                    <InputLabel htmlFor="outlined-adornment-filter">Filter Person</InputLabel>
-                    <Select
-                      label="Filter Person"
-                      className='select'
-                      value={filterPerson}
-                      onChange={(event: SelectChangeEvent<string>) => {
-                        const newPerson = event.target.value as string;
-                        setFilterPerson(newPerson);
-                        setPerson(newPerson);
-                        setfilterPersonItems(
-                          notPayedItems.filter(
-                            (item) => item.Person === newPerson
-                          )
-                        );
-                      }}
-                      inputProps={{
-                        name: 'person',
-                        id: 'outlined-adornment-person',
-                      }}
-                    >
-                      {[...people].map((person) => (
-                        <MenuItem key={person} value={person}>
-                          {person}
-                        </MenuItem>
-                      ))}
-
-                    </Select>
-                  </FormControl>
+              <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
+                <Card elevation={4}>
+                  <CardContent>
+                    <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+                      <InputLabel htmlFor="outlined-adornment-filter">
+                        Filter Person
+                      </InputLabel>
+                      <Select
+                        label="Filter Person"
+                        className="select"
+                        value={filterPerson}
+                        onChange={(event: SelectChangeEvent<string>) => {
+                          const newPerson = event.target.value as string;
+                          setFilterPerson(newPerson);
+                          setPerson(newPerson);
+                          setfilterPersonItems(
+                            notPayedItems.filter((item) => item.Person === newPerson)
+                          );
+                        }}
+                        inputProps={{
+                          name: "person",
+                          id: "outlined-adornment-person",
+                        }}
+                      >
+                        {[...people].map((person) => (
+                          <MenuItem key={person} value={person}>
+                            {person}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </CardContent>
-                  </Card>
-                  <Card elevation={4} sx={{height:300}}>
-                    <CardContent sx={{height:'100%'}}>
-                      <AutoSizer>
-                        {({height, width}) => (
-                            <FixedSizeList
-                              width={width}
-                              height={height}
-                              itemSize={75}
-                              itemCount={filterPersonItems.length}
-                              overscanCount={5}
-                            >
-                            {renderRow}
-                          </FixedSizeList>
-                        )}
+                </Card>
+                <Card elevation={4} sx={{ height: 300 }}>
+                  <CardContent sx={{ height: "100%" }}>
+                    <AutoSizer>
+                      {({ height, width }) => (
+                        <FixedSizeList
+                          width={width}
+                          height={height}
+                          itemSize={75}
+                          itemCount={filterPersonItems.length}
+                          overscanCount={5}
+                        >
+                          {renderRow}
+                        </FixedSizeList>
+                      )}
                     </AutoSizer>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
             </Masonry>
-          )}
+          ) : (
+            <Typography variant="h6">You don't have any owed items yet.</Typography>
+          ))}         
         </Grid>
 
       </Box>

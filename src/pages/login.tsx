@@ -53,7 +53,7 @@ export function Login({setIsLoggedIn}: LoginProps) {
     event.preventDefault();
     try {
       const response = await axios.post('/api/login', { email, password });
-      Cookies.set('authToken', response.data);
+      Cookies.set('authToken', response.data, {expires: 7});
       setIsLoggedIn(true)
       navigate('/dashboard')
     } catch (error) {
@@ -64,12 +64,10 @@ export function Login({setIsLoggedIn}: LoginProps) {
   const handleRegister = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     try {
-      if (password == confirmPassword) {
-        const response = await axios.post('/api/register', { fName, lName, email, phone, password });
-        Cookies.set('authToken', response.data);
-        setIsLoggedIn(true)
-        navigate('/dashboard')
-      }
+      const response = await axios.post('/api/register', { fName, lName, email, phone, password });
+      Cookies.set('authToken', response.data);
+      setIsLoggedIn(true)
+      navigate('/dashboard')
 
     } catch (error) {
       console.error(error);
@@ -131,6 +129,9 @@ export function Login({setIsLoggedIn}: LoginProps) {
                 id="outlined-adornment-fName"
                 label="First Name"
                 type="text"
+                inputProps={{
+                  autoComplete: 'name given-name',
+                }}
                 onChange={(event) => setfName(event.target.value)}
               />
             </FormControl>
@@ -140,6 +141,9 @@ export function Login({setIsLoggedIn}: LoginProps) {
                 id="outlined-adornment-lNmae"
                 label="Last Name"
                 type="text"
+                inputProps={{
+                  autoComplete: 'name family-name',
+                }}
                 onChange={(event) => setlName(event.target.value)}
               />
             </FormControl>
@@ -149,6 +153,9 @@ export function Login({setIsLoggedIn}: LoginProps) {
                 id="outlined-adornment-email"
                 label="Email"
                 type="email"
+                inputProps={{
+                  autoComplete: 'username',
+                }}
                 onChange={(event) => setEmail(event.target.value)}
               />
             </FormControl>
@@ -158,6 +165,9 @@ export function Login({setIsLoggedIn}: LoginProps) {
                 id="outlined-adornment-phone"
                 label="Phone"
                 type="number"
+                inputProps={{
+                  autoComplete: 'phone',
+                }}
                 onChange={(event) => setPhone(event.target.value)}
               />
             </FormControl>
@@ -185,30 +195,6 @@ export function Login({setIsLoggedIn}: LoginProps) {
                 }}
               />
             </FormControl>
-            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-            <InputLabel htmlFor="outlined-adornment-confirm-password">Confirm Password</InputLabel>
-            <OutlinedInput
-              id="outlined-adornment-confirm-password"
-              type={showPassword ? 'text' : 'password'}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleClickShowPassword}
-                    onMouseDown={handleMouseDownPassword}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              }
-              label="Confirm Password"
-              inputProps={{
-                autoComplete: '',
-              }}
-            />
-          </FormControl>
             <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleRegister}>Register</Button>
           </div>
           </TabPanel>

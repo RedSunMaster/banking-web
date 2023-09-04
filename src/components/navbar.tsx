@@ -1,59 +1,65 @@
 import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
+import {
+  AppBar,
+  Box,
+  Button,
+  Container,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Toolbar,
+  Typography,
+  Avatar,
+  ListItemIcon,
+  ListItemButton,
+} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
-import AdbIcon from '@mui/icons-material/Adb';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import { useNavigate } from 'react-router-dom';
-import checkIsLoggedIn from '../auth/auth';
-import { Divider } from '@mui/material';
-import axios from 'axios';
+import { createStyles, makeStyles, Theme, useTheme } from '@mui/material/styles'; // Correct import here
 import Cookies from 'js-cookie';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { Logout } from '@mui/icons-material';
 
-const pages = [
-  { name: 'Dashboard', destination: '/dashboard' },
-  { name: 'Transactions', destination: '/transactions' },
-  { name: 'Money Owed', destination: '/owed' },
-];
-const settings = [
-  { name: 'Account', destination: '/account' },
-  { name: 'Logout', destination: '/logout' },
-];
+const drawerWidth = 240;
 
 interface NavBarProps {
   isLoggedIn: boolean;
   setIsLoggedIn: (value: boolean) => void;
 }
 
+const pages = [
+  { name: 'Dashboard', destination: '/dashboard' },
+  { name: 'Transactions', destination: '/transactions' },
+  { name: 'Money Owed', destination: '/owed' },
+];
+
+const settings = [
+  { name: 'Account', destination: '/account' },
+  { name: 'Logout', destination: '/logout' },
+];
+
 function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
+  const theme = useTheme(); // This line automatically gets the current theme object
 
   const navigate = useNavigate();
 
+  const [leftDrawerOpen, setLeftDrawerOpen] = React.useState(false);
+  const [rightDrawerOpen, setRightDrawerOpen] = React.useState(false);
+
+  const handleToggleDrawer = (drawer: 'left' | 'right') => {
+    if (drawer === 'left') {
+      setLeftDrawerOpen(!leftDrawerOpen);
+    } else if (drawer === 'right') {
+      setRightDrawerOpen(!rightDrawerOpen);
+    }
+  };
+  
 
   const logoutUser = async () => {
     try {
@@ -62,60 +68,39 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       Cookies.remove('authToken');
-      setIsLoggedIn(false)
+      setIsLoggedIn(false);
       navigate('/login');
     } catch (error) {
       console.error(error);
     }
   };
 
-
-  if (isLoggedIn) {
   return (
-      <AppBar position="static">
+    <div style={{ display: 'flex', overflow:'hidden'}}>
+      <AppBar position="static" sx={{ zIndex: theme.zIndex.drawer + 1, overflow:'hidden' }}>
         <Container maxWidth={false}>
-          <Toolbar disableGutters>
-            <AttachMoneyIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
-            <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+          <Toolbar>
+            <AttachMoneyIcon
+              sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }}
+            />
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: { xs: 'flex', md: 'none' },
+                overflow:'hidden'
+              }}
+            >
               <IconButton
                 size="large"
                 aria-label="account of current user"
                 aria-controls="menu-appbar"
                 aria-haspopup="true"
-                onClick={handleOpenNavMenu}
+                onClick={() => handleToggleDrawer('left')} // Open the left drawer
                 color="inherit"
               >
                 <MenuIcon />
               </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorElNav}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'left',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'left',
-                }}
-                open={Boolean(anchorElNav)}
-                onClose={handleCloseNavMenu}
-                sx={{
-                  display: { xs: 'block', md: 'none' },
-                }}
-              >
-                {pages.map((page) => (
-                  <MenuItem key={page.name} onClick={() => {
-                    handleCloseNavMenu();
-                    navigate(page.destination)
-                  }}>
-                    <Typography textAlign="center">{page.name}</Typography>
-                  </MenuItem>
-                ))}
-              </Menu>
             </Box>
-            <AttachMoneyIcon sx={{ display: { xs: 'flex', md: 'none',  }, mr: 1 }} />
             <Typography
               variant="h5"
               noWrap
@@ -132,73 +117,110 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
                 textDecoration: 'none',
               }}
             >
+              {/* Your app title */}
             </Typography>
             <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Button
-                key={page.name}
-                onClick={() => {
-                  handleCloseNavMenu();
-                  navigate(page.destination)
-                }}
-                sx={{ my: 2, color: 'white', display: 'block' }}
-              >
-                {page.name}
-              </Button>
-            ))}
-          </Box>
+              {pages.map((page) => (
+                <Button
+                  key={page.name}
+                  onClick={() => {
+                    navigate(page.destination);
+                  }}
+                  sx={{ my: 2, color: 'white', display: 'block' }}
+                >
+                  {page.name}
+                </Button>
+              ))}
+            </Box>
             <Box sx={{ flexGrow: 0 }}>
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                sx={{ mt: '45px' }}
-                id="menu-appbar"
-                anchorEl={anchorElUser}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(anchorElUser)}
-                onClose={handleCloseUserMenu}
-              >
-                <MenuItem key={"Account"} onClick={() => {
-                  handleCloseUserMenu();
-                  navigate('/account')
-                }}>
-                  <Typography textAlign="center">{"Account"}</Typography>
-                </MenuItem>
-                <MenuItem key={"Logout"} onClick={() => {
-                  handleCloseUserMenu();
-                  logoutUser();
-
-                }}>
-                  <Typography textAlign="center">{"Logout"}</Typography>
-                </MenuItem>
-              </Menu>
+              <Avatar
+                alt="Remy Sharp"
+                src="/static/images/avatar/2.jpg"
+                onClick={() => handleToggleDrawer('right')} // Open the right drawer
+              />
             </Box>
           </Toolbar>
         </Container>
       </AppBar>
-    )} else {
-    return (
-      <AppBar position="static">
-        <Toolbar>
-          <Typography>
-              McNut Banking
-          </Typography>
-          <Divider sx={{ flexGrow: 1 }}></Divider>
-          </Toolbar>
-      </AppBar>
-    )};
-  return(<div></div>)
+            <Drawer
+        variant="temporary"
+        anchor="left"
+        open={leftDrawerOpen}
+        onClose={() => handleToggleDrawer('left')}
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          zIndex: theme.zIndex.drawer + 2,
+          overflow:'hidden'
+        }}
+      >
+        {/* Content for the Left Drawer */}
+        <List>
+          {pages.map((page) => (
+            <ListItem
+              key={page.name}
+              onClick={() => {
+                handleToggleDrawer('left');
+                navigate(page.destination);
+              }}
+              button
+            >
+              <ListItemText primary={page.name} />
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
+
+      {isLoggedIn && (
+        <Drawer
+          variant="temporary"
+          anchor="right"
+          open={rightDrawerOpen}
+          onClose={() => handleToggleDrawer('right')}
+          sx={{
+            width: drawerWidth,
+            flexShrink: 0,
+            zIndex: theme.zIndex.drawer + 2,
+          }}
+        >
+          <div style={{ padding: '16px' }}>
+            <Typography variant="h5" gutterBottom>
+              McNut Budgeting Settings
+            </Typography>
+            <Divider />
+            <List>
+              {settings.map((setting, index) => {
+                return (
+                  <div key={setting.name}>
+                    {index !== 0 && <Divider />} {/* Add a divider if not the first item */}
+                    <ListItemButton>
+                    <ListItem
+                      onClick={() => {
+                        handleToggleDrawer('right');
+                        if (setting.name === 'Logout') {
+                          logoutUser();
+                        } else {
+                          navigate(setting.destination);
+                        }
+                      } }
+                    >
+                      {/* You can replace the following icon with your desired Material-UI icon */}
+                      <ListItemIcon>
+                        {setting.name === 'Account' ? <AccountCircleIcon /> : <Logout />}
+                      </ListItemIcon>
+                      <ListItemText primary={setting.name} />
+                    </ListItem>
+                    </ListItemButton>
+                  </div>
+                );
+              })}
+            </List>
+          </div>
+        </Drawer>
+
+      )}
+    </div>
+  );
 }
 
-export default NavBar
+export default NavBar;

@@ -40,9 +40,6 @@ const style = (theme: Theme) => ({
 });
 
 export const Dashboard = () => {
-
-
-
   const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
   const [open, setOpen] = React.useState(false);
   const [openCategory, setOpenCategory] = React.useState(false);
@@ -259,7 +256,7 @@ export const Dashboard = () => {
 
 
     return (
-      <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ flexGrow: 1, overflow:'hidden' }}>
       <Fab
         color="primary"
         aria-label="add"
@@ -402,11 +399,6 @@ export const Dashboard = () => {
                   <Typography variant="h6">
                     Total Balance <b style={{color: 'green'}}>${totalBalance.toFixed(2)}</b>
                   </Typography>
-                  </Grid>
-                  <Grid>
-                      <Typography variant='h5' alignItems='center'>
-                      {databaseInformation.balances.map((balance) => (<b style={{lineHeight: '50px',border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', float: 'left', width:'150px', backgroundColor: balance.Colour + '40', textAlign: 'center'}}>${balance.Amount.toFixed(2)}</b>))}
-                      </Typography>
                   </Grid>
                 </Grid>
               </CardContent>
