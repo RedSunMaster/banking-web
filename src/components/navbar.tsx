@@ -24,7 +24,10 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { Logout } from '@mui/icons-material';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+
 
 const drawerWidth = 240;
 
@@ -34,14 +37,14 @@ interface NavBarProps {
 }
 
 const pages = [
-  { name: 'Dashboard', destination: '/dashboard' },
-  { name: 'Transactions', destination: '/transactions' },
-  { name: 'Money Owed', destination: '/owed' },
+  { name: 'Dashboard', destination: '/dashboard', icon: <DashboardIcon /> },
+  { name: 'Transactions', destination: '/transactions', icon: <AddShoppingCartIcon /> },
+  { name: 'Money Owed', destination: '/owed', icon: <ReceiptLongIcon /> },
 ];
 
 const settings = [
-  { name: 'Account', destination: '/account' },
-  { name: 'Logout', destination: '/logout' },
+  { name: 'Account', destination: '/account', icon: <AccountCircleIcon /> },
+  { name: 'Logout', destination: '/logout', icon: <LogoutIcon /> },
 ];
 
 function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
@@ -76,8 +79,8 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
   };
 
   return (
-    <div style={{ display: 'flex', overflow:'hidden'}}>
-      <AppBar position="static" sx={{ zIndex: theme.zIndex.drawer + 1, overflow:'hidden' }}>
+    <div style={{ display: 'flex'}}>
+      <AppBar position="static" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
         <Container maxWidth={false}>
           <Toolbar>
             <AttachMoneyIcon
@@ -87,7 +90,6 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
               sx={{
                 flexGrow: 1,
                 display: { xs: 'flex', md: 'none' },
-                overflow:'hidden'
               }}
             >
               <IconButton
@@ -145,30 +147,45 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
             <Drawer
         variant="temporary"
         anchor="left"
+        className='test'
         open={leftDrawerOpen}
+        disableScrollLock={ true }
         onClose={() => handleToggleDrawer('left')}
         sx={{
           width: drawerWidth,
           flexShrink: 0,
           zIndex: theme.zIndex.drawer + 2,
-          overflow:'hidden'
         }}
       >
-        {/* Content for the Left Drawer */}
+      <div style={{ padding: '16px' }}>
+        <Typography variant="h5" gutterBottom>
+          Navigation
+        </Typography>
+        <Divider />
         <List>
-          {pages.map((page) => (
-            <ListItem
-              key={page.name}
-              onClick={() => {
-                handleToggleDrawer('left');
-                navigate(page.destination);
-              }}
-              button
-            >
-              <ListItemText primary={page.name} />
-            </ListItem>
-          ))}
+          {pages.map((page, index) => {
+                return (
+                  <div key={page.name}>
+                    {index !== 0 && <Divider />} {/* Add a divider if not the first item */}
+                    <ListItemButton>
+                    <ListItem
+                      onClick={() => {
+                        handleToggleDrawer('left');
+                        navigate(page.destination)
+                      } }
+                    >
+                      {/* You can replace the following icon with your desired Material-UI icon */}
+                      <ListItemIcon>
+                        {page.icon}
+                      </ListItemIcon>
+                      <ListItemText primary={page.name} />
+                    </ListItem>
+                    </ListItemButton>
+                  </div>
+                );
+              })}
         </List>
+        </div>
       </Drawer>
 
       {isLoggedIn && (
@@ -176,6 +193,8 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
           variant="temporary"
           anchor="right"
           open={rightDrawerOpen}
+          className='test'
+          disableScrollLock={ true }
           onClose={() => handleToggleDrawer('right')}
           sx={{
             width: drawerWidth,
@@ -185,7 +204,7 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
         >
           <div style={{ padding: '16px' }}>
             <Typography variant="h5" gutterBottom>
-              McNut Budgeting Settings
+              Settings
             </Typography>
             <Divider />
             <List>
@@ -204,9 +223,8 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
                         }
                       } }
                     >
-                      {/* You can replace the following icon with your desired Material-UI icon */}
                       <ListItemIcon>
-                        {setting.name === 'Account' ? <AccountCircleIcon /> : <Logout />}
+                        {setting.icon}
                       </ListItemIcon>
                       <ListItemText primary={setting.name} />
                     </ListItem>

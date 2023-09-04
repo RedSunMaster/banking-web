@@ -280,6 +280,7 @@ export const Dashboard = () => {
         aria-describedby="transition-modal-description"
         open={open}
         onClose={handleClose}
+        disableScrollLock={ true }
         closeAfterTransition
       >
         <Fade in={open}>
@@ -359,6 +360,7 @@ export const Dashboard = () => {
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
             open={openCategory}
+            disableScrollLock={ true }
             onClose={handleCloseCategory}
             closeAfterTransition
           >
