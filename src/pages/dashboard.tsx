@@ -15,6 +15,8 @@ import Marquee from "react-fast-marquee";
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 import { List, ListItem, ListItemText } from '@mui/material';
+import { AutoSizer } from 'react-virtualized';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -23,6 +25,7 @@ import { List, ListItem, ListItemText } from '@mui/material';
 export const Dashboard = () => {
 
   const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
+  const navigate = useNavigate();
 
 
 
@@ -82,7 +85,7 @@ export const Dashboard = () => {
           label: balance.Category
         })),
         innerRadius: 75,
-        outerRadius: 150,
+        outerRadius: 125,
         paddingAngle: 5,
         cornerRadius: 5,
         startAngle: -180,
@@ -176,7 +179,11 @@ export const Dashboard = () => {
               <List sx={{width:'100%'}}>
                 {databaseInformation.balances.map((balance) => (
                   <Box sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}>
-                    <ListItem>
+                  <ListItem
+                          onClick={(event: React.MouseEvent<HTMLLIElement>) =>
+                            navigate(`/transactions?category=${balance.Category}`)
+                          }
+                        >                      
                       <ListItemText primary={balance.Category.toUpperCase()}/>
                       <Box sx={{ flexGrow: 1 }} />
                       <Typography align="right" variant="body2">
@@ -191,45 +198,53 @@ export const Dashboard = () => {
           </Grid>
 
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
-            <Card elevation={4}>
-              <CardContent>
+              <Card elevation={4} sx={{height:400}} >
+                    <CardContent sx={{height:'100%'}}>
                   <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                     Balances Distribution
                   </Typography>
+                  <AutoSizer>
+                      {({height, width}) => (
                   <PieChart 
                     series={pieChartData.series} 
-                    height={400} 
-                    width={500} 
-                    />
+                    height={height} 
+                    width={width} 
+                    />)}
+                    </AutoSizer>
               </CardContent>
             </Card>
           </Grid>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
-            <Card elevation={4}>
-              <CardContent>
+                <Card elevation={4} sx={{height:400}} >
+                    <CardContent sx={{height:'100%'}}>
                   <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                     Monthly Spending
                   </Typography>
-                <LineChart
-                  series={lineSeries}
-                  height={400}
-                  width={500}
-                  xAxis={[{
-                    data: months,
-                    scaleType: 'band',
+                  <AutoSizer>
+                      {({height, width}) => (
+                      <LineChart
+                        series={lineSeries}
+                        height={height-20}
+                        width={width}
+                        xAxis={[{
+                          data: months,
+                          scaleType: 'band',
 
-                  }]}
-                   ></LineChart>
+                        }]}
+                   ></LineChart> )}
+                   </AutoSizer>
               </CardContent>
             </Card>
           </Grid>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
-          <Card elevation={4}>
-          <CardContent>
+          <Card elevation={4} sx={{height:400}} >
+                    <CardContent sx={{height:'100%'}}>
               <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                 Weekly Spending Comparison
               </Typography>
-              <BarChart width={600} height={400} series={barSeries} 
+              <AutoSizer>
+                      {({height, width}) => (
+              <BarChart width={width} height={height-30} series={barSeries} 
                 xAxis={[
                   {
                     data: categories.map((category) => category.categoryName.slice(0, 5)),
@@ -238,7 +253,8 @@ export const Dashboard = () => {
                     label: 'Category',
                   },
                 ]}
-              />
+              />)}
+              </AutoSizer>
             </CardContent>
           </Card>
           </Grid>

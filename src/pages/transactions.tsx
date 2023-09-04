@@ -27,6 +27,7 @@ import { AutoSizer, List } from 'react-virtualized';
 import TransactionItem from '../types/Transaction';
 import BalanceItem from '../types/BalanceItem';
 import Masonry from '@mui/lab/Masonry';
+import { url } from 'inspector';
 
 
 
@@ -85,19 +86,29 @@ export const Transactions = () => {
     const [newInputDate, setNewDate] = React.useState<Dayjs | null>(dayjs())
     const [transactionId, setTransactionId] = React.useState(0)
 
-
-    
     React.useEffect(() => {
       if (databaseInformation) {
         if (filterCategory == "") {
-          setFilterCategory(databaseInformation.categories[0].categoryName)
-          setCategory(databaseInformation.categories[0].categoryName)
-          setFilterBalance(databaseInformation.balances.find((balance) => balance.Category === databaseInformation.categories[0].categoryName))
-          setFilterTransactions(
-            databaseInformation?.transactions.filter(
-              (transaction) => transaction.Category === databaseInformation.categories[0].categoryName
-            )
-          );
+          const urlParams = new URLSearchParams(window.location.search);
+          const category = urlParams.get('category');
+          if (category) {
+            setFilterCategory(category);
+            setCategory(category)
+            setFilterBalance(databaseInformation.balances.find((balance) => balance.Category === category))
+            setFilterTransactions(
+              databaseInformation?.transactions.filter(
+                (transaction) => transaction.Category === category)
+              )
+          } else {
+            setFilterCategory(databaseInformation.categories[0].categoryName)
+            setCategory(databaseInformation.categories[0].categoryName)
+            setFilterBalance(databaseInformation.balances.find((balance) => balance.Category === databaseInformation.categories[0].categoryName))
+            setFilterTransactions(
+              databaseInformation?.transactions.filter(
+                (transaction) => transaction.Category === databaseInformation.categories[0].categoryName
+              )
+            );
+          }
         } else {
             setFilterTransactions(
               databaseInformation?.transactions.filter(
@@ -282,7 +293,7 @@ export const Transactions = () => {
     const filteredTransactionsLineChart = filterTransactions.filter(
       (transaction) =>
         transaction.Amount < 0 &&
-        !transaction.Description.includes("Balance") &&
+        !transaction.Description.includes("Balancing") &&
         !transaction.Description.includes("Trans")
     );
 
@@ -548,8 +559,8 @@ export const Transactions = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={0}>
-          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
+          <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
+          <Grid xs={2} sm={2} md={4} lg={8} xl={6}>
           <Card elevation={4}>
               <CardContent>
                 <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
@@ -601,26 +612,30 @@ export const Transactions = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={2} sm={4} md={4} lg={8} xl={6}> 
-            <Card elevation={4}>
-              <CardContent>
+          <Grid xs={2} sm={2} md={4} lg={8} xl={6}> 
+          <Card elevation={4} sx={{height:300}}>
+              <CardContent sx={{height:'100%'}}>
+                
                   <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                     Monthly {filterCategory} Spending
                   </Typography>
+                  <AutoSizer>
+                  {({height, width}) => (
                 <LineChart
                   series={lineSeries}
-                  height={400}
-                  width={500}
+                  height={height}
+                  width={width}
                   xAxis={[{
                     data: months,
                     scaleType: 'band',
 
                   }]}
-                   ></LineChart>
+                   ></LineChart>)}
+                   </AutoSizer>
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={2} sm={4} md={4} lg={8} xl={6}> 
+          <Grid xs={2} sm={2} md={4} lg={8} xl={6}> 
             <Card elevation={4} sx={{height:400}}>
             <CardContent sx={{height:'100%'}}>
                 <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>

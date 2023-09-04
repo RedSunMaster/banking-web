@@ -64,7 +64,7 @@ export function Login({setIsLoggedIn}: LoginProps) {
     event.preventDefault();
     try {
       if (password == confirmPassword) {
-        const response = await axios.post('/api/register', { email, password });
+        const response = await axios.post('/api/register', { fName, lName, email, phone, password });
         Cookies.set('authToken', response.data);
         setIsLoggedIn(true)
         navigate('/dashboard')
@@ -77,10 +77,10 @@ export function Login({setIsLoggedIn}: LoginProps) {
   
 
   return (
-    <Box justifyContent="center" sx={{ display: 'flex', flexWrap: 'wrap' }}>
-      <TabContext value={value}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <TabList onChange={handleChange} aria-label="lab API tabs example">
+    <Box justifyContent="center" sx={{ display: 'flex', flexDirection: 'column'}}>
+      <TabContext value={value} >
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', alignContent:'center', display:'flex', width:'100%' }}>
+            <TabList onChange={handleChange} >
               <Tab label="Login" value="1" />
               <Tab label="Register" value="2" />
             </TabList>
