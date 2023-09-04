@@ -19,6 +19,7 @@ import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
+import { isTemplateSpan } from 'typescript';
 
 interface LoginProps {
   setIsLoggedIn: (value: boolean) => void;
@@ -79,13 +80,14 @@ export function Login({setIsLoggedIn}: LoginProps) {
   return (
     <Box justifyContent="center" sx={{ display: 'flex', flexDirection: 'column'}}>
       <TabContext value={value} >
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', alignContent:'center', display:'flex', width:'100%' }}>
-            <TabList onChange={handleChange} >
-              <Tab label="Login" value="1" />
-              <Tab label="Register" value="2" />
-            </TabList>
-          </Box>
-          <TabPanel value="1">
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'center', width: '100%' }}>
+        <TabList onChange={handleChange}>
+          <Tab label="Login" value="1" />
+          <Tab label="Register" value="2" />
+        </TabList>
+        </Box>
+
+          <TabPanel value="1" >
           <div>
             <h2 className='pageTitle'>Login</h2>
             <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">

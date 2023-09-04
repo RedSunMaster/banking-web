@@ -28,7 +28,8 @@ import TransactionItem from '../types/Transaction';
 import BalanceItem from '../types/BalanceItem';
 import Masonry from '@mui/lab/Masonry';
 import { url } from 'inspector';
-
+import CategoryIcon from '@mui/icons-material/Category';
+import { SketchPicker } from 'react-color'
 
 
 
@@ -36,7 +37,6 @@ interface TransactionGroup {
   lastMonth: number;
   currentMonth: number;
 }
-
 
 const style = (theme: Theme) => ({
   position: 'absolute',
@@ -53,8 +53,11 @@ const style = (theme: Theme) => ({
 export const Transactions = () => {
     const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
+    const [openCategory, setOpenCategory] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
     const handleOpen = () => setOpen(true);
+    const handleOpenCategory = () => setOpenCategory(true);
+    const handleCloseCategory = () => setOpenCategory(false);
     const handleClose = () => setOpen(false);
     const handleEdit = () => setEdit(true);
     const handleCloseEdit = () => setEdit(false);
@@ -74,6 +77,9 @@ export const Transactions = () => {
     const [description, setDescription] = React.useState('')
     const [amount, setAmount] = React.useState(0)
     const [trans_type, setTransaction] = React.useState('Withdraw')
+    const [colour, setColour] = React.useState('')
+    const [categoryName, setCategoryName] = React.useState('')
+
     const [inputDate, setDate] = React.useState<Dayjs | null>(dayjs())
     const [filterTransactions, setFilterTransactions] = React.useState<TransactionItem[]>([])
     const [filterBalance, setFilterBalance] = React.useState<BalanceItem>()
@@ -88,6 +94,7 @@ export const Transactions = () => {
 
     React.useEffect(() => {
       if (databaseInformation) {
+        if (databaseInformation.transactions.length != 0) {
         if (filterCategory == "") {
           const urlParams = new URLSearchParams(window.location.search);
           const category = urlParams.get('category');
@@ -119,6 +126,7 @@ export const Transactions = () => {
 
           }
       }
+    }
     }, [databaseInformation]);
 
 
@@ -157,7 +165,34 @@ export const Transactions = () => {
           setOpen(false);
           setUpdateValues(true);
         } else {
-          setPostMsg("Error" + response.statusText);
+          setPostMsg("Error" + response.data);
+        }
+      } catch (error) {
+        setPostMsg("Error: " + error);
+        console.error(error);
+      }
+      setOpenAlert(true);
+    };
+
+    const handleAddCategory = async (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      try {
+        const authToken = Cookies.get("authToken");
+        const data = {
+          "categoryName": categoryName,
+          "colour": colour,
+        };
+        console.log("Request body:", data);
+    
+        const response = await axios.post("/api/categories", data, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (response.status === 200) {
+          setPostMsg("Successfully Added Category");
+          setOpenCategory(false);
+          setUpdateValues(true);
+        } else {
+          setPostMsg("Error" + response.data);
         }
       } catch (error) {
         setPostMsg("Error: " + error);
@@ -194,7 +229,7 @@ export const Transactions = () => {
           setEdit(false);
           setUpdateValues(true);
         } else {
-          setPostMsg("Error" + response.statusText);
+          setPostMsg("Error" + response.data);
         }
       } catch (error) {
         setPostMsg("Error: " + error);
@@ -235,6 +270,243 @@ export const Transactions = () => {
 
     if (!databaseInformation) {
       return <div>Loading...</div>;
+    } else {
+      if (databaseInformation.transactions.length === 0) {
+        return (
+          <Box sx={{ flexGrow: 1 }}>
+          <Fab
+            color="primary"
+            aria-label="add"
+            size='large'
+            onClick={handleOpen}
+            sx={{ position: 'fixed', bottom: 32, right: 32}}
+          >
+            <AddIcon />
+          </Fab>
+          <Fab
+            color="primary"
+            aria-label="add_category"
+            size='large'
+            onClick={handleOpenCategory}
+            sx={{ position: 'fixed', bottom: 32, right: 96}}
+          >
+            <CategoryIcon />
+          </Fab>
+          <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open}
+            onClose={handleClose}
+            closeAfterTransition
+          >
+            <Fade in={open}>
+              <Box sx={style}>
+              <h2 className='pageTitle'>Add Transaction</h2>
+              <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Date"
+                  defaultValue={inputDate}
+                  onChange={(newValue: Dayjs | null) => {
+                    setDate(newValue);
+                  }}
+                />
+              </LocalizationProvider>
+              </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-category">Category</InputLabel>
+              <Select
+                label="Category"
+                className='select'
+                value={category}
+                onChange={(event: SelectChangeEvent<string>) => {setCategory(event.target.value as string)}}
+                inputProps={{
+                  name: 'category',
+                  id: 'outlined-adornment-category',
+                }}>
+                {databaseInformation.categories.map((category) => (
+                  <MenuItem key={category.categoryId} value={category.categoryName}>
+                    {category.categoryName}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <OutlinedInput
+                id="outlined-adornment-transaction"
+                type="text"
+                readOnly={true}
+                value={trans_type}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <Switch
+                      checked={trans_type === 'Deposit'}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setTransaction(event.target.checked ? 'Deposit' : 'Withdraw');
+                      }}
+                      inputProps={{ 'aria-label': 'Transaction type' }}
+                    />
+                  </InputAdornment>
+                }
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-amount"
+                label="Amount"
+                type='number'
+                onChange={(event) => setAmount(Number(event.target.value))}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-description"
+                label="Description"
+                type='text'
+                onChange={(event) => setDescription(event.target.value)}
+              />
+            </FormControl>
+            <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddTransaction}>Add</Button>
+              </Box>
+            </Fade>
+          </Modal>
+          <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={edit}
+            onClose={handleCloseEdit}
+            closeAfterTransition
+          >
+            <Fade in={edit}>
+              <Box sx={style}>
+              <h2 className='pageTitle'>Edit Transaction</h2>
+              <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Date"
+                  defaultValue={newInputDate}
+                  onChange={(newValue: Dayjs | null) => {
+                    setNewDate(newValue);
+                  }}
+                />
+              </LocalizationProvider>
+              </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-category">Category</InputLabel>
+              <Select
+                label="Category"
+                className='select'
+                value={newCategory}
+                onChange={(event: SelectChangeEvent<string>) => {setNewCategory(event.target.value as string)}}
+                inputProps={{
+                  name: 'category',
+                  id: 'outlined-adornment-category',
+                }}>
+                {databaseInformation.categories.map((category) => (
+                  <MenuItem key={category.categoryId} value={category.categoryName}>
+                    {category.categoryName}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <OutlinedInput
+                id="outlined-adornment-transaction"
+                type="text"
+                readOnly={true}
+                value={newTrans_type}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <Switch
+                      checked={trans_type === 'Deposit'}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setNewTransaction(event.target.checked ? 'Deposit' : 'Withdraw');
+                      }}
+                      inputProps={{ 'aria-label': 'Transaction type' }}
+                    />
+                  </InputAdornment>
+                }
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-amount"
+                label="Amount"
+                type='number'
+                value={newAmount}
+                onChange={(event) => setNewAmount(Number(event.target.value))}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-description"
+                label="Description"
+                type='text'
+                value={newDescription}
+                onChange={(event) => setNewDescription(event.target.value)}
+              />
+            </FormControl>
+            <Box display={'flex'} flexDirection={'row'}>        
+              <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 1, marginRight: 2}} onClick={handleDeleteTransaction}>Delete</Button>
+              <Button variant="contained" color="success" fullWidth sx={{ marginTop: 1}} onClick={handleUpdateTransaction}>Update</Button>
+            </Box>
+              </Box>
+            </Fade>
+          </Modal>
+          <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={openCategory}
+            onClose={handleCloseCategory}
+            closeAfterTransition
+          >
+            <Fade in={openCategory}>
+              <Box sx={style}>
+              <h2 className='pageTitle'>Add Category</h2>
+              <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-description">Category Name</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-description"
+                label="Category Name"
+                type='text'
+                value={categoryName}
+                onChange={(event) => setCategoryName(event.target.value)}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <SketchPicker color={colour} onChange={(color: { hex: React.SetStateAction<string>; }) => setColour(color.hex)} />
+            </FormControl>
+            <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddCategory}>Add</Button>
+              </Box>
+            </Fade>
+          </Modal>
+            <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
+            <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
+              {postMsg}
+            </Alert>
+            </Snackbar>
+            <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
+              <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
+                <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column', backgroundColor: filterBalance?.Colour + '40'}}>
+                  <CardContent>
+                  <Grid container direction="column" width='100%'>
+                      <Grid>
+                      <Typography variant="h5" style={{ fontWeight: 'bold' }}>
+                        Please Add A Category and Transaction To Continue
+                      </Typography>
+                      </Grid>
+                    </Grid>
+                    </CardContent>
+                 </Card>
+              </Grid>
+            </Grid>
+          </Box>
+        )
+      }
     }
 
 
@@ -363,6 +635,15 @@ export const Transactions = () => {
       >
         <AddIcon />
       </Fab>
+      <Fab
+            color="primary"
+            aria-label="add_category"
+            size='large'
+            onClick={handleOpenCategory}
+            sx={{ position: 'fixed', bottom: 32, right: 96}}
+          >
+            <CategoryIcon />
+          </Fab>
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
@@ -529,6 +810,33 @@ export const Transactions = () => {
 
           </Box>
         </Fade>
+      </Modal>
+      <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={openCategory}
+            onClose={handleCloseCategory}
+            closeAfterTransition
+          >
+            <Fade in={openCategory}>
+              <Box sx={style}>
+              <h2 className='pageTitle'>Add Category</h2>
+              <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <InputLabel htmlFor="outlined-adornment-description">Category Name</InputLabel>
+              <OutlinedInput
+                id="outlined-adornment-description"
+                label="Category Name"
+                type='text'
+                value={categoryName}
+                onChange={(event) => setCategoryName(event.target.value)}
+              />
+            </FormControl>
+            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+              <SketchPicker color={colour} onChange={(color: { hex: React.SetStateAction<string>; }) => setColour(color.hex)} />
+            </FormControl>
+            <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddCategory}>Add</Button>
+              </Box>
+            </Fade>
       </Modal>
         <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
         <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
