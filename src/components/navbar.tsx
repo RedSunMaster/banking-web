@@ -40,7 +40,7 @@ const pages = [
   { name: 'Dashboard', destination: '/dashboard', icon: <DashboardIcon /> },
   { name: 'Transactions', destination: '/transactions', icon: <AddShoppingCartIcon /> },
   { name: 'Money Owed', destination: '/owed', icon: <ReceiptLongIcon /> },
-  { name: 'Budget', destination: '/budget', icon: <SavingsIcon /> },
+  { name: 'Budget / Transfer', destination: '/budget', icon: <SavingsIcon /> },
 ];
 
 const settings = [

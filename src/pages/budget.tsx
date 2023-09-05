@@ -205,7 +205,7 @@ export const Budget = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 2 }} spacing={0}>
+          <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 2 }} spacing={0}>
           <Grid xs={2} sm={4} md={6} lg={8} xl={10}>
             <Card elevation={4} >
               <CardContent>
@@ -232,16 +232,16 @@ export const Budget = () => {
                     </ListItem>
                   </Box>
                 ))}
-              <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleDistributeBudget}>Distribute Budget</Button>
+              <Button variant="contained" fullWidth sx={{ marginTop: 1, height:50}} onClick={handleDistributeBudget}>Distribute Budget</Button>
 
               </List>
 
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={2} sm={4} md={6} lg={8} xl={10}>
+          <Grid xs={2} sm={4} md={6} lg={8} xl={10} >
             <Card elevation={4} >
-              <CardContent>
+              <CardContent sx={{display:'flex', flexDirection:'column'}}>
               <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
               <InputLabel htmlFor="outlined-adornment-category">From</InputLabel>
               <Select
@@ -279,6 +279,18 @@ export const Budget = () => {
                 ))}
               </Select>
             </FormControl>
+            <FormControl fullWidth sx={{marginTop: 1}}>
+                      <InputLabel htmlFor="outlined-adornment-fName">Transfer Amount</InputLabel>
+                      <OutlinedInput
+                        id="outlined-adornment-lNmae"
+                        label="Transfer Amount"
+                        type="number"
+                        onChange={(event) => setTransferAmount(Number(event.target.value))}
+                      />
+
+                      </FormControl>
+              <Button variant="contained"  fullWidth sx={{ marginTop: 1, height:50}} onClick={handleTransfer}>Transfer</Button>
+
               </CardContent>
             </Card>
           </Grid>

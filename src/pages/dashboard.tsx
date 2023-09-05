@@ -27,17 +27,6 @@ import CategoryIcon from '@mui/icons-material/Category';
 import AddIcon from '@mui/icons-material/Add';
 
 
-const style = (theme: Theme) => ({
-  position: 'fixed',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '50%',
-  borderRadius: '12px',
-  padding: '16px 32px 24px 32px',
-  backgroundColor: theme.palette.mode === 'dark' ? '#0A1929' : 'white',
-  boxShadow: 16,
-});
 
 export const Dashboard = () => {
   const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
@@ -284,7 +273,7 @@ export const Dashboard = () => {
         closeAfterTransition
       >
         <Fade in={open}>
-          <Box sx={style}>
+          <Box className={'modal'}>
           <h2 className='pageTitle'>Add Transaction</h2>
           <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -365,7 +354,7 @@ export const Dashboard = () => {
             closeAfterTransition
           >
             <Fade in={openCategory}>
-              <Box sx={style}>
+              <Box className={'modal'}>
               <h2 className='pageTitle'>Add Category</h2>
               <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
               <InputLabel htmlFor="outlined-adornment-description">Category Name</InputLabel>
@@ -406,7 +395,7 @@ export const Dashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={0}>
+          <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
             <Card elevation={4} >
               <CardContent>

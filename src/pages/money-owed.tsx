@@ -42,18 +42,6 @@ interface TransactionGroup {
 }
 
 
-const style = (theme: Theme) => ({
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '50%',
-  borderRadius: '12px',
-  padding: '16px 32px 24px 32px',
-  backgroundColor: theme.palette.mode === 'dark' ? '#0A1929' : 'white',
-  boxShadow: 16,
-});
-
 export const MoneyOwed = () => {
     const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
@@ -305,8 +293,8 @@ export const MoneyOwed = () => {
         closeAfterTransition
       >
         <Fade in={open}>
-          <Box sx={style}>
-          <h2 className='pageTitle'>Add Transaction</h2>
+          <Box className={'modal'}>
+          <h2 className='pageTitle'>Log Owed Item</h2>
           <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
@@ -412,7 +400,7 @@ export const MoneyOwed = () => {
           </Grid>
           {payedTab ? (
             payedItems.length != 0 ? (
-            <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={0}>
+            <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
                 <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                     <Card elevation={4} sx={{height:400}}>
                       <CardContent sx={{height:'100%'}}>
@@ -481,7 +469,7 @@ export const MoneyOwed = () => {
               You don't have any payed items yet.
             </Typography>
           )) : ( notPayedItems.length != 0 ? (
-            <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 3, xl: 3 }} spacing={0}>
+            <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
               <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                 <Card elevation={4}>
                   <CardContent>
