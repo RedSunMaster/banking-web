@@ -30,7 +30,7 @@ export const Budget = () => {
   const [enteredValues, setEnteredValues] = React.useState<EnteredValues>({});
   const [income, setIncome] = React.useState(0)
   const [transferAmount, setTransferAmount] = React.useState(0)
-
+  const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, category: string) => {
     setEnteredValues((prevValues) => ({
@@ -110,7 +110,7 @@ export const Budget = () => {
               "trans_type": "Deposit",
             };
         
-            const response = await axios.post("/api/transactions", data, {
+            const response = await axios.post(`${rootUrl}/api/transactions`, data, {
               headers: { Authorization: `Bearer ${authToken}` },
             });
             if (response.status === 200) {
@@ -148,7 +148,7 @@ export const Budget = () => {
             "trans_type": "Deposit",
           };
       
-          const toResponse = await axios.post("/api/transactions", toData, {
+          const toResponse = await axios.post(`${rootUrl}/api/transactions`, toData, {
             headers: { Authorization: `Bearer ${authToken}` },
           });
 
@@ -160,7 +160,7 @@ export const Budget = () => {
             "trans_type": "Deposit",
           };
       
-          const fromResponse = await axios.post("/api/transactions", fromData, {
+          const fromResponse = await axios.post(`${rootUrl}/api/transactions`, fromData, {
             headers: { Authorization: `Bearer ${authToken}` },
           });
 

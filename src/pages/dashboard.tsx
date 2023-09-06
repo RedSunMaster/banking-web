@@ -44,6 +44,9 @@ export const Dashboard = () => {
   const [inputDate, setDate] = React.useState<Dayjs | null>(dayjs())
 
   
+  const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+
+  
   const navigate = useNavigate()
 
   const onVisibilityChange = () => {
@@ -126,7 +129,7 @@ export const Dashboard = () => {
       };
       console.log("Request body:", data);
   
-      const response = await axios.post("/api/transactions", data, {
+      const response = await axios.post(`${rootUrl}/api/transactions`, data, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (response.status === 200) {
@@ -154,7 +157,7 @@ export const Dashboard = () => {
       };
       console.log("Request body:", data);
   
-      const response = await axios.post("/api/categories", data, {
+      const response = await axios.post(`${rootUrl}/api/categories`, data, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (response.status === 200) {

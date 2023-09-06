@@ -12,10 +12,13 @@ interface DatabaseInformationProviderProps {
   }
   
 
+  const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+
+
 const fetchTransactions = async () => {
     try {
       const authToken = Cookies.get('authToken');
-      const response = await axios.get('/api/transactions', {
+      const response = await axios.get(`${rootUrl}/api/transactions`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (response.status !== 200) {
@@ -35,7 +38,7 @@ const fetchTransactions = async () => {
   const fetchBalances = async () => {
     try {
       const authToken = Cookies.get('authToken');
-      const response = await axios.get<BalanceItem[]>('/api/balances', {
+      const response = await axios.get<BalanceItem[]>(`${rootUrl}/api/balances`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (response.status !== 200) {
@@ -51,7 +54,7 @@ const fetchTransactions = async () => {
   const fetchCategories = async () => {
     try {
       const authToken = Cookies.get('authToken');
-      const response = await axios.get<CategoryItem[]>('/api/categories', {
+      const response = await axios.get<CategoryItem[]>(`${rootUrl}/api/categories`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (response.status !== 200) {
@@ -68,7 +71,7 @@ const fetchTransactions = async () => {
   const fetchOwedItems = async () => {
     try {
       const authToken = Cookies.get('authToken');
-      const response = await axios.get<OwedItem[]>('/api/moneyOwed', {
+      const response = await axios.get<OwedItem[]>(`${rootUrl}/api/moneyOwed`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (response.status !== 200) {
@@ -84,7 +87,7 @@ const fetchTransactions = async () => {
   const fetchUser = async () => {
     try {
       const authToken = Cookies.get('authToken');
-      const response = await axios.get<UserItem>('/api/login', {
+      const response = await axios.get<UserItem>(`${rootUrl}/api/login`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (response.status !== 200) {

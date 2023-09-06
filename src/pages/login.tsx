@@ -43,10 +43,12 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
 
   const navigate = useNavigate();
 
+  const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+
   const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     try {
-      const response = await axios.post('/api/login', { email, password });
+      const response = await axios.post(`${rootUrl}/api/login`, { email, password });
       Cookies.set('authToken', response.data, {expires: 7});
       setIsLoggedIn(true)
       navigate('/dashboard')
@@ -58,7 +60,7 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
   const handleRegister = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     try {
-      const response = await axios.post('/api/register', { fName, lName, email, phone, password });
+      const response = await axios.post(`${rootUrl}/api/register`, { fName, lName, email, phone, password });
       Cookies.set('authToken', response.data);
       setIsLoggedIn(true)
       navigate('/dashboard')

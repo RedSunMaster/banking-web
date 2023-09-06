@@ -84,7 +84,8 @@ export const Account = () => {
     event.preventDefault();
     try {
         const authToken = Cookies.get('authToken')
-        const response = await axios.patch('/api/user', { fName, lName, email, phone },{
+        const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+        const response = await axios.patch(`${rootUrl}/api/user`, { fName, lName, email, phone },{
             headers: { Authorization: `Bearer ${authToken}` },
         });
         if (response.status === 200) {

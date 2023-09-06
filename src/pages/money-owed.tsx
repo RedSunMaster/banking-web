@@ -143,6 +143,8 @@ export const MoneyOwed = () => {
     return <div>Loading...</div>;
   }
 
+  const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+
   const handleSwitchTab = () => {
     setPayedTab(!payedTab)
   }
@@ -160,7 +162,7 @@ export const MoneyOwed = () => {
           "person": person,
         };
     
-        const response = await axios.post("/api/moneyOwed", data, {
+        const response = await axios.post(`${rootUrl}/api/moneyOwed`, data, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         if (response.status === 200) {
@@ -193,7 +195,7 @@ export const MoneyOwed = () => {
           "owed_id": OwedItemId
         };
     
-        const response = await axios.patch("/api/editOwedItem", data, {
+        const response = await axios.patch(`${rootUrl}/api/editOwedItem`, data, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         if (response.status === 200) {
@@ -221,7 +223,7 @@ export const MoneyOwed = () => {
     
         const response = await axios({
           method: 'delete',
-          url: '/api/moneyOwed',
+          url: `${rootUrl}/api/moneyOwed`,
           data: data,
           headers: { Authorization: `Bearer ${authToken}` },
         });
@@ -248,7 +250,7 @@ export const MoneyOwed = () => {
         const data = {
           "owed_id": id
         };
-        const response = await axios.patch("/api/updateOwedItem", data, {
+        const response = await axios.patch(`${rootUrl}/api/updateOwedItem`, data, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         if (response.status === 200) {

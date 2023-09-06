@@ -90,8 +90,9 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
 
   const logoutUser = async () => {
     try {
+      const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
       const authToken = Cookies.get('authToken');
-      await axios.post('/api/logout', null, {
+      await axios.post(`${rootUrl}/api/logout`, null, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       Cookies.remove('authToken');
