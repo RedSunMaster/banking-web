@@ -1,30 +1,19 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography/Typography';
 import CardContent from '@mui/material/CardContent';
 import Cookies from 'js-cookie';
-import { PieChart, LineChart, BarChart, CurveType } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
-import TransactionItem from '../types/Transaction';
-import BalanceItem from '../types/BalanceItem';
-import CategoryItem from '../types/CategoryItem';
-import UserItem from '../types/UserItem';
-import Marquee from "react-fast-marquee";
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, Button, Fab, Fade, FormControl, InputAdornment, InputLabel, List, ListItem, ListItemText, MenuItem, Modal, OutlinedInput, Select, SelectChangeEvent, Snackbar, Switch, Theme } from '@mui/material';
-import { AutoSizer } from 'react-virtualized';
-import { useNavigate } from 'react-router-dom';
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { setDate } from 'date-fns';
-import dayjs, { Dayjs } from 'dayjs';
-import { SketchPicker } from 'react-color';
+import { Alert, Button, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar } from '@mui/material';
+import dayjs from 'dayjs';
 import axios from 'axios';
-import CategoryIcon from '@mui/icons-material/Category';
-import AddIcon from '@mui/icons-material/Add';
+import { ca } from 'date-fns/locale';
+import checkIsLoggedIn from '../auth/auth';
+import { useNavigate } from 'react-router-dom';
 
 
 interface EnteredValues {
@@ -32,7 +21,7 @@ interface EnteredValues {
 }
 
 export const Budget = () => {
-  const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
+  const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const [openAlert, setOpenAlert] = React.useState(false);
   
   const [postMsg, setPostMsg] = React.useState('')
@@ -50,16 +39,47 @@ export const Budget = () => {
     }));
   };
   
+  const navigate = useNavigate()
 
-  
+  const onVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      checkIsLoggedIn().then((result) => {
+        if (!result) {
+            navigate('/login')
+        }
+      })
+    }
+  };
+
+  React.useLayoutEffect(() => {
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () =>
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+
+  React.useEffect(() => {
+    checkIsLoggedIn().then((result) => {
+      if (!result) {
+          navigate('/login')
+      }
+    })
+    if (categories.length === 0) {
+        setUpdateCategories(true);
+    }
+    if (balances.length === 0) {
+        setUpdateBalances(true);
+    }
+  }, []);
+
 
 
 
     
-  if (!databaseInformation) {
+    
+  if (balances.length === 0 || categories.length == 0) {
     return <div>Loading...</div>;
   }
-
 
   const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
@@ -75,7 +95,7 @@ export const Budget = () => {
     event.preventDefault();
     console.log(sum)
     console.log(income)
-    if (sum === income && sum != 0 && income != 0) {
+    if (sum === income && sum !== 0 && income !== 0) {
       try {
         for (const category in enteredValues) {
           const value = enteredValues[category];
@@ -94,8 +114,9 @@ export const Budget = () => {
               headers: { Authorization: `Bearer ${authToken}` },
             });
             if (response.status === 200) {
-              setPostMsg("Successfully Added Transaction");
-              setUpdateValues(true);
+              setPostMsg("Successfully Distributed Income");
+              setUpdateTransactions(true);
+              setUpdateBalances(true);
             } else {
               setPostMsg("Error" + response.data);
             }
@@ -145,7 +166,8 @@ export const Budget = () => {
 
           if (toResponse.status === 200 && fromResponse.status === 200) {
             setPostMsg("Successfully Transfered");
-            setUpdateValues(true);
+            setUpdateTransactions(true);
+            setUpdateBalances(true);
           } else {
             setPostMsg("Error" + toResponse.data);
           }
@@ -193,7 +215,7 @@ export const Budget = () => {
                     <span
                       style={{
                         fontWeight: 'bold',
-                        color: sum === income && sum != 0 ? 'green' : 'red',
+                        color: sum === income && sum !== 0 ? 'green' : 'red',
                       }}
                     >
                       {(sum / income * 100).toFixed(2)}%
@@ -210,7 +232,7 @@ export const Budget = () => {
             <Card elevation={4} >
               <CardContent>
               <List sx={{width:'100%'}}>
-                {databaseInformation.balances.map((balance) => (
+                {balances.map((balance) => (
                   <Box sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}>
                   <ListItem>                      
                   <ListItemText
@@ -253,7 +275,7 @@ export const Budget = () => {
                   name: 'fromCategory',
                   id: 'outlined-adornment-fromcategory',
                 }}>
-                {databaseInformation.categories.map((category) => (
+                {categories.map((category) => (
                   <MenuItem key={category.categoryId} value={category.categoryName}>
                     {category.categoryName}
                   </MenuItem>
@@ -271,7 +293,7 @@ export const Budget = () => {
                   name: 'category',
                   id: 'outlined-adornment-category',
                 }}>
-                {databaseInformation.categories.map((category) => (
+                {categories.map((category) => (
                   <MenuItem key={category.categoryId} value={category.categoryName}>
                     
                     {category.categoryName}
@@ -299,3 +321,6 @@ export const Budget = () => {
       </Box>
     );    
 };
+
+
+export default Budget;

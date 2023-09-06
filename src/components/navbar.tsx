@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import { createStyles, makeStyles, Theme, useTheme } from '@mui/material/styles'; // Correct import here
+import { useTheme } from '@mui/material/styles'; // Correct import here
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +28,8 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SavingsIcon from '@mui/icons-material/Savings';
+import checkIsLoggedIn from '../auth/auth';
+import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 
 const drawerWidth = 240;
 
@@ -49,6 +51,7 @@ const settings = [
 ];
 
 function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
+  const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const theme = useTheme(); // This line automatically gets the current theme object
 
   const navigate = useNavigate();
@@ -63,6 +66,26 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
       setRightDrawerOpen(!rightDrawerOpen);
     }
   };
+
+  React.useEffect(() => {
+    checkIsLoggedIn().then((result) => {
+        if (!result) {
+            navigate('/login')
+        }
+      })
+  if (user.fName === "") {
+      setUpdateUser(true);
+  }
+  }, [user]);
+
+
+  React.useEffect(() => {
+    if (isLoggedIn) {
+      setUpdateUser(true);
+    } else {
+      
+    }
+  }, [isLoggedIn])
   
 
   const logoutUser = async () => {
@@ -78,6 +101,13 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
       console.error(error);
     }
   };
+
+  function stringAvatar(name: string) {
+    return {
+      children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`,
+    };
+  }
+  
 
   return (
     <div style={{ display: 'flex'}}>
@@ -113,14 +143,12 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
                 mr: 2,
                 display: { xs: 'flex', md: 'none' },
                 flexGrow: 1,
-                fontFamily: 'monospace',
-                fontWeight: 700,
-                letterSpacing: '.3rem',
+                fontWeight: 500,
                 color: 'inherit',
                 textDecoration: 'none',
               }}
             >
-              {/* Your app title */}
+              McNut Budgeting
             </Typography>
             <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
               {pages.map((page) => (
@@ -136,11 +164,7 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
               ))}
             </Box>
             <Box sx={{ flexGrow: 0 }}>
-              <Avatar
-                alt="Remy Sharp"
-                src="/static/images/avatar/2.jpg"
-                onClick={() => handleToggleDrawer('right')} // Open the right drawer
-              />
+              <Avatar {...(isLoggedIn ? stringAvatar(user.fName + " " + user.lName) : {})} onClick={() => handleToggleDrawer('right')} />
             </Box>
           </Toolbar>
         </Container>

@@ -14,7 +14,6 @@ async function checkIsLoggedIn(): Promise<boolean> {
         return false
       }
     } catch (error) {
-      console.error(error);
       return false
     }
   }

@@ -1,20 +1,17 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography/Typography';
 import CardContent from '@mui/material/CardContent';
 import Cookies from 'js-cookie';
-import { PieChart, LineChart, BarChart, CurveType, ScatterChart } from '@mui/x-charts';
+import { BarChart, ScatterChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import format from 'date-fns/format';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Modal, Fade, Theme, Button, FormControl,Switch, IconButton, InputAdornment, InputLabel, OutlinedInput, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, Divider } from '@mui/material';
-import { VisibilityOff, Visibility, Transcribe } from '@mui/icons-material';
+import { Modal, Fade, Button, FormControl, IconButton, InputLabel, OutlinedInput, Select, MenuItem, SelectChangeEvent, Alert, Snackbar } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -23,27 +20,18 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
-import { AutoSizer, List } from 'react-virtualized';
-import TransactionItem from '../types/Transaction';
-import BalanceItem from '../types/BalanceItem';
+import { AutoSizer } from 'react-virtualized';
 import Masonry from '@mui/lab/Masonry';
 import OwedItem from '../types/OwedItem';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import { useNavigate } from 'react-router-dom';
+import checkIsLoggedIn from '../auth/auth';
 
-
-interface TransactionGroup {
-  lastMonth: number;
-  currentMonth: number;
-}
 
 
 export const MoneyOwed = () => {
-    const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
+    const { categories, owedItems, setUpdateCategories, setUpdateBalances, setUpdateOwedItems} = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
     const handleOpen = () => setOpen(true);
@@ -67,6 +55,8 @@ export const MoneyOwed = () => {
     const [payedTab, setPayedTab] = React.useState(false)
 
 
+
+
     const [newCategory, setNewCategory] = React.useState('')
     const [newDescription, setNewDescription] = React.useState('')
     const [newAmount, setNewAmount] = React.useState(0)
@@ -74,17 +64,56 @@ export const MoneyOwed = () => {
     const [newInputDate, setNewDate] = React.useState<Dayjs | null>(dayjs())
     const [OwedItemId, setOwedItemId] = React.useState(0)
 
+    const navigate = useNavigate()
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkIsLoggedIn().then((result) => {
+          if (!result) {
+              navigate('/login')
+          }
+        })
+      }
+    };
+  
+    React.useLayoutEffect(() => {
+      document.addEventListener("visibilitychange", onVisibilityChange);
+  
+      return () =>
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+    }, []);
+
+    React.useEffect(() => {
+      checkIsLoggedIn().then((result) => {
+        if (!result) {
+            navigate('/login')
+        }
+      })
+    if (categories.length === 0) {
+        setUpdateCategories(true);
+    }
+    if (owedItems.length === 0) {
+        setUpdateOwedItems(true);
+    }
+    
+  }, []);
+
+
+
+
+
+
     React.useEffect(() => {
       try {
-      if (databaseInformation) {
-        if (databaseInformation.owedItems.length != 0) {
-          if (filterPerson == "") {
-            setFilterPerson(databaseInformation.owedItems.filter((owedItem) => (owedItem.Payed == false))[0].Person)
-            setfilterPersonItems(
-              databaseInformation?.owedItems.filter(
-                (item) => item.Person === databaseInformation.owedItems.filter((owedItem) => (owedItem.Payed == false))[0].Person
-              )
-            );
+        if (owedItems.length !== 0) {
+          setNotPayedItems(owedItems.filter((owedItem) => (owedItem.Payed == false)))
+          setPayedItems(owedItems.filter((owedItem) => (owedItem.Payed == true)))
+          if (filterPerson === "") {
+            setFilterPerson(owedItems.filter((owedItem) => (owedItem.Payed == false))[0].Person)
+            const notPayedItems = owedItems.filter((item) => item.Payed == false);
+            const firstPerson = notPayedItems[0].Person;
+            const result = notPayedItems.filter((item) => item.Person === firstPerson);
+            setfilterPersonItems(result);
           } else {
             setfilterPersonItems(
               notPayedItems.filter(
@@ -92,17 +121,17 @@ export const MoneyOwed = () => {
               )
             );
           }
-          setNotPayedItems(databaseInformation.owedItems.filter((owedItem) => (owedItem.Payed == false)))
-          setPayedItems(databaseInformation.owedItems.filter((owedItem) => (owedItem.Payed == true)))
+        }
       }
-    }}
-    catch (error) {
-      console.log("No Items")
-    }
-    }, [databaseInformation]);
+      catch (error) {
+        console.log(error)
+      }
+    }, [owedItems, filterPersonItems, filterPerson]);
+    
+    
 
 
-    const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    const handleCloseAlert = (_event?: React.SyntheticEvent | Event, reason?: string) => {
       if (reason === 'clickaway') {
         return;
       }
@@ -110,7 +139,7 @@ export const MoneyOwed = () => {
       setOpenAlert(false);
     };
 
-  if (!databaseInformation) {
+  if (!owedItems) {
     return <div>Loading...</div>;
   }
 
@@ -137,7 +166,8 @@ export const MoneyOwed = () => {
         if (response.status === 200) {
           setPostMsg("Successfully Logged Money Owed");
           setOpen(false);
-          setUpdateValues(true);
+          setUpdateOwedItems(true);
+          setUpdateBalances(true);
         } else {
           setPostMsg("Error" + response.statusText);
         }
@@ -147,6 +177,68 @@ export const MoneyOwed = () => {
       }
       setOpenAlert(true);
     };
+
+
+    const handleUpdateOwedItem = async (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      try {
+        const authToken = Cookies.get("authToken");
+        const date = dayjs(newInputDate).format("YYYY-MM-DD").toString();
+        const data = {
+          "category": newCategory,
+          "date": date,
+          "description": newDescription,
+          "amount": newAmount,
+          "person": newPerson,
+          "owed_id": OwedItemId
+        };
+    
+        const response = await axios.patch("/api/editOwedItem", data, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (response.status === 200) {
+          setPostMsg("Successfully Updated Money Owed");
+          setEdit(false);
+          setUpdateOwedItems(true);
+          setUpdateBalances(true);
+        } else {
+          setPostMsg("Error" + response.statusText);
+        }
+      } catch (error) {
+        setPostMsg("Error: " + error);
+        console.error(error);
+      }
+      setOpenAlert(true);
+    };
+
+    const handleDeleteOwedItem = async (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      try {
+        const authToken = Cookies.get("authToken");
+        const data = {
+          "owed_id": OwedItemId
+        };
+    
+        const response = await axios({
+          method: 'delete',
+          url: '/api/moneyOwed',
+          data: data,
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (response.status === 200) {
+          setPostMsg("Successfully Deleted Owed Item");
+          setEdit(false);
+          setUpdateOwedItems(true);
+          setUpdateBalances(true);
+        } else {
+          setPostMsg("Error" + response.statusText);
+        }
+      } catch (error) {
+        setPostMsg("Error: " + error);
+        console.error(error);
+      }
+      setOpenAlert(true);
+    }
 
 
     const handleOwedSuccess = async (id: number) => {
@@ -162,7 +254,8 @@ export const MoneyOwed = () => {
         if (response.status === 200) {
           setPostMsg("Successfully Updated Owed Item");
           setOpen(false);
-          setUpdateValues(true);
+          setUpdateOwedItems(true);
+          setUpdateBalances(true);
         } else {
           setPostMsg("Error" + response.statusText);
         }
@@ -174,7 +267,8 @@ export const MoneyOwed = () => {
 
     }
         
-    if (!databaseInformation) {
+    
+    if (owedItems.length === 0 || categories.length == 0) {
       return <div>Loading...</div>;
     }
 
@@ -201,6 +295,16 @@ export const MoneyOwed = () => {
       );
     }
 
+    const editOwedItem = (item: OwedItem) => {
+      setNewCategory(item.Category)
+      setNewAmount(Math.abs(item.Amount))
+      setNewDate(dayjs(item.Date))
+      setNewDescription(item.Description)
+      setNewPerson(item.Person)
+      setOwedItemId(item.ID)
+      handleEdit()
+    }
+
     
     function renderRow(props: ListChildComponentProps) {
       const { index, style } = props;
@@ -214,8 +318,8 @@ export const MoneyOwed = () => {
           </IconButton>
         }
         >
-          <ListItemButton >
-            <ListItemText primary={item?.Description} secondary={item?.['Days Elapsed'] + " Days"} />
+          <ListItemButton onClick={() => editOwedItem(item)}>
+            <ListItemText primary={item?.Description} secondary={item?.Category} />
             <Box sx={{ flexGrow: 1 }} />
             <Typography align="right" variant="body2">
               ${item?.Amount}
@@ -234,13 +338,6 @@ export const MoneyOwed = () => {
         (sum, owedItem) => sum + owedItem.Amount,
         0
       );
-
-    const notPayedItemsGrouped = notPayedItems.reduce((acc, owedItem) => {
-        const person = owedItem.Person
-        if (!acc[person]) acc[person] = [];
-        acc[person].push(owedItem);
-        return acc;
-      }, {} as Record<string, OwedItem[]>);
 
       const totalPayed = payedItems.reduce(
         (sum, owedItem) => sum + owedItem.Amount,
@@ -317,7 +414,7 @@ export const MoneyOwed = () => {
               name: 'category',
               id: 'outlined-adornment-category',
             }}>
-            {databaseInformation.categories.map((category) => (
+            {categories.map((category) => (
               <MenuItem key={category.categoryId} value={category.categoryName}>
                 {category.categoryName}
               </MenuItem>
@@ -354,6 +451,83 @@ export const MoneyOwed = () => {
         </FormControl>
         <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddOwedItem}>Add</Button>
           </Box>
+        </Fade>
+      </Modal>
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={edit}
+        disableScrollLock={ true }
+        onClose={handleCloseEdit}
+        closeAfterTransition
+      >
+        <Fade in={edit}>
+          <Box className={'modal'}>
+          <h2 className='pageTitle'>Edit Owed Item</h2>
+          <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Date"
+              defaultValue={newInputDate}
+              onChange={(newValue: Dayjs | null) => {
+                setNewDate(newValue);
+              }}
+            />
+          </LocalizationProvider>
+          </FormControl>
+        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-category">Category</InputLabel>
+          <Select
+            label="Category"
+            className='select'
+            value={newCategory}
+            onChange={(event: SelectChangeEvent<string>) => {setNewCategory(event.target.value as string)}}
+            inputProps={{
+              name: 'category',
+              id: 'outlined-adornment-category',
+            }}>
+            {categories.map((category) => (
+              <MenuItem key={category.categoryId} value={category.categoryName}>
+                {category.categoryName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-person">Person</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-person"
+            type="text"
+            label="Person"
+            value={newPerson}
+            onChange={(event) => setNewPerson(event.target.value)}
+          />
+        </FormControl>
+        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-amount"
+            label="Amount"
+            type='number'
+            value={newAmount}
+            onChange={(event) => setNewAmount(Number(event.target.value))}
+          />
+        </FormControl>
+        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-description"
+            label="Description"
+            type='text'
+            value={newDescription}
+            onChange={(event) => setNewDescription(event.target.value)}
+          />
+        </FormControl>
+        <Box display={'flex'} flexDirection={'row'}>        
+          <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 1, marginRight: 2}} onClick={handleDeleteOwedItem}>Delete</Button>
+          <Button variant="contained" color="success" fullWidth sx={{ marginTop: 1}} onClick={handleUpdateOwedItem}>Update</Button>
+        </Box>
+        </Box>
         </Fade>
       </Modal>
         <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
@@ -399,7 +573,7 @@ export const MoneyOwed = () => {
             </Card>
           </Grid>
           {payedTab ? (
-            payedItems.length != 0 ? (
+            payedItems.length !== 0 ? (
             <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
                 <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                     <Card elevation={4} sx={{height:400}}>
@@ -468,7 +642,7 @@ export const MoneyOwed = () => {
             <Typography variant="h6">
               You don't have any payed items yet.
             </Typography>
-          )) : ( notPayedItems.length != 0 ? (
+          )) : ( notPayedItems.length !== 0 ? (
             <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
               <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                 <Card elevation={4}>
@@ -505,14 +679,18 @@ export const MoneyOwed = () => {
                 </Card>
                 <Card elevation={4} sx={{ height: 300 }}>
                   <CardContent sx={{ height: "100%" }}>
+                    <Typography style={{ position: 'absolute', top: 15, left: 15, right: 0, textAlign: 'left' }}>
+                      Total: ${filterPersonItems.reduce((acc, item) => acc + item.Amount, 0).toFixed(2)}
+                    </Typography>
                     <AutoSizer>
                       {({ height, width }) => (
                         <FixedSizeList
                           width={width}
-                          height={height}
+                          height={height - 30}
                           itemSize={75}
                           itemCount={filterPersonItems.length}
                           overscanCount={5}
+                          style={{marginTop:30}}
                         >
                           {renderRow}
                         </FixedSizeList>
@@ -520,6 +698,8 @@ export const MoneyOwed = () => {
                     </AutoSizer>
                   </CardContent>
                 </Card>
+
+
               </Grid>
             </Masonry>
           ) : (

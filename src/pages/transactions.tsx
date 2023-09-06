@@ -1,20 +1,17 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography/Typography';
 import CardContent from '@mui/material/CardContent';
 import Cookies from 'js-cookie';
-import { PieChart, LineChart, BarChart, CurveType } from '@mui/x-charts';
+import { LineChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import format from 'date-fns/format';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Modal, Fade, Theme, Button, FormControl,Switch, IconButton, InputAdornment, InputLabel, OutlinedInput, Select, MenuItem, SelectChangeEvent, Alert, Snackbar } from '@mui/material';
-import { VisibilityOff, Visibility, Transcribe } from '@mui/icons-material';
+import { Modal, Fade, Button, FormControl, Switch, InputAdornment, InputLabel, OutlinedInput, Select, MenuItem, SelectChangeEvent, Alert, Snackbar } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -23,13 +20,14 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
-import { AutoSizer, List } from 'react-virtualized';
+import { AutoSizer } from 'react-virtualized';
 import TransactionItem from '../types/Transaction';
 import BalanceItem from '../types/BalanceItem';
 import Masonry from '@mui/lab/Masonry';
-import { url } from 'inspector';
 import CategoryIcon from '@mui/icons-material/Category';
-import { SketchPicker } from 'react-color'
+import { SketchPicker } from 'react-color';
+import checkIsLoggedIn from '../auth/auth';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -41,7 +39,7 @@ interface TransactionGroup {
 
 
 export const Transactions = () => {
-    const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
+    const { categories, balances, transactions, setUpdateCategories, setUpdateBalances, setUpdateTransactions } = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
     const [openCategory, setOpenCategory] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
@@ -49,7 +47,6 @@ export const Transactions = () => {
     const handleOpenCategory = () => setOpenCategory(true);
     const handleCloseCategory = () => setOpenCategory(false);
     const handleClose = () => setOpen(false);
-    const handleEdit = () => setEdit(true);
     const handleCloseEdit = () => setEdit(false);
     const [openAlert, setOpenAlert] = React.useState(false);
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
@@ -58,8 +55,6 @@ export const Transactions = () => {
     const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-
-
 
     const [filterCategory, setFilterCategory] = React.useState('')
     const [category, setCategory] = React.useState('')
@@ -82,42 +77,79 @@ export const Transactions = () => {
     const [newInputDate, setNewDate] = React.useState<Dayjs | null>(dayjs())
     const [transactionId, setTransactionId] = React.useState(0)
 
+    const navigate = useNavigate()
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkIsLoggedIn().then((result) => {
+          if (!result) {
+              navigate('/login')
+          }
+        })
+      }
+    };
+  
+    React.useLayoutEffect(() => {
+      document.addEventListener("visibilitychange", onVisibilityChange);
+  
+      return () =>
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+    }, []);
+
     React.useEffect(() => {
-      if (databaseInformation) {
-        if (databaseInformation.transactions.length != 0) {
-        if (filterCategory == "") {
+      checkIsLoggedIn().then((result) => {
+        if (!result) {
+            navigate('/login')
+        }
+      })
+      if (transactions.length === 0) {
+          setUpdateTransactions(true);
+      }
+      if (categories.length === 0) {
+          setUpdateCategories(true);
+      }
+      if (balances.length === 0) {
+          setUpdateBalances(true);
+      }
+  }, []);
+  
+
+    React.useEffect(() => {
+      if (transactions) {
+        if (transactions.length !== 0) {
+        if (filterCategory === "") {
           const urlParams = new URLSearchParams(window.location.search);
           const category = urlParams.get('category');
           if (category) {
             setFilterCategory(category);
             setCategory(category)
-            setFilterBalance(databaseInformation.balances.find((balance) => balance.Category === category))
+            setFilterBalance(balances.find((balance) => balance.Category === category))
             setFilterTransactions(
-              databaseInformation?.transactions.filter(
+              transactions.filter(
                 (transaction) => transaction.Category === category)
               )
           } else {
-            setFilterCategory(databaseInformation.categories[0].categoryName)
-            setCategory(databaseInformation.categories[0].categoryName)
-            setFilterBalance(databaseInformation.balances.find((balance) => balance.Category === databaseInformation.categories[0].categoryName))
+            setFilterCategory(categories[0].categoryName)
+            setCategory(categories[0].categoryName)
+            setFilterBalance(balances.find((balance) => balance.Category === categories[0].categoryName))
             setFilterTransactions(
-              databaseInformation?.transactions.filter(
-                (transaction) => transaction.Category === databaseInformation.categories[0].categoryName
+              transactions.filter(
+                (transaction) => transaction.Category === categories[0].categoryName
               )
             );
           }
         } else {
             setFilterTransactions(
-              databaseInformation?.transactions.filter(
+              transactions.filter(
                 (transaction) => transaction.Category === filterCategory
               )
             );
-            setFilterBalance(databaseInformation.balances.find((balance) => balance.Category === filterCategory))
+            setFilterBalance(balances.find((balance) => balance.Category === filterCategory))
 
           }
       }
     }
-    }, [databaseInformation]);
+    }, [transactions, balances]);
 
 
     const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -153,7 +185,8 @@ export const Transactions = () => {
         if (response.status === 200) {
           setPostMsg("Successfully Added Transaction");
           setOpen(false);
-          setUpdateValues(true);
+          setUpdateTransactions(true);
+          setUpdateBalances(true);
         } else {
           setPostMsg("Error" + response.data);
         }
@@ -180,7 +213,8 @@ export const Transactions = () => {
         if (response.status === 200) {
           setPostMsg("Successfully Added Category");
           setOpenCategory(false);
-          setUpdateValues(true);
+          setUpdateCategories(true);
+          setUpdateBalances(true);
         } else {
           setPostMsg("Error" + response.data);
         }
@@ -217,7 +251,8 @@ export const Transactions = () => {
         if (response.status === 200) {
           setPostMsg("Successfully Updated Transaction");
           setEdit(false);
-          setUpdateValues(true);
+          setUpdateTransactions(true);
+          setUpdateBalances(true);
         } else {
           setPostMsg("Error" + response.data);
         }
@@ -246,7 +281,8 @@ export const Transactions = () => {
         if (response.status === 200) {
           setPostMsg("Successfully Deleted Transaction");
           setEdit(false);
-          setUpdateValues(true);
+          setUpdateTransactions(true);
+          setUpdateBalances(true);
         } else {
           setPostMsg("Error" + response.statusText);
         }
@@ -258,10 +294,11 @@ export const Transactions = () => {
     }
     
 
-    if (!databaseInformation) {
+    
+    if (transactions.length === 0 || categories.length == 0) {
       return <div>Loading...</div>;
     } else {
-      if (databaseInformation.transactions.length === 0) {
+      if (transactions.length === 0) {
         return (
           <Box sx={{ flexGrow: 1 }}>
           <Fab
@@ -315,7 +352,7 @@ export const Transactions = () => {
                   name: 'category',
                   id: 'outlined-adornment-category',
                 }}>
-                {databaseInformation.categories.map((category) => (
+                {categories.map((category) => (
                   <MenuItem key={category.categoryId} value={category.categoryName}>
                     {category.categoryName}
                   </MenuItem>
@@ -396,7 +433,7 @@ export const Transactions = () => {
                   name: 'category',
                   id: 'outlined-adornment-category',
                 }}>
-                {databaseInformation.categories.map((category) => (
+                {categories.map((category) => (
                   <MenuItem key={category.categoryId} value={category.categoryName}>
                     {category.categoryName}
                   </MenuItem>
@@ -636,7 +673,7 @@ export const Transactions = () => {
             sx={{ position: 'fixed', bottom: 32, right: 96}}
           >
             <CategoryIcon />
-          </Fab>
+      </Fab>
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
@@ -669,7 +706,7 @@ export const Transactions = () => {
               name: 'category',
               id: 'outlined-adornment-category',
             }}>
-            {databaseInformation.categories.map((category) => (
+            {categories.map((category) => (
               <MenuItem key={category.categoryId} value={category.categoryName}>
                 {category.categoryName}
               </MenuItem>
@@ -749,7 +786,7 @@ export const Transactions = () => {
               name: 'category',
               id: 'outlined-adornment-category',
             }}>
-            {databaseInformation.categories.map((category) => (
+            {categories.map((category) => (
               <MenuItem key={category.categoryId} value={category.categoryName}>
                 {category.categoryName}
               </MenuItem>
@@ -875,18 +912,18 @@ export const Transactions = () => {
                     setFilterCategory(newCategory);
                     setCategory(newCategory);
                     setFilterTransactions(
-                      databaseInformation.transactions.filter(
+                      transactions.filter(
                         (transaction) => transaction.Category === newCategory
                       )
                     );
-                    setFilterBalance(databaseInformation.balances.find((balance) => balance.Category === newCategory))
+                    setFilterBalance(balances.find((balance) => balance.Category === newCategory))
                   }}
                   inputProps={{
                     name: 'category',
                     id: 'outlined-adornment-category',
                   }}
                 >
-                  {databaseInformation.categories.map((category) => (
+                  {categories.map((category) => (
                     <MenuItem key={category.categoryId} value={category.categoryName}>
                       {category.categoryName}
                     </MenuItem>

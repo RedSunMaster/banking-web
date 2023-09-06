@@ -1,38 +1,33 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography/Typography';
 import CardContent from '@mui/material/CardContent';
 import Cookies from 'js-cookie';
-import { PieChart, LineChart, BarChart, CurveType } from '@mui/x-charts';
+import { PieChart, LineChart, BarChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import TransactionItem from '../types/Transaction';
-import BalanceItem from '../types/BalanceItem';
-import CategoryItem from '../types/CategoryItem';
-import UserItem from '../types/UserItem';
-import Marquee from "react-fast-marquee";
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, Button, Fab, Fade, FormControl, InputAdornment, InputLabel, List, ListItem, ListItemText, MenuItem, Modal, OutlinedInput, Select, SelectChangeEvent, Snackbar, Switch, Theme } from '@mui/material';
+import { Alert, Button, Fab, Fade, FormControl, InputAdornment, InputLabel, List, ListItem, ListItemText, MenuItem, Modal, OutlinedInput, Select, SelectChangeEvent, Snackbar, Switch } from '@mui/material';
 import { AutoSizer } from 'react-virtualized';
 import { useNavigate } from 'react-router-dom';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { setDate } from 'date-fns';
 import dayjs, { Dayjs } from 'dayjs';
 import { SketchPicker } from 'react-color';
 import axios from 'axios';
 import CategoryIcon from '@mui/icons-material/Category';
 import AddIcon from '@mui/icons-material/Add';
+import checkIsLoggedIn from '../auth/auth';
 
 
 
 export const Dashboard = () => {
-  const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
+  const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const [open, setOpen] = React.useState(false);
   const [openCategory, setOpenCategory] = React.useState(false);
-  const [edit, setEdit] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleOpenCategory = () => setOpenCategory(true);
   const handleCloseCategory = () => setOpenCategory(false);
@@ -49,12 +44,44 @@ export const Dashboard = () => {
   const [inputDate, setDate] = React.useState<Dayjs | null>(dayjs())
 
   
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
+  const onVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      checkIsLoggedIn().then((result) => {
+        if (!result) {
+            navigate('/login')
+        }
+      })
+    }
+  };
 
+  React.useLayoutEffect(() => {
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
+    return () =>
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
 
-
+  React.useEffect(() => {
+    checkIsLoggedIn().then((result) => {
+      if (!result) {
+          navigate('/login')
+      }
+    })
+    if (user.fName === "") {
+      setUpdateUser(true);
+    }
+    if (categories.length === 0) {
+        setUpdateCategories(true);
+    }
+    if (balances.length === 0) {
+        setUpdateBalances(true);
+    }
+    if (transactions.length === 0) {
+      setUpdateTransactions(true);
+    }
+  }, []);
 
 
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
@@ -67,7 +94,7 @@ export const Dashboard = () => {
 
 
     
-  if (!databaseInformation) {
+  if (balances.length === 0 || categories.length == 0 || user.fName === "" || transactions.length === 0) {
     return <div>Loading...</div>;
   }
 
@@ -105,7 +132,8 @@ export const Dashboard = () => {
       if (response.status === 200) {
         setPostMsg("Successfully Added Transaction");
         setOpen(false);
-        setUpdateValues(true);
+        setUpdateTransactions(true);
+        setUpdateBalances(true);
       } else {
         setPostMsg("Error" + response.data);
       }
@@ -132,7 +160,8 @@ export const Dashboard = () => {
       if (response.status === 200) {
         setPostMsg("Successfully Added Category");
         setOpenCategory(false);
-        setUpdateValues(true);
+        setUpdateCategories(true);
+        setUpdateBalances(true);
       } else {
         setPostMsg("Error" + response.data);
       }
@@ -145,7 +174,7 @@ export const Dashboard = () => {
 
 
 
-  const filteredTransactions = databaseInformation.transactions.filter(
+  const filteredTransactions = transactions.filter(
     (transaction) =>
       transaction.Amount < 0 &&
       !transaction.Description.includes("Balance") &&
@@ -171,12 +200,13 @@ export const Dashboard = () => {
     return acc;
   }, {} as Record<string, TransactionItem[]>);
 
-  const balances = [...databaseInformation.balances];
+
+  const sortedBalances = balances.slice().sort((a, b) => a.Amount - b.Amount);
   
   const pieChartData = {
     series: [
       {
-        data: balances.sort((a, b) => a.Amount - b.Amount).map((balance) => ({
+        data: sortedBalances.sort((a, b) => a.Amount - b.Amount).map((balance) => ({
           id: balance.Category,
           value: balance.Amount,
           color: balance.Colour,
@@ -200,7 +230,6 @@ export const Dashboard = () => {
       return { year, sums: sums.map((sum) => Math.abs(Number(sum.toFixed(2)))) };
     });
 
-    const categories = databaseInformation.categories;
 
     const weeklySums = Object.entries(groupedWeekTransactions).map(([week, transactions]) => {
       const sums = transactions.reduce((acc, transaction) => {
@@ -237,7 +266,7 @@ export const Dashboard = () => {
     }));
     
 
-    const totalBalance = databaseInformation.balances.reduce(
+    const totalBalance = balances.reduce(
       (sum, balance) => sum + balance.Amount,
       0
     );
@@ -297,7 +326,7 @@ export const Dashboard = () => {
               name: 'category',
               id: 'outlined-adornment-category',
             }}>
-            {databaseInformation.categories.map((category) => (
+            {categories.map((category) => (
               <MenuItem key={category.categoryId} value={category.categoryName}>
                 {category.categoryName}
               </MenuItem>
@@ -385,7 +414,7 @@ export const Dashboard = () => {
               <Grid container direction="column" width='100%'>
                   <Grid>
                   <Typography variant="h5" style={{ fontWeight: 'bold' }}>
-                    Welcome Back {databaseInformation.user.fName}
+                    Welcome Back {user.fName}
                   </Typography>
                   <Typography variant="h6">
                     Total Balance <b style={{color: 'green'}}>${totalBalance.toFixed(2)}</b>
@@ -400,7 +429,7 @@ export const Dashboard = () => {
             <Card elevation={4} >
               <CardContent>
               <List sx={{width:'100%'}}>
-                {databaseInformation.balances.map((balance) => (
+                {balances.map((balance) => (
                   <Box sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}>
                   <ListItem
                           onClick={(event: React.MouseEvent<HTMLLIElement>) =>
@@ -420,7 +449,7 @@ export const Dashboard = () => {
             </Card>
           </Grid>
 
-          {databaseInformation.categories.length > 1 ? (
+          {categories.length > 1 ? (
             <>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
               <Card elevation={4} sx={{height:400}} >
@@ -498,3 +527,7 @@ export const Dashboard = () => {
       </Box>
     );    
 };
+
+
+
+export default Dashboard;

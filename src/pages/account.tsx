@@ -1,27 +1,20 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import Input from '@mui/material/Input';
-import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputLabel from '@mui/material/InputLabel';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormHelperText from '@mui/material/FormHelperText';
 import FormControl from '@mui/material/FormControl';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { Button, Snackbar } from '@mui/material';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 import Alert from '@mui/lab/Alert';
+import checkIsLoggedIn from '../auth/auth';
+import { useNavigate } from 'react-router-dom';
 
 
 
 export const Account = () => {
-    const {databaseInformation, setUpdateValues} = React.useContext(DatabaseInformationContext);
+    const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const [email, setEmail] = useState('');
   const [fName, setfName] = useState('');
   const [lName, setlName] = useState('');
@@ -29,15 +22,54 @@ export const Account = () => {
   const [postMsg, setPostMsg] = React.useState('')
   const [openAlert, setOpenAlert] = React.useState(false);
 
-  React.useEffect(() => {
-    if (databaseInformation) {
-        setfName(databaseInformation.user.fName)
-        setlName(databaseInformation.user.lName)
-        setEmail(databaseInformation.user.email)
-        setPhone(databaseInformation.user.phone)
-    }
-  }, [databaseInformation]);
 
+    const navigate = useNavigate()
+    
+    const onVisibilityChange = () => {
+        if (document.visibilityState === "visible") {
+          checkIsLoggedIn().then((result) => {
+            if (!result) {
+                navigate('/login')
+            }
+          })
+        }
+      };
+    
+
+
+      React.useLayoutEffect(() => {
+        document.addEventListener("visibilitychange", onVisibilityChange);
+    
+        return () =>
+          document.removeEventListener("visibilitychange", onVisibilityChange);
+      }, []);
+
+
+    React.useEffect(() => {
+        checkIsLoggedIn().then((result) => {
+            if (!result) {
+                navigate('/login')
+            }
+          })
+    if (user.fName === "") {
+        setUpdateUser(true);
+    }
+    }, []);
+
+  React.useEffect(() => {
+
+    if (user) {
+        setfName(user.fName)
+        setlName(user.lName)
+        setEmail(user.email)
+        setPhone(user.phone)
+    }
+  }, [user]);
+
+
+  if (user.fName === "") {
+    return <div>Loading...</div>;
+  }
 
 
   const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -56,8 +88,8 @@ export const Account = () => {
             headers: { Authorization: `Bearer ${authToken}` },
         });
         if (response.status === 200) {
-            setPostMsg("Successfully Updated Owed Item");
-            setUpdateValues(true);
+            setPostMsg("Successfully Updated User");
+            setUpdateUser(true);
           } else {
             setPostMsg("Error" + response.statusText);
           }
@@ -67,7 +99,7 @@ export const Account = () => {
   };
 
 
-  if (!databaseInformation) {
+  if (!user) {
     return <div>Loading...</div>
   }  
 
@@ -130,3 +162,7 @@ export const Account = () => {
     </Box>
   );
 };
+
+
+
+export default Account;

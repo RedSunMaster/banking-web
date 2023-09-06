@@ -1,29 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import './utils/theme.css';
-import Cookies from 'js-cookie';
-import axios from 'axios';
 import NavBar from './components/navbar';
-import { Login } from './pages/login';
-import { Transactions } from './pages/transactions';
-import { Home } from './pages/home'
 import checkIsLoggedIn from './auth/auth';
-import UserItem from './types/UserItem';
 import { Navigate } from "react-router-dom";
-import {
-  createTheme,
-  ThemeProvider
-} from "@mui/material/styles";
-import { Dashboard } from './pages/dashboard';
-import { fetchTransactions, fetchBalances, fetchCategories, fetchUser } from './utils/DatabaseInformation';
+import {createTheme,ThemeProvider} from "@mui/material/styles";
 import BalanceItem from './types/BalanceItem';
 import CategoryItem from './types/CategoryItem';
 import TransactionItem from './types/Transaction';
+import UserItem from './types/UserItem';
 import { DatabaseInformationProvider } from './utils/DatabaseInformation';
-import MoneyOwed from './pages/money-owed';
-import { Account } from './pages/account';
-import { Budget } from './pages/budget';
-
+import {Login} from './pages/login'
+const MoneyOwed = lazy(() => import('./pages/money-owed') as unknown as Promise<{ default: React.ComponentType }>);
+const Dashboard = lazy(() => import('./pages/dashboard') as unknown as Promise<{ default: React.ComponentType }>);
+const Account = lazy(() => import('./pages/account') as unknown as Promise<{ default: React.ComponentType }>);
+const Budget = lazy(() => import('./pages/budget') as unknown as Promise<{ default: React.ComponentType }>);
+const Transactions = lazy(() => import('./pages/transactions') as unknown as Promise<{ default: React.ComponentType }>);
 
 
 const emptyUserItem: UserItem = {
@@ -78,27 +70,6 @@ function McNutBanking() {
     });
   }, []);
 
-  React.useEffect(() => {
-    if (isLoggedIn) {
-      const fetchData = async () => {
-        const transactions = await fetchTransactions();
-        const balances = await fetchBalances();
-        const categories = await fetchCategories();
-        const user = await fetchUser();
-
-        if (balances && transactions && categories && user) {
-          setDatabaseInformation({
-            transactions,
-            balances,
-            categories,
-            user,
-          });
-        }
-      };
-      fetchData();
-    }
-  }, [isLoggedIn]);
-
   // Check if the databaseInformation state is undefined
 
   if (isLoading) {
@@ -109,7 +80,9 @@ function McNutBanking() {
     <div>
       <Router>
         <ThemeProvider theme={themeOptions}>
-          <NavBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+          <DatabaseInformationProvider>
+            <NavBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+          </DatabaseInformationProvider>
           <div className="content">
             <Routes>
               <Route
@@ -117,7 +90,9 @@ function McNutBanking() {
                 element={isLoggedIn ? 
                 (
                 <DatabaseInformationProvider>
-                  <Dashboard />
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Dashboard />
+                  </Suspense>
                 </DatabaseInformationProvider>
                  ): (<Navigate to="/login" />)}
               />
@@ -126,7 +101,9 @@ function McNutBanking() {
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
-                      <Dashboard />
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <Dashboard />
+                      </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
                     <Navigate to="/login" />
@@ -142,7 +119,9 @@ function McNutBanking() {
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
-                    <Transactions />
+                      <Suspense fallback={<div>Loading...</div>}>
+                      <Transactions />
+                      </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
                     <Navigate to="/login" />
@@ -154,7 +133,9 @@ function McNutBanking() {
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
-                    <MoneyOwed />
+                      <Suspense fallback={<div>Loading...</div>}>
+                      <MoneyOwed />
+                    </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
                     <Navigate to="/login" />
@@ -166,7 +147,9 @@ function McNutBanking() {
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
+                      <Suspense fallback={<div>Loading...</div>}>
                     <Account />
+                    </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
                     <Navigate to="/login" />
@@ -178,7 +161,9 @@ function McNutBanking() {
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
+                      <Suspense fallback={<div>Loading...</div>}>
                     <Budget />
+                    </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
                     <Navigate to="/login" />

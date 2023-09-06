@@ -4,14 +4,10 @@ import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import Input from '@mui/material/Input';
-import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputLabel from '@mui/material/InputLabel';
 import InputAdornment from '@mui/material/InputAdornment';
-import FormHelperText from '@mui/material/FormHelperText';
 import FormControl from '@mui/material/FormControl';
-import AccountCircle from '@mui/icons-material/AccountCircle';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { Button } from '@mui/material';
@@ -19,19 +15,17 @@ import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import { isTemplateSpan } from 'typescript';
 
 interface LoginProps {
   setIsLoggedIn: (value: boolean) => void;
 }
 
-export function Login({setIsLoggedIn}: LoginProps) {
+export const Login = ({setIsLoggedIn}: LoginProps) => {
   const [email, setEmail] = useState('');
   const [fName, setfName] = useState('');
   const [lName, setlName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const [value, setValue] = React.useState('1');

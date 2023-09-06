@@ -97,15 +97,7 @@ const fetchTransactions = async () => {
     }
   };
 
-interface DatabaseInformation {
-  transactions: TransactionItem[];
-  balances: BalanceItem[];
-  categories: CategoryItem[];
-  owedItems: OwedItem[];
-  user: UserItem;
-}
 
-let databaseInformation: DatabaseInformation | null = null;
 
 export const getDatabaseInformation = async () => {
     try {
@@ -114,63 +106,163 @@ export const getDatabaseInformation = async () => {
       const categories = await fetchCategories();
       const user = await fetchUser();
       const owedItems = await fetchOwedItems();
-  
-      if (balances && transactions && categories && user && owedItems) {
-        databaseInformation = {
-          transactions,
-          balances,
-          categories,
-          owedItems,
-          user,
-        };
-      } else {
-        databaseInformation = null;
-      }
+      
+
+
+      return {transactions,balances,categories,user,owedItems}
+      
     } catch (error) {
       console.log(error);
-      databaseInformation = null;
     }
-  
-    return databaseInformation;
+    return []
   };
-  
-export const setDatabaseInformation = (newDatabaseInformation: DatabaseInformation) => {
-  databaseInformation = newDatabaseInformation;
-};
 
+  const emptyUserItem: UserItem = {
+    fName: "",
+    lName: "",
+    authToken: "",
+    userId: 0,
+    email: "",
+    phone: "",
+  };
 
 // Create a context
 export const DatabaseInformationContext = React.createContext<{
-    databaseInformation: DatabaseInformation | null;
-    setUpdateValues: React.Dispatch<React.SetStateAction<boolean>>;
-  }>({
-    databaseInformation: null,
-    setUpdateValues: () => {},
-  });
+  categories: CategoryItem[];
+  balances: BalanceItem[]; // Update this line to specify it's an array of BalanceItem
+  transactions: TransactionItem[];
+  owedItems: OwedItem[];
+  user: UserItem;
+
+  setUpdateValues: React.Dispatch<React.SetStateAction<boolean>>;
+  setUpdateCategories: React.Dispatch<React.SetStateAction<boolean>>;
+  setUpdateBalances: React.Dispatch<React.SetStateAction<boolean>>;
+  setUpdateTransactions: React.Dispatch<React.SetStateAction<boolean>>;
+  setUpdateOwedItems: React.Dispatch<React.SetStateAction<boolean>>;
+  setUpdateUser: React.Dispatch<React.SetStateAction<boolean>>;
+}>({
+  categories: [],
+  balances: [], // Initialize it as an empty array
+  transactions: [],
+  owedItems: [],
+  user: emptyUserItem,
+  setUpdateValues: () => {},
+  setUpdateCategories: () => {},
+  setUpdateBalances: () => {},
+  setUpdateTransactions: () => {},
+  setUpdateOwedItems: () => {},
+  setUpdateUser: () => {},
+});
+
   
   // Create a provider component
   export const DatabaseInformationProvider = ({
     children,
   }: DatabaseInformationProviderProps) => {
-    const [databaseInformation, setDatabaseInformation] = React.useState<
-      DatabaseInformation | null
-    >(null);
+    const [categories, setCategories] = React.useState<CategoryItem[]>([]);
+    const [balances, setBalances] = React.useState<BalanceItem[]>([]);
+    const [transactions, setTransactions] = React.useState<TransactionItem[]>([]);
+    const [owedItems, setOwedItems] = React.useState<OwedItem[]>([]);
+    const [user, setUser] = React.useState<UserItem>(emptyUserItem);
+
     const [updateValues, setUpdateValues] = React.useState(false);
+    const [updateCategories, setUpdateCategories] = React.useState(false);
+    const [updateBalances, setUpdateBalances] = React.useState(false);
+    const [updateTransactions, setUpdateTransactions] = React.useState(false);
+    const [updateOwedItems, setUpdateOwedItems] = React.useState(false);
+    const [updateUser, setUpdateUser] = React.useState(false);
+
   
     // Fetch the data when the provider is mounted or when updateValues changes
     React.useEffect(() => {
       const fetchData = async () => {
-        const data = await getDatabaseInformation();
-        setDatabaseInformation(data);
-        setUpdateValues(false);
+        if (updateValues) {
+          const data = await getDatabaseInformation();
+          setUpdateValues(false);
+          if (!Array.isArray(data)) {
+            setTransactions(data.transactions?? []);
+            setCategories(data.categories?? []);
+            setBalances(data.balances?? []);
+            setUser(data.user?? emptyUserItem);
+            setOwedItems(data.owedItems?? []);
+          }
+      }
       };
       fetchData();
     }, [updateValues]);
+
+    React.useEffect(() => {
+      const fetchData = async () => {
+        if (updateCategories) {
+        const data = await fetchCategories();
+        if (data) {
+          setCategories(data);
+        }
+        setUpdateCategories(false);
+      }
+      };
+      fetchData();
+    }, [updateCategories]);
+
+    React.useEffect(() => {
+      const fetchData = async () => {
+        if (updateBalances) {
+        const data = await fetchBalances();
+        if (data) {
+          setBalances(data);
+        }
+        setUpdateBalances(false);
+      }
+      };
+      fetchData();
+    }, [updateBalances]);
+
+    React.useEffect(() => {
+      const fetchData = async () => {
+        if (updateTransactions) {
+        const data = await fetchTransactions();
+        if (data) {
+          setTransactions(data);
+        }
+        setUpdateTransactions(false);
+      }
+      };
+      fetchData();
+    }, [updateTransactions]);
+
+    React.useEffect(() => {
+      const fetchData = async () => {
+        if (updateOwedItems) {
+          const data = await fetchOwedItems();
+          if (data) {
+            setOwedItems(data);
+          }
+          setUpdateOwedItems(false);
+      }
+      };
+      fetchData();
+    }, [updateOwedItems]);
+
+    React.useEffect(() => {
+      const fetchData = async () => {
+        if(updateUser) {
+          const data = await fetchUser();
+          if (data) {
+            setUser(data);
+          }
+          setUpdateUser(false);
+        }
+      };
+      fetchData();
+    }, [updateUser]);
+
+
+
   
     // Provide the databaseInformation state and the setUpdateValues function to child components
     return (
       <DatabaseInformationContext.Provider
-        value={{ databaseInformation, setUpdateValues }}
+        value={{ categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser }}
       >
         {children}
       </DatabaseInformationContext.Provider>
