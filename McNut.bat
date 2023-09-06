@@ -1,0 +1,1 @@
+serve -p 443 --ssl-cert fullchain.pem --ssl-key privkey.pem -s build

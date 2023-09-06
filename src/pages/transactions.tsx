@@ -272,7 +272,7 @@ export const Transactions = () => {
     
         const response = await axios({
           method: 'delete',
-          url: `${rootUrl}api/transactions`,
+          url: `${rootUrl}/api/transactions`,
           data: data,
           headers: { Authorization: `Bearer ${authToken}` },
         });
