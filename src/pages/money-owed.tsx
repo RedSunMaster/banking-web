@@ -7,14 +7,8 @@ import Cookies from 'js-cookie';
 import { BarChart, ScatterChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
-import Fab from '@mui/material/Fab';
-import AddIcon from '@mui/icons-material/Add';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Modal, Fade, Button, FormControl, IconButton, InputLabel, OutlinedInput, Select, MenuItem, SelectChangeEvent, Alert, Snackbar } from '@mui/material';
-import dayjs, { Dayjs } from 'dayjs';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers';
+import { Button, FormControl, IconButton, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar } from '@mui/material';
 import axios, { AxiosError } from 'axios';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -27,6 +21,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import checkIsLoggedIn from '../auth/auth';
+import AddOwedItemModal from '../components/addOwedItemModal';
 
 
 
@@ -34,33 +29,58 @@ export const MoneyOwed = () => {
     const { categories, user, owedItems, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateOwedItems} = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
+    const [person, setPerson] = React.useState('');
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    const handleEdit = () => setEdit(true);
-    const handleCloseEdit = () => setEdit(false);
     const [openAlert, setOpenAlert] = React.useState(false);
+    const [item, setItem] = React.useState<OwedItem | undefined>(undefined)
 
     const [filterPersonItems, setfilterPersonItems] = React.useState<OwedItem[]>([])
     const [filterPerson, setFilterPerson] = React.useState('')
-    const [category, setCategory] = React.useState('')
     const [postMsg, setPostMsg] = React.useState('')
-    const [description, setDescription] = React.useState('')
-    const [inputAmount, setAmount] = React.useState(0)
-    const [person, setPerson] = React.useState('')
-    const [inputDate, setDate] = React.useState<Dayjs | null>(dayjs())
+
     const [payedItems, setPayedItems] = React.useState<OwedItem[]>([])
     const [notPayedItems, setNotPayedItems] = React.useState<OwedItem[]>([])
     const [payedTab, setPayedTab] = React.useState(false)
 
 
 
+    const handleOwedSuccess = async (id: number) => {
+      try{
+        const authToken = Cookies.get("authToken");
+        console.log(id)
+        const data = {
+          "owed_id": id
+        };
+        const response = await axios.patch(`${rootUrl}/api/updateOwedItem`, data, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (response.status === 200) {
+          setPostMsg("Successfully Updated Owed Item");
+          handleClose();
+          setUpdateOwedItems(true);
+          setUpdateBalances(true);
+        } else {
+          setPostMsg("Error" + response.statusText);
+        }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+        console.error(error)
+      }
+    }
+    setOpenAlert(true);
 
-    const [newCategory, setNewCategory] = React.useState('')
-    const [newDescription, setNewDescription] = React.useState('')
-    const [newAmount, setNewAmount] = React.useState(0)
-    const [newPerson, setNewPerson] = React.useState('')
-    const [newInputDate, setNewDate] = React.useState<Dayjs | null>(dayjs())
-    const [OwedItemId, setOwedItemId] = React.useState(0)
+    }
+
+    
+    const handleSetItem = (item: OwedItem | undefined, callback: () => void) => {
+      setItem(item);
+      callback();
+    };
 
     const navigate = useNavigate()
 
@@ -141,146 +161,6 @@ export const MoneyOwed = () => {
   const handleSwitchTab = () => {
     setPayedTab(!payedTab)
   }
-
-  const handleAddOwedItem = async (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      try {
-        const authToken = Cookies.get("authToken");
-        const date = dayjs(inputDate).format("YYYY-MM-DD").toString();
-        const data = {
-          "category": category,
-          "date": date,
-          "description": description,
-          "amount": Math.abs(inputAmount),
-          "person": person,
-        };
-    
-        const response = await axios.post(`${rootUrl}/api/moneyOwed`, data, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (response.status === 200) {
-          setPostMsg("Successfully Logged Money Owed");
-          setOpen(false);
-          setUpdateOwedItems(true);
-          setUpdateBalances(true);
-        } else {
-          setPostMsg("Error" + response.statusText);
-        }
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          // Handle Axios error
-          const responseData = error.response?.data;
-          setPostMsg("Error: " + responseData)
-        } else {
-          console.error(error)
-        }
-      }
-      setOpenAlert(true);
-    };
-
-
-    const handleUpdateOwedItem = async (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      try {
-        const authToken = Cookies.get("authToken");
-        const date = dayjs(newInputDate).format("YYYY-MM-DD").toString();
-        const data = {
-          "category": newCategory,
-          "date": date,
-          "description": newDescription,
-          "amount": Math.abs(newAmount),
-          "person": newPerson,
-          "owed_id": OwedItemId
-        };
-    
-        const response = await axios.patch(`${rootUrl}/api/editOwedItem`, data, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (response.status === 200) {
-          setPostMsg("Successfully Updated Money Owed");
-          setEdit(false);
-          setUpdateOwedItems(true);
-          setUpdateBalances(true);
-        } else {
-          setPostMsg("Error" + response.statusText);
-        }
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          // Handle Axios error
-          const responseData = error.response?.data;
-          setPostMsg("Error: " + responseData)
-        } else {
-          console.error(error)
-        }
-      }
-      setOpenAlert(true);
-    };
-
-    const handleDeleteOwedItem = async (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      try {
-        const authToken = Cookies.get("authToken");
-        const data = {
-          "owed_id": OwedItemId
-        };
-    
-        const response = await axios({
-          method: 'delete',
-          url: `${rootUrl}/api/moneyOwed`,
-          data: data,
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (response.status === 200) {
-          setPostMsg("Successfully Deleted Owed Item");
-          setEdit(false);
-          setUpdateOwedItems(true);
-          setUpdateBalances(true);
-        } else {
-          setPostMsg("Error" + response.statusText);
-        }
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          // Handle Axios error
-          const responseData = error.response?.data;
-          setPostMsg("Error: " + responseData)
-        } else {
-          console.error(error)
-        }
-      }
-      setOpenAlert(true);
-    }
-
-
-    const handleOwedSuccess = async (id: number) => {
-      try{
-        const authToken = Cookies.get("authToken");
-        console.log(id)
-        const data = {
-          "owed_id": id
-        };
-        const response = await axios.patch(`${rootUrl}/api/updateOwedItem`, data, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (response.status === 200) {
-          setPostMsg("Successfully Updated Owed Item");
-          setOpen(false);
-          setUpdateOwedItems(true);
-          setUpdateBalances(true);
-        } else {
-          setPostMsg("Error" + response.statusText);
-        }
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        // Handle Axios error
-        const responseData = error.response?.data;
-        setPostMsg("Error: " + responseData)
-      } else {
-        console.error(error)
-      }
-    }
-    setOpenAlert(true);
-
-    }
       
 
 
@@ -307,16 +187,6 @@ export const MoneyOwed = () => {
       );
     }
 
-    const editOwedItem = (item: OwedItem) => {
-      setNewCategory(item.Category)
-      setNewAmount(Math.abs(item.Amount))
-      setNewDate(dayjs(item.Date))
-      setNewDescription(item.Description)
-      setNewPerson(item.Person)
-      setOwedItemId(item.ID)
-      handleEdit()
-    }
-
     
     function renderRow(props: ListChildComponentProps) {
       const { index, style } = props;
@@ -330,7 +200,7 @@ export const MoneyOwed = () => {
           </IconButton>
         }
         >
-          <ListItemButton onClick={() => editOwedItem(item)}>
+          <ListItemButton onClick={() => {handleSetItem(item, handleOpen);}}>
             <ListItemText primary={item?.Description} secondary={item?.Category} />
             <Box sx={{ flexGrow: 1 }} />
             <Typography align="right" variant="body2">
@@ -384,164 +254,18 @@ export const MoneyOwed = () => {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <Fab
-        color="primary"
-        aria-label="add"
-        size='large'
-        onClick={handleOpen}
-        sx={{ position: 'fixed', bottom: 32, right: 32}}
-      >
-        <AddIcon />
-      </Fab>
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        open={open}
-        disableScrollLock={ true }
-        onClose={handleClose}
-        closeAfterTransition
-      >
-        <Fade in={open}>
-          <Box className={'modal'}>
-          <h2 className='pageTitle'>Log Owed Item</h2>
-          <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              label="Date"
-              defaultValue={inputDate}
-              onChange={(newValue: Dayjs | null) => {
-                setDate(newValue);
-              }}
-            />
-          </LocalizationProvider>
-          </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-category">Category</InputLabel>
-          <Select
-            label="Category"
-            className='select'
-            value={category}
-            onChange={(event: SelectChangeEvent<string>) => {setCategory(event.target.value as string)}}
-            inputProps={{
-              name: 'category',
-              id: 'outlined-adornment-category',
-            }}>
-            {categories.map((category) => (
-              <MenuItem key={category.categoryId} value={category.categoryName}>
-                {category.categoryName}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-person">Person</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-person"
-            type="text"
-            label="Person"
-            value={person}
-            onChange={(event) => setPerson(event.target.value)}
-          />
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-amount"
-            label="Amount"
-            type='number'
-            onChange={(event) => setAmount(Number(event.target.value))}
-          />
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-description"
-            label="Description"
-            type='text'
-            onChange={(event) => setDescription(event.target.value)}
-          />
-        </FormControl>
-        <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddOwedItem}>Add</Button>
-          </Box>
-        </Fade>
-      </Modal>
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        open={edit}
-        disableScrollLock={ true }
-        onClose={handleCloseEdit}
-        closeAfterTransition
-      >
-        <Fade in={edit}>
-          <Box className={'modal'}>
-          <h2 className='pageTitle'>Edit Owed Item</h2>
-          <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              label="Date"
-              defaultValue={newInputDate}
-              onChange={(newValue: Dayjs | null) => {
-                setNewDate(newValue);
-              }}
-            />
-          </LocalizationProvider>
-          </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-category">Category</InputLabel>
-          <Select
-            label="Category"
-            className='select'
-            value={newCategory}
-            onChange={(event: SelectChangeEvent<string>) => {setNewCategory(event.target.value as string)}}
-            inputProps={{
-              name: 'category',
-              id: 'outlined-adornment-category',
-            }}>
-            {categories.map((category) => (
-              <MenuItem key={category.categoryId} value={category.categoryName}>
-                {category.categoryName}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-person">Person</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-person"
-            type="text"
-            label="Person"
-            value={newPerson}
-            onChange={(event) => setNewPerson(event.target.value)}
-          />
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-amount"
-            label="Amount"
-            type='number'
-            value={newAmount}
-            onChange={(event) => setNewAmount(Number(event.target.value))}
-          />
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-description"
-            label="Description"
-            type='text'
-            value={newDescription}
-            onChange={(event) => setNewDescription(event.target.value)}
-          />
-        </FormControl>
-        <Box display={'flex'} flexDirection={'row'}>        
-          <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 1, marginRight: 2}} onClick={handleDeleteOwedItem}>Delete</Button>
-          <Button variant="contained" color="success" fullWidth sx={{ marginTop: 1}} onClick={handleUpdateOwedItem}>Update</Button>
-        </Box>
-        </Box>
-        </Fade>
-      </Modal>
+      <AddOwedItemModal 
+            categories={categories}
+            setUpdateOwedItems={setUpdateOwedItems} 
+            setUpdateBalances={setUpdateBalances} 
+            setOpenAlert={setOpenAlert}
+            setPostMsg={setPostMsg}
+            item={item}
+            handleOpen={handleOpen}
+            handleClose={handleClose}
+            open={open}
+            inputPerson={filterPerson}
+        />
         <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
         <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
           {postMsg}

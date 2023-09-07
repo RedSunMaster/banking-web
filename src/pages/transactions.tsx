@@ -3,19 +3,12 @@ import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography/Typography';
 import CardContent from '@mui/material/CardContent';
-import Cookies from 'js-cookie';
 import { LineChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
-import Fab from '@mui/material/Fab';
-import AddIcon from '@mui/icons-material/Add';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Modal, Fade, Button, FormControl, Switch, InputAdornment, InputLabel, OutlinedInput, Select, MenuItem, SelectChangeEvent, Alert, Snackbar } from '@mui/material';
-import dayjs, { Dayjs } from 'dayjs';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import axios, { AxiosError } from 'axios';
+import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar } from '@mui/material';
+import dayjs from 'dayjs';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
@@ -24,10 +17,10 @@ import { AutoSizer } from 'react-virtualized';
 import TransactionItem from '../types/Transaction';
 import BalanceItem from '../types/BalanceItem';
 import Masonry from '@mui/lab/Masonry';
-import CategoryIcon from '@mui/icons-material/Category';
-import { SketchPicker } from 'react-color';
 import checkIsLoggedIn from '../auth/auth';
 import { useNavigate } from 'react-router-dom';
+import AddCategoryModal from '../components/addCategoryModal';
+import AddTransactionModal from '../components/addTransactionModal';
 
 
 
@@ -40,40 +33,32 @@ interface TransactionGroup {
 
 export const Transactions = () => {
     const { categories, balances, transactions, user, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateTransactions } = React.useContext(DatabaseInformationContext);
-    const [open, setOpen] = React.useState(false);
-    const [openCategory, setOpenCategory] = React.useState(false);
-    const [edit, setEdit] = React.useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleOpenCategory = () => setOpenCategory(true);
-    const handleCloseCategory = () => setOpenCategory(false);
-    const handleClose = () => setOpen(false);
-    const handleCloseEdit = () => setEdit(false);
+    const [category, setCategory] = React.useState('');
     const [openAlert, setOpenAlert] = React.useState(false);
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
     const now = new Date();
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
     const [filterCategory, setFilterCategory] = React.useState('')
-    const [category, setCategory] = React.useState('')
     const [postMsg, setPostMsg] = React.useState('')
-    const [description, setDescription] = React.useState('')
-    const [amount, setAmount] = React.useState(0)
-    const [trans_type, setTransaction] = React.useState('Withdraw')
-    const [colour, setColour] = React.useState('')
-    const [categoryName, setCategoryName] = React.useState('')
-    const [inputDate, setDate] = React.useState<Dayjs | null>(dayjs())
+    const [item, setItem] = React.useState<TransactionItem | undefined>(undefined)
+
     const [filterTransactions, setFilterTransactions] = React.useState<TransactionItem[]>([])
     const [filterBalance, setFilterBalance] = React.useState<BalanceItem>()
-    const [newCategory, setNewCategory] = React.useState('')
-    const [newDescription, setNewDescription] = React.useState('')
-    const [newAmount, setNewAmount] = React.useState(0)
-    const [newTrans_type, setNewTransaction] = React.useState('Withdraw')
-    const [newInputDate, setNewDate] = React.useState<Dayjs | null>(dayjs())
-    const [transactionId, setTransactionId] = React.useState(0)
 
     const navigate = useNavigate()
+
+
+    const handleSetItem = (item: TransactionItem | undefined, callback: () => void) => {
+      setItem(item);
+      callback();
+    };
 
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -158,159 +143,9 @@ export const Transactions = () => {
       setOpenAlert(false);
     };
 
-    const handleAddTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      try {
-        let inputAmount = Math.abs(amount);
-        if (trans_type === "Withdraw") {
-          inputAmount = Math.abs(amount) * -1;
-        }
-        console.log(inputAmount);
-        const authToken = Cookies.get("authToken");
-        const date = dayjs(inputDate).format("YYYY-MM-DD").toString();
-        const data = {
-          "category": category,
-          "date": date,
-          "description": description,
-          "amount": inputAmount,
-          "trans_type": trans_type,
-        };
-        console.log("Request body:", data);
-    
-        const response = await axios.post(`${rootUrl}/api/transactions`, data, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (response.status === 200) {
-          setPostMsg("Successfully Added Transaction");
-          setOpen(false);
-          setUpdateTransactions(true);
-          setUpdateBalances(true);
-        } else {
-          setPostMsg("Error" + response.data);
-        }
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          // Handle Axios error
-          const responseData = error.response?.data;
-          setPostMsg("Error: " + responseData)
-        } else {
-          console.error(error)
-        }
-      }
-      setOpenAlert(true);
-    };
+  
 
-    const handleAddCategory = async (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      try {
-        const authToken = Cookies.get("authToken");
-        const data = {
-          "categoryName": categoryName,
-          "colour": colour,
-        };
-        console.log("Request body:", data);
     
-        const response = await axios.post(`${rootUrl}/api/categories`, data, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (response.status === 200) {
-          setPostMsg("Successfully Added Category");
-          setOpenCategory(false);
-          setUpdateCategories(true);
-          setUpdateBalances(true);
-        } else {
-          setPostMsg("Error" + response.data);
-        }
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          // Handle Axios error
-          const responseData = error.response?.data;
-          setPostMsg("Error: " + responseData)
-        } else {
-          console.error(error)
-        }
-      }
-      setOpenAlert(true);
-    };
-    
-
-    const handleUpdateTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      try {
-        let inputAmount = Math.abs(newAmount);
-        if (newTrans_type === "Withdraw") {
-          inputAmount = Math.abs(newAmount) * -1;
-        }
-        const authToken = Cookies.get("authToken");
-        const date = dayjs(newInputDate).format("YYYY-MM-DD").toString();
-        const data = {
-          "category": newCategory,
-          "date": date,
-          "description": newDescription,
-          "amount": inputAmount,
-          "trans_type": newTrans_type,
-          "transactionId": transactionId
-        };
-        console.log("Request body:", data);
-    
-        const response = await axios.patch(`${rootUrl}/api/transactions`, data, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (response.status === 200) {
-          setPostMsg("Successfully Updated Transaction");
-          setEdit(false);
-          setUpdateTransactions(true);
-          setUpdateBalances(true);
-        } else {
-          setPostMsg("Error" + response.data);
-        }
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          // Handle Axios error
-          const responseData = error.response?.data;
-          setPostMsg("Error: " + responseData)
-        } else {
-          console.error(error)
-        }
-      }
-      setOpenAlert(true);
-    };
-    
-
-    const handleDeleteTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      try {
-        const authToken = Cookies.get("authToken");
-        const data = {
-          "transactionId": transactionId
-        };
-    
-        const response = await axios({
-          method: 'delete',
-          url: `${rootUrl}/api/transactions`,
-          data: data,
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (response.status === 200) {
-          setPostMsg("Successfully Deleted Transaction");
-          setEdit(false);
-          setUpdateTransactions(true);
-          setUpdateBalances(true);
-        } else {
-          setPostMsg("Error" + response.statusText);
-        }
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          // Handle Axios error
-          const responseData = error.response?.data;
-          setPostMsg("Error: " + responseData)
-        } else {
-          console.error(error)
-        }
-      }
-      setOpenAlert(true);
-    }
-      
 
     function renderRow(props: ListChildComponentProps) {
       const { index, style } = props;
@@ -318,7 +153,7 @@ export const Transactions = () => {
     
       return (
         <ListItem style={style} key={transaction?.transactionID} sx={{ display: 'flex' }}>
-          <ListItemButton onClick={() => editTransaction(transaction)}>
+          <ListItemButton onClick={() => {handleSetItem(transaction, handleOpen);}}>
             <ListItemText primary={transaction?.Description} secondary={dayjs(transaction?.Date).format("DD-MM-YYYY")} />
             <Box sx={{ flexGrow: 1 }} />
             <Typography align="right" variant="body2">
@@ -351,17 +186,6 @@ export const Transactions = () => {
         </ListItem>
       );
     }
-
-    const editTransaction = (transaction: TransactionItem) => {
-      setNewCategory(transaction.Category)
-      setNewAmount(Math.abs(transaction.Amount))
-      setNewDate(dayjs(transaction.Date))
-      setNewDescription(transaction.Description)
-      setNewTransaction(transaction.Transaction)
-      setTransactionId(transaction.transactionID)
-      setEdit(true)
-    }
-
     const filteredTransactionsLineChart = filterTransactions.filter(
       (transaction) =>
         transaction.Amount < 0 &&
@@ -427,229 +251,24 @@ export const Transactions = () => {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <Fab
-        color="primary"
-        aria-label="add"
-        size='large'
-        onClick={handleOpen}
-        sx={{ position: 'fixed', bottom: 32, right: 32}}
-      >
-        <AddIcon />
-      </Fab>
-      <Fab
-            color="primary"
-            aria-label="add_category"
-            size='large'
-            onClick={handleOpenCategory}
-            sx={{ position: 'fixed', bottom: 32, right: 96}}
-          >
-            <CategoryIcon />
-      </Fab>
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        open={open}
-        onClose={handleClose}
-        closeAfterTransition
-      >
-        <Fade in={open}>
-          <Box className={'modal'}>
-          <h2 className='pageTitle'>Add Transaction</h2>
-          <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              label="Date"
-              defaultValue={inputDate}
-              onChange={(newValue: Dayjs | null) => {
-                setDate(newValue);
-              }}
-            />
-          </LocalizationProvider>
-          </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-category">Category</InputLabel>
-          <Select
-            label="Category"
-            className='select'
-            value={category}
-            onChange={(event: SelectChangeEvent<string>) => {setCategory(event.target.value as string)}}
-            inputProps={{
-              name: 'category',
-              id: 'outlined-adornment-category',
-            }}>
-            {categories.map((category) => (
-              <MenuItem key={category.categoryId} value={category.categoryName}>
-                {category.categoryName}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <OutlinedInput
-            id="outlined-adornment-transaction"
-            type="text"
-            readOnly={true}
-            value={trans_type}
-            endAdornment={
-              <InputAdornment position="end">
-                <Switch
-                  checked={trans_type === 'Deposit'}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    setTransaction(event.target.checked ? 'Deposit' : 'Withdraw');
-                  }}
-                  inputProps={{ 'aria-label': 'Transaction type' }}
-                />
-              </InputAdornment>
-            }
-          />
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-amount"
-            label="Amount"
-            type="number"
-            inputProps={{ min: 0 }}
-            onChange={(event) => {
-              const value = Number(event.target.value);
-              if (value >= 0) {
-                setAmount(value);
-              }
-            }}          />
-        </FormControl>
-
-        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-description"
-            label="Description"
-            type='text'
-            onChange={(event) => setDescription(event.target.value)}
-          />
-        </FormControl>
-        <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddTransaction}>Add</Button>
-          </Box>
-        </Fade>
-      </Modal>
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        open={edit}
-        onClose={handleCloseEdit}
-        closeAfterTransition
-      >
-        <Fade in={edit}>
-          <Box className={'modal'}>
-          <h2 className='pageTitle'>Edit Transaction</h2>
-          <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              label="Date"
-              defaultValue={newInputDate}
-              onChange={(newValue: Dayjs | null) => {
-                setNewDate(newValue);
-              }}
-            />
-          </LocalizationProvider>
-          </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-category">Category</InputLabel>
-          <Select
-            label="Category"
-            className='select'
-            value={newCategory}
-            onChange={(event: SelectChangeEvent<string>) => {setNewCategory(event.target.value as string)}}
-            inputProps={{
-              name: 'category',
-              id: 'outlined-adornment-category',
-            }}>
-            {categories.map((category) => (
-              <MenuItem key={category.categoryId} value={category.categoryName}>
-                {category.categoryName}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-          <OutlinedInput
-            id="outlined-adornment-transaction"
-            type="text"
-            readOnly={true}
-            value={newTrans_type}
-            endAdornment={
-              <InputAdornment position="end">
-                <Switch
-                  checked={trans_type === 'Deposit'}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    setNewTransaction(event.target.checked ? 'Deposit' : 'Withdraw');
-                  }}
-                  inputProps={{ 'aria-label': 'Transaction type' }}
-                />
-              </InputAdornment>
-            }
-          />
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-amount"
-            label="Amount"
-            type='number'
-            value={newAmount}
-            inputProps={{ min: 0 }}
-            onChange={(event) => {
-              const value = Number(event.target.value);
-              if (value >= 0) {
-                setNewAmount(value);
-              }
-            }}          />
-        </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-description"
-            label="Description"
-            type='text'
-            value={newDescription}
-            onChange={(event) => setNewDescription(event.target.value)}
-          />
-        </FormControl>
-        <Box display={'flex'} flexDirection={'row'}>        
-          <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 1, marginRight: 2}} onClick={handleDeleteTransaction}>Delete</Button>
-          <Button variant="contained" color="success" fullWidth sx={{ marginTop: 1}} onClick={handleUpdateTransaction}>Update</Button>
-        </Box>
-
-
-          </Box>
-        </Fade>
-      </Modal>
-      <Modal
-            aria-labelledby="transition-modal-title"
-            aria-describedby="transition-modal-description"
-            open={openCategory}
-            onClose={handleCloseCategory}
-            closeAfterTransition
-          >
-            <Fade in={openCategory}>
-              <Box className={'modal'}>
-              <h2 className='pageTitle'>Add Category</h2>
-              <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-              <InputLabel htmlFor="outlined-adornment-description">Category Name</InputLabel>
-              <OutlinedInput
-                id="outlined-adornment-description"
-                label="Category Name"
-                type='text'
-                value={categoryName}
-                onChange={(event) => setCategoryName(event.target.value)}
-              />
-            </FormControl>
-            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-              <SketchPicker color={colour} onChange={(color: { hex: React.SetStateAction<string>; }) => setColour(color.hex)} />
-            </FormControl>
-            <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddCategory}>Add</Button>
-              </Box>
-            </Fade>
-      </Modal>
+        <AddTransactionModal 
+            categories={categories}
+            setUpdateTransactions={setUpdateTransactions} 
+            setUpdateBalances={setUpdateBalances} 
+            setOpenAlert={setOpenAlert}
+            setPostMsg={setPostMsg}
+            item={item}
+            handleOpen={handleOpen}
+            handleClose={handleClose}
+            open={open}
+            inputCategory={category}
+        />
+      <AddCategoryModal 
+          setUpdateCategories={setUpdateCategories} 
+          setUpdateBalances={setUpdateBalances} 
+          setOpenAlert={setOpenAlert}
+          setPostMsg={setPostMsg}
+      />
         <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
         <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
           {postMsg}

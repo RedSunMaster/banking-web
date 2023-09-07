@@ -8,9 +8,7 @@ async function checkIsLoggedIn(): Promise<boolean> {
       const response = await axios.get(`${rootUrl}/api/login`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
-      console.log(response.status)
       if (response.status === 200) {
-        console.log("YES")
         return true
       } else {
         return false
