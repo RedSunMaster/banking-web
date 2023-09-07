@@ -68,14 +68,9 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
   };
 
   React.useEffect(() => {
-    checkIsLoggedIn().then((result) => {
-        if (!result) {
-            navigate('/login')
-        }
-      })
-  if (user.fName === "") {
-      setUpdateUser(true);
-  }
+    if (user.fName === "") {
+        setUpdateUser(true);
+    }
   }, [user]);
 
 
@@ -83,7 +78,6 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
     if (isLoggedIn) {
       setUpdateUser(true);
     } else {
-      
     }
   }, [isLoggedIn])
   

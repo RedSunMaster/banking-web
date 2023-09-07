@@ -16,6 +16,7 @@ const Dashboard = lazy(() => import('./pages/dashboard') as unknown as Promise<{
 const Account = lazy(() => import('./pages/account') as unknown as Promise<{ default: React.ComponentType }>);
 const Budget = lazy(() => import('./pages/budget') as unknown as Promise<{ default: React.ComponentType }>);
 const Transactions = lazy(() => import('./pages/transactions') as unknown as Promise<{ default: React.ComponentType }>);
+const PasswordReset = lazy(() => import('./pages/passwordReset') as unknown as Promise<{ default: React.ComponentType }>);
 
 
 const emptyUserItem: UserItem = {
@@ -85,6 +86,11 @@ function McNutBanking() {
           </DatabaseInformationProvider>
           <div className="content">
             <Routes>
+            <Route path="/reset-password" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <PasswordReset />
+              </Suspense>
+            } />
               <Route
                 path="/"
                 element={isLoggedIn ? 

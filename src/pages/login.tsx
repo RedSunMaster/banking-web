@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
@@ -10,7 +10,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import FormControl from '@mui/material/FormControl';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { Button } from '@mui/material';
+import { Alert, Button, Snackbar } from '@mui/material';
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -27,13 +27,24 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
+  const [postMsg, setPostMsg] = React.useState('')
+  const [openAlert, setOpenAlert] = React.useState(false);
   const [value, setValue] = React.useState('1');
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
 
+      
+
+
+  const handleCloseAlert = (_event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpenAlert(false);
+  };
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -51,11 +62,41 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
       const response = await axios.post(`${rootUrl}/api/login`, { email, password });
       Cookies.set('authToken', response.data, {expires: 7});
       setIsLoggedIn(true)
+      setPostMsg("Logged In")
       navigate('/dashboard')
     } catch (error) {
-      console.error(error);
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+        console.error(error)
+      }
+
     }
+    setOpenAlert(true);
   };
+
+  const forgotPassword = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    try {
+      const response = await axios.post(`${rootUrl}/api/reset-password`, { email });
+      if (response.status === 200) {  
+        setPostMsg("Password Reset Email Sent")
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+        console.error(error)
+      }
+
+    }
+    setOpenAlert(true);
+  };
+
+
 
   const handleRegister = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -64,15 +105,28 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
       Cookies.set('authToken', response.data);
       setIsLoggedIn(true)
       navigate('/dashboard')
+      setPostMsg("Successfully Registered")
 
     } catch (error) {
-      console.error(error);
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+        console.error(error)
+      }
     }
+    setOpenAlert(true);
   };
   
 
   return (
-    <Box justifyContent="center" sx={{ display: 'flex', flexDirection: 'column'}}>
+    <Box justifyContent="center" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
+      <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
+      <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
+        {postMsg}
+      </Alert>
+    </Snackbar>
       <TabContext value={value} >
         <Box sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'center', width: '100%' }}>
         <TabList onChange={handleChange}>
@@ -80,9 +134,9 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
           <Tab label="Register" value="2" />
         </TabList>
         </Box>
-
           <TabPanel value="1" >
-          <div>
+          <Box sx={{ flexGrow: 1 }}>
+
             <h2 className='pageTitle'>Login</h2>
             <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
               <InputLabel htmlFor="outlined-adornment-email">Email</InputLabel>
@@ -113,11 +167,20 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
                 label="Password"
               />
             </FormControl>
-            <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleSubmit}>Login</Button>
-          </div>
+            <Box display={'flex'} flexDirection={'row'}>  
+              <Button variant="outlined" fullWidth sx={{ marginTop: 1, marginRight: 2}} onClick={forgotPassword}>Forgot Password</Button>      
+              <Button variant="contained" fullWidth sx={{ marginTop: 1}} onClick={handleSubmit}>Login</Button>
+            </Box>
+
+          </Box>
           </TabPanel>
           <TabPanel value="2">
-          <div>
+          <Box sx={{ flexGrow: 1 }}>
+          <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
+            <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
+              {postMsg}
+            </Alert>
+          </Snackbar>
             <h2 className='pageTitle'>Register</h2>
             <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
               <InputLabel htmlFor="outlined-adornment-fName">First Name</InputLabel>
@@ -192,7 +255,7 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
               />
             </FormControl>
             <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleRegister}>Register</Button>
-          </div>
+          </Box>
           </TabPanel>
       </TabContext>
     </Box>

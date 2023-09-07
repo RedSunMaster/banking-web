@@ -16,11 +16,12 @@ import { useNavigate } from 'react-router-dom';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
-import { SketchPicker } from 'react-color';
-import axios from 'axios';
+import { CirclePicker, SliderPicker, SwatchesPicker } from 'react-color';
+import axios, { AxiosError } from 'axios';
 import CategoryIcon from '@mui/icons-material/Category';
 import AddIcon from '@mui/icons-material/Add';
 import checkIsLoggedIn from '../auth/auth';
+import { Height } from '@mui/icons-material';
 
 
 
@@ -96,12 +97,6 @@ export const Dashboard = () => {
 
 
 
-    
-  if (balances.length === 0 || categories.length == 0 || user.fName === "" || transactions.length === 0) {
-    return <div>Loading...</div>;
-  }
-
-
   const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
@@ -113,9 +108,9 @@ export const Dashboard = () => {
   const handleAddTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     try {
-      let inputAmount = amount;
+      let inputAmount = Math.abs(amount);
       if (trans_type === "Withdraw") {
-        inputAmount = amount * -1;
+        inputAmount = Math.abs(amount) * -1;
       }
       console.log(inputAmount);
       const authToken = Cookies.get("authToken");
@@ -141,8 +136,13 @@ export const Dashboard = () => {
         setPostMsg("Error" + response.data);
       }
     } catch (error) {
-      setPostMsg("Error: " + error);
-      console.error(error);
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+        console.error(error)
+      }
     }
     setOpenAlert(true);
   };
@@ -169,8 +169,13 @@ export const Dashboard = () => {
         setPostMsg("Error" + response.data);
       }
     } catch (error) {
-      setPostMsg("Error: " + error);
-      console.error(error);
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+        console.error(error)
+      }
     }
     setOpenAlert(true);
   };
@@ -355,15 +360,22 @@ export const Dashboard = () => {
             }
           />
         </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
           <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
           <OutlinedInput
             id="outlined-adornment-amount"
             label="Amount"
-            type='number'
-            onChange={(event) => setAmount(Number(event.target.value))}
+            type="number"
+            inputProps={{ min: 0 }}
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              if (value >= 0) {
+                setAmount(value);
+              }
+            }}
           />
         </FormControl>
+
         <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
           <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
           <OutlinedInput
@@ -384,6 +396,7 @@ export const Dashboard = () => {
             disableScrollLock={ true }
             onClose={handleCloseCategory}
             closeAfterTransition
+            sx={{alignContent: 'center'}}
           >
             <Fade in={openCategory}>
               <Box className={'modal'}>
@@ -398,9 +411,32 @@ export const Dashboard = () => {
                 onChange={(event) => setCategoryName(event.target.value)}
               />
             </FormControl>
-            <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-              <SketchPicker color={colour} onChange={(color: { hex: React.SetStateAction<string>; }) => setColour(color.hex)} />
+            <FormControl fullWidth sx={{ marginTop: 1, display: 'flex', justifyContent: 'center'}} variant="outlined">
+              <div style={{margin:'auto', justifyContent:'center', height:200, width:'100%'}}>
+                <AutoSizer>
+                      {({height, width}) => (
+                <SwatchesPicker width={width} height={height} color={colour} onChange={(color: { hex: React.SetStateAction<string>; }) => setColour(color.hex)} colors={
+                  [['#f44336', '#f5564a', '#f6695e', '#f77b72', '#f88e86', '#faa19b'],
+                  ['#e91e63', '#eb3573', '#ed4b82', '#f06292', '#f278a1', '#f48fb1'],
+                  ['#9c27b0', '#a63db8', '#b052c0', '#ba68c8', '#c47dd0', '#ce93d8'],
+                  ['#673ab7', '#764ebe', '#8561c5', '#9575cd', '#a489d4', '#b39ddb'],
+                  ['#3f51b5', '#5262bc', '#6574c4', '#7985cb', '#8c97d3', '#9fa8da'],
+                  ['#2196f3', '#37a1f4', '#4dabf5', '#64b6f7', '#7ac0f8', '#90cbf9'],
+                  ['#03a9f4', '#1cb2f5', '#35baf6', '#4fc3f7', '#68cbf8', '#81d4fa'],
+                  ['#00bcd4', '#1ac3d8', '#33c9dd', '#4dd0e1', '#66d7e5', '#80deea'],
+                  ['#009688', '#1aa194', '#33aba0', '#4db6ac', '#66c0b8', '#80cbc4'],
+                  ['#4caf50', '#5eb762', '#70bf73', '#82c785', '#94cf96', '#a6d7a8'],
+                  ['#8bc34a', '#97c95c', '#a2cf6e', '#aed580', '#b9db92', '#c5e1a5'],
+                  ['#cddc39', '#d2e04d', '#d7e361', '#dce774', '#e1ea88', '#e6ee9c'],
+                  ['#ffeb3b', '#ffed4f', '#ffef62', '#fff176', '#fff389', '#fff59d'],
+                  ['#ffc107', '#ffc720', '#ffcd39', '#ffd451', '#ffda6a', '#ffe083'],
+                  ['#ff9800', '#ffa21a', '#ffad33', '#ffb74d', '#ffc166', '#ffcc80'],
+                  ['#ff5722', '#ff6838', '#ff794e', '#ff8964', '#ff9a7a', '#ffab91'],
+                  ['#795548', '#86665a', '#94776d', '#a1887f', '#af9991', '#bcaaa4']]} />
+                      )}</AutoSizer>
+              </div>
             </FormControl>
+
             <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddCategory}>Add</Button>
               </Box>
             </Fade>
@@ -410,6 +446,17 @@ export const Dashboard = () => {
           {postMsg}
         </Alert>
         </Snackbar>
+        {categories.length === 0 && balances.length === 0 ? (
+          // Display a message if there are no transactions
+          <Box>
+            <Typography variant='h4'>
+              No Balances Avaliable
+            </Typography><br/>
+            <Typography>
+              Use the action buttons at the bottom of the page to get started
+            </Typography>
+          </Box>
+        ) : (
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
@@ -527,6 +574,7 @@ export const Dashboard = () => {
           )}
           </Masonry>
         </Grid>
+        )}
       </Box>
     );    
 };

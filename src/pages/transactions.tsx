@@ -15,7 +15,7 @@ import { Modal, Fade, Button, FormControl, Switch, InputAdornment, InputLabel, O
 import dayjs, { Dayjs } from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
@@ -39,7 +39,7 @@ interface TransactionGroup {
 
 
 export const Transactions = () => {
-    const { categories, balances, transactions, setUpdateCategories, setUpdateBalances, setUpdateTransactions } = React.useContext(DatabaseInformationContext);
+    const { categories, balances, transactions, user, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateTransactions } = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
     const [openCategory, setOpenCategory] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
@@ -161,9 +161,9 @@ export const Transactions = () => {
     const handleAddTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
       try {
-        let inputAmount = amount;
+        let inputAmount = Math.abs(amount);
         if (trans_type === "Withdraw") {
-          inputAmount = amount * -1;
+          inputAmount = Math.abs(amount) * -1;
         }
         console.log(inputAmount);
         const authToken = Cookies.get("authToken");
@@ -189,8 +189,13 @@ export const Transactions = () => {
           setPostMsg("Error" + response.data);
         }
       } catch (error) {
-        setPostMsg("Error: " + error);
-        console.error(error);
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        } else {
+          console.error(error)
+        }
       }
       setOpenAlert(true);
     };
@@ -217,8 +222,13 @@ export const Transactions = () => {
           setPostMsg("Error" + response.data);
         }
       } catch (error) {
-        setPostMsg("Error: " + error);
-        console.error(error);
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        } else {
+          console.error(error)
+        }
       }
       setOpenAlert(true);
     };
@@ -227,9 +237,9 @@ export const Transactions = () => {
     const handleUpdateTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
       try {
-        let inputAmount = newAmount;
+        let inputAmount = Math.abs(newAmount);
         if (newTrans_type === "Withdraw") {
-          inputAmount = newAmount * -1;
+          inputAmount = Math.abs(newAmount) * -1;
         }
         const authToken = Cookies.get("authToken");
         const date = dayjs(newInputDate).format("YYYY-MM-DD").toString();
@@ -255,8 +265,13 @@ export const Transactions = () => {
           setPostMsg("Error" + response.data);
         }
       } catch (error) {
-        setPostMsg("Error: " + error);
-        console.error(error);
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        } else {
+          console.error(error)
+        }
       }
       setOpenAlert(true);
     };
@@ -285,12 +300,17 @@ export const Transactions = () => {
           setPostMsg("Error" + response.statusText);
         }
       } catch (error) {
-        setPostMsg("Error: " + error);
-        console.error(error);
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        } else {
+          console.error(error)
+        }
       }
       setOpenAlert(true);
     }
-        
+      
 
     function renderRow(props: ListChildComponentProps) {
       const { index, style } = props;
@@ -404,6 +424,7 @@ export const Transactions = () => {
     }));
     
 
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Fab
@@ -482,15 +503,21 @@ export const Transactions = () => {
             }
           />
         </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
+        <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
           <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
           <OutlinedInput
             id="outlined-adornment-amount"
             label="Amount"
-            type='number'
-            onChange={(event) => setAmount(Number(event.target.value))}
-          />
+            type="number"
+            inputProps={{ min: 0 }}
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              if (value >= 0) {
+                setAmount(value);
+              }
+            }}          />
         </FormControl>
+
         <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
           <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
           <OutlinedInput
@@ -569,8 +596,13 @@ export const Transactions = () => {
             label="Amount"
             type='number'
             value={newAmount}
-            onChange={(event) => setNewAmount(Number(event.target.value))}
-          />
+            inputProps={{ min: 0 }}
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              if (value >= 0) {
+                setNewAmount(value);
+              }
+            }}          />
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
           <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
@@ -623,6 +655,17 @@ export const Transactions = () => {
           {postMsg}
         </Alert>
         </Snackbar>
+        {transactions.length === 0 ? (
+          // Display a message if there are no transactions
+          <Box>
+            <Typography variant='h4'>
+              No Transactions
+            </Typography><br/>
+            <Typography>
+              Use the action buttons at the bottom of the page to get started
+            </Typography>
+          </Box>
+        ) : (
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column', backgroundColor: filterBalance?.Colour + '40'}}>
@@ -747,7 +790,8 @@ export const Transactions = () => {
           </Grid>
           </Masonry>
         </Grid>
-      </Box>
+        )}
+    </Box>
   );
 };
 

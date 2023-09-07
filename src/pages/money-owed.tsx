@@ -15,7 +15,7 @@ import { Modal, Fade, Button, FormControl, IconButton, InputLabel, OutlinedInput
 import dayjs, { Dayjs } from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
@@ -31,7 +31,7 @@ import checkIsLoggedIn from '../auth/auth';
 
 
 export const MoneyOwed = () => {
-    const { categories, owedItems, setUpdateCategories, setUpdateBalances, setUpdateOwedItems} = React.useContext(DatabaseInformationContext);
+    const { categories, user, owedItems, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateOwedItems} = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
     const handleOpen = () => setOpen(true);
@@ -50,8 +50,6 @@ export const MoneyOwed = () => {
     const [inputDate, setDate] = React.useState<Dayjs | null>(dayjs())
     const [payedItems, setPayedItems] = React.useState<OwedItem[]>([])
     const [notPayedItems, setNotPayedItems] = React.useState<OwedItem[]>([])
-
-
     const [payedTab, setPayedTab] = React.useState(false)
 
 
@@ -95,6 +93,9 @@ export const MoneyOwed = () => {
     if (owedItems.length === 0) {
         setUpdateOwedItems(true);
     }
+    if (user.email === "") {
+      setUpdateUser(true)
+    }
     
   }, []);
 
@@ -103,31 +104,25 @@ export const MoneyOwed = () => {
 
 
 
-    React.useEffect(() => {
-      try {
-        if (owedItems.length !== 0) {
-          setNotPayedItems(owedItems.filter((owedItem) => (owedItem.Payed == false)))
-          setPayedItems(owedItems.filter((owedItem) => (owedItem.Payed == true)))
-          if (filterPerson === "") {
-            setFilterPerson(owedItems.filter((owedItem) => (owedItem.Payed == false))[0].Person)
-            const notPayedItems = owedItems.filter((item) => item.Payed == false);
-            const firstPerson = notPayedItems[0].Person;
-            const result = notPayedItems.filter((item) => item.Person === firstPerson);
-            setfilterPersonItems(result);
-          } else {
-            setfilterPersonItems(
-              notPayedItems.filter(
-                (item) => item.Person === filterPerson
-              )
-            );
-          }
+  React.useEffect(() => {
+    try {
+      if (owedItems.length !== 0) {
+        const notPayedItems = owedItems.filter((owedItem) => owedItem.Payed == false);
+        setNotPayedItems(notPayedItems);
+        setPayedItems(owedItems.filter((owedItem) => owedItem.Payed == true));
+        if (filterPerson === "") {
+          setFilterPerson(notPayedItems[0].Person);
+          const firstPerson = notPayedItems[0].Person;
+          setfilterPersonItems(notPayedItems.filter((item) => item.Person === firstPerson));
+        } else {
+          setfilterPersonItems(notPayedItems.filter((item) => item.Person === filterPerson));
         }
       }
-      catch (error) {
-        console.log(error)
-      }
-    }, [owedItems, filterPersonItems, filterPerson]);
-    
+    } catch (error) {
+      console.log(error);
+    }
+  }, [owedItems]);
+  
     
 
 
@@ -139,9 +134,7 @@ export const MoneyOwed = () => {
       setOpenAlert(false);
     };
 
-  if (!owedItems) {
-    return <div>Loading...</div>;
-  }
+
 
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
@@ -158,7 +151,7 @@ export const MoneyOwed = () => {
           "category": category,
           "date": date,
           "description": description,
-          "amount": inputAmount,
+          "amount": Math.abs(inputAmount),
           "person": person,
         };
     
@@ -174,8 +167,13 @@ export const MoneyOwed = () => {
           setPostMsg("Error" + response.statusText);
         }
       } catch (error) {
-        setPostMsg("Error: " + error);
-        console.error(error);
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        } else {
+          console.error(error)
+        }
       }
       setOpenAlert(true);
     };
@@ -190,7 +188,7 @@ export const MoneyOwed = () => {
           "category": newCategory,
           "date": date,
           "description": newDescription,
-          "amount": newAmount,
+          "amount": Math.abs(newAmount),
           "person": newPerson,
           "owed_id": OwedItemId
         };
@@ -207,8 +205,13 @@ export const MoneyOwed = () => {
           setPostMsg("Error" + response.statusText);
         }
       } catch (error) {
-        setPostMsg("Error: " + error);
-        console.error(error);
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        } else {
+          console.error(error)
+        }
       }
       setOpenAlert(true);
     };
@@ -236,8 +239,13 @@ export const MoneyOwed = () => {
           setPostMsg("Error" + response.statusText);
         }
       } catch (error) {
-        setPostMsg("Error: " + error);
-        console.error(error);
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        } else {
+          console.error(error)
+        }
       }
       setOpenAlert(true);
     }
@@ -262,17 +270,19 @@ export const MoneyOwed = () => {
           setPostMsg("Error" + response.statusText);
         }
     } catch (error) {
-      setPostMsg("Error: " + error);
-      console.error(error);
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+        console.error(error)
+      }
     }
     setOpenAlert(true);
 
     }
-        
-    
-    if (owedItems.length === 0 || categories.length == 0) {
-      return <div>Loading...</div>;
-    }
+      
+
 
     function renderAllRow(props: ListChildComponentProps) {
       const { index, style } = props;
@@ -537,6 +547,17 @@ export const MoneyOwed = () => {
           {postMsg}
         </Alert>
         </Snackbar>
+        {payedItems.length === 0 && notPayedItems.length === 0 ? (
+          // Display a message if there are no transactions
+          <Box>
+            <Typography variant='h4'>
+              No Owed Items
+            </Typography><br/>
+            <Typography>
+              Use the action buttons at the bottom of the page to get started
+            </Typography>
+          </Box>
+        ) : (
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
@@ -708,7 +729,7 @@ export const MoneyOwed = () => {
             <Typography variant="h6">You don't have any owed items yet.</Typography>
           ))}         
         </Grid>
-
+        )}
       </Box>
   );
 };

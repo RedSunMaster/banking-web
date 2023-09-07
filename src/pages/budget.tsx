@@ -10,7 +10,7 @@ import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 import { Alert, Button, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar } from '@mui/material';
 import dayjs from 'dayjs';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { ca } from 'date-fns/locale';
 import checkIsLoggedIn from '../auth/auth';
 import { useNavigate } from 'react-router-dom';
@@ -76,11 +76,7 @@ export const Budget = () => {
 
 
     
-    
-  if (balances.length === 0 || categories.length == 0) {
-    return <div>Loading...</div>;
-  }
-
+  
   const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
@@ -123,8 +119,13 @@ export const Budget = () => {
           }
         }
       } catch (error) {
-        setPostMsg("Error: " + error);
-        console.error(error);
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        } else {
+          console.error(error)
+        }
       }
       setOpenAlert(true);
     } else {
@@ -168,13 +169,18 @@ export const Budget = () => {
             setPostMsg("Successfully Transfered");
             setUpdateTransactions(true);
             setUpdateBalances(true);
-          } else {
-            setPostMsg("Error" + toResponse.data);
           }
+        } else {
+          setPostMsg("Error: must have amount to transfer");
         }
       } catch (error) {
-      setPostMsg("Error: " + error);
-      console.error(error);
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        } else {
+          console.error(error)
+        }
     }
     setOpenAlert(true);
   };
@@ -187,6 +193,17 @@ export const Budget = () => {
           {postMsg}
         </Alert>
         </Snackbar>
+        {categories.length === 0 && balances.length === 0 ? (
+          // Display a message if there are no transactions
+          <Box>
+            <Typography variant='h4'>
+              Cannot Distribute
+            </Typography><br/>
+            <Typography>
+              Go back to create a category / transaction
+            </Typography>
+          </Box>
+        ) : (
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
@@ -318,6 +335,7 @@ export const Budget = () => {
           </Grid>
           </Masonry>
         </Grid>
+        )}
       </Box>
     );    
 };

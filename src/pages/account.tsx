@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 import Box from '@mui/material/Box';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -66,12 +66,6 @@ export const Account = () => {
     }
   }, [user]);
 
-
-  if (user.fName === "") {
-    return <div>Loading...</div>;
-  }
-
-
   const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
@@ -95,14 +89,17 @@ export const Account = () => {
             setPostMsg("Error" + response.statusText);
           }
     } catch (error) {
-      console.error(error);
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+        console.error(error)
+      }
     }
+    setOpenAlert(true);
   };
 
-
-  if (!user) {
-    return <div>Loading...</div>
-  }  
 
   return (
     <Box sx={{ flexGrow: 1 }}>

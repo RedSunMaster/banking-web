@@ -6,6 +6,10 @@
   text-align: center;
 }
 
+.circle-picker {
+  width: auto;
+  justify-content: center;
+}
 .modal {
   position: absolute;
   top: 50%;
