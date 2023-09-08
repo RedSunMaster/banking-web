@@ -11,7 +11,6 @@ import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 import { Alert, Button, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar } from '@mui/material';
 import dayjs from 'dayjs';
 import axios, { AxiosError } from 'axios';
-import { ca } from 'date-fns/locale';
 import checkIsLoggedIn from '../auth/auth';
 import { useNavigate } from 'react-router-dom';
 

@@ -33,10 +33,10 @@ import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 
 const drawerWidth = 240;
 
-interface NavBarProps {
+type NavBarProps = {
   isLoggedIn: boolean;
-  setIsLoggedIn: (value: boolean) => void;
-}
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
 const pages = [
   { name: 'Dashboard', destination: '/dashboard', icon: <DashboardIcon /> },
@@ -50,7 +50,7 @@ const settings = [
   { name: 'Logout', destination: '/logout', icon: <LogoutIcon /> },
 ];
 
-function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
+export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
   const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const theme = useTheme(); // This line automatically gets the current theme object
 
@@ -120,8 +120,6 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
               <IconButton
                 size="large"
                 aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
                 onClick={() => handleToggleDrawer('left')} // Open the left drawer
                 color="inherit"
               >

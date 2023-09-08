@@ -3,7 +3,6 @@ import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
 import { SwatchesPicker } from "react-color";
-import { AutoSizer } from "react-virtualized";
 import CategoryIcon from '@mui/icons-material/Category';
 
 
