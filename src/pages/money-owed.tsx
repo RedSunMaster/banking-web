@@ -48,7 +48,6 @@ export const MoneyOwed = () => {
     const handleOwedSuccess = async (id: number) => {
       try{
         const authToken = Cookies.get("authToken");
-        console.log(id)
         const data = {
           "owed_id": id
         };
@@ -69,7 +68,6 @@ export const MoneyOwed = () => {
         const responseData = error.response?.data;
         setPostMsg("Error: " + responseData)
       } else {
-        console.error(error)
       }
     }
     setOpenAlert(true);
@@ -139,7 +137,6 @@ export const MoneyOwed = () => {
         }
       }
     } catch (error) {
-      console.log(error);
     }
   }, [owedItems]);
   

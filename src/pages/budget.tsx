@@ -89,8 +89,6 @@ export const Budget = () => {
 
   const handleDistributeBudget = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    console.log(sum)
-    console.log(income)
     if (sum === income && sum !== 0 && income !== 0) {
       try {
         for (const category in enteredValues) {
@@ -124,7 +122,6 @@ export const Budget = () => {
           const responseData = error.response?.data;
           setPostMsg("Error: " + responseData)
         } else {
-          console.error(error)
         }
       }
       setOpenAlert(true);
@@ -179,7 +176,6 @@ export const Budget = () => {
           const responseData = error.response?.data;
           setPostMsg("Error: " + responseData)
         } else {
-          console.error(error)
         }
     }
     setOpenAlert(true);

@@ -51,7 +51,6 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
   };
   
   React.useEffect(() => {
-    console.log(editItem);
     updateState(editItem);
   }, [editItem]);
   
@@ -71,7 +70,6 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
       if (trans_type === "Withdraw") {
         inputAmount = Math.abs(amount) * -1;
       }
-      console.log(inputAmount);
       const authToken = Cookies.get("authToken");
       const date = dayjs(inputDate).format("YYYY-MM-DD").toString();
       const data = {
@@ -81,7 +79,6 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
         "amount": inputAmount,
         "trans_type": trans_type,
       };
-      console.log("Request body:", data);
   
       const response = await axios.post(`${rootUrl}/api/transactions`, data, {
         headers: { Authorization: `Bearer ${authToken}` },
@@ -101,7 +98,6 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
         const responseData = error.response?.data;
         setPostMsg("Error: " + responseData)
       } else {
-        console.error(error)
       }
     }
     setOpenAlert(true);
@@ -136,7 +132,6 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
         const responseData = error.response?.data;
         setPostMsg("Error: " + responseData)
       } else {
-        console.error(error)
       }
     }
     setOpenAlert(true);
@@ -159,7 +154,6 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
         "trans_type": trans_type,
         "transactionId": editItem?.transactionID
       };
-      console.log("Request body:", data);
   
       const response = await axios.patch(`${rootUrl}/api/transactions`, data, {
         headers: { Authorization: `Bearer ${authToken}` },
@@ -178,7 +172,6 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
         const responseData = error.response?.data;
         setPostMsg("Error: " + responseData)
       } else {
-        console.error(error)
       }
     }
     setOpenAlert(true);

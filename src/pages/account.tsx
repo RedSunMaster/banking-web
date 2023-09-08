@@ -94,7 +94,6 @@ export const Account = () => {
         const responseData = error.response?.data;
         setPostMsg("Error: " + responseData)
       } else {
-        console.error(error)
       }
     }
     setOpenAlert(true);

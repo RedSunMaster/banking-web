@@ -62,7 +62,6 @@ export const PasswordReset = () => {
         const responseData = err.response?.data;
         setPostMsg("Error: " + responseData)
       } else {
-        console.error(err)
       }
     }
     setOpenAlert(true);

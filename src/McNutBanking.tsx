@@ -1,6 +1,5 @@
 import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import './utils/theme.css';
 import NavBar from './components/navbar';
 import checkIsLoggedIn from './auth/auth';
 import { Navigate } from "react-router-dom";

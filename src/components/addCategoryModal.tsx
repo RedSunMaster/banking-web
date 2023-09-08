@@ -35,7 +35,6 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
           "categoryName": categoryName,
           "colour": colour,
         };
-        console.log("Request body:", data);
     
         const response = await axios.post(`${rootUrl}/api/categories`, data, {
           headers: { Authorization: `Bearer ${authToken}` },
@@ -53,8 +52,6 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
           // Handle Axios error
           const responseData = error.response?.data;
           setPostMsg("Error: " + responseData)
-        } else {
-          console.error(error)
         }
       }
       setOpenAlert(true);
@@ -91,30 +88,30 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
                   onChange={(event) => setCategoryName(event.target.value)} />
               </FormControl>
               <FormControl fullWidth sx={{ marginTop: 1, display: 'flex', justifyContent: 'center' }} variant="outlined">                  
-              <div style={{ margin:'auto', display: 'flex', justifyContent: 'center', height:300, width:'100%' }}>
+              <div style={{ margin:'auto', display: 'flex', justifyContent: 'center', height:250, width:'100%' }}>
                     <SwatchesPicker
                       width={2000}
-                      height={300}
+                      height={250}
                       color={colour}
                       onChange={(color) => setColour(color.hex)}
                       colors={[
-                        ['#f44336', '#f5564a', '#f6695e', '#f77b72', '#f88e86', '#faa19b'],
-                        ['#e91e63', '#eb3573', '#ed4b82', '#f06292', '#f278a1', '#f48fb1'],
-                        ['#9c27b0', '#a63db8', '#b052c0', '#ba68c8', '#c47dd0', '#ce93d8'],
-                        ['#673ab7', '#764ebe', '#8561c5', '#9575cd', '#a489d4', '#b39ddb'],
-                        ['#3f51b5', '#5262bc', '#6574c4', '#7985cb', '#8c97d3', '#9fa8da'],
-                        ['#2196f3', '#37a1f4', '#4dabf5', '#64b6f7', '#7ac0f8', '#90cbf9'],
-                        ['#03a9f4', '#1cb2f5', '#35baf6', '#4fc3f7', '#68cbf8', '#81d4fa'],
-                        ['#00bcd4', '#1ac3d8', '#33c9dd', '#4dd0e1', '#66d7e5', '#80deea'],
-                        ['#009688', '#1aa194', '#33aba0', '#4db6ac', '#66c0b8', '#80cbc4'],
-                        ['#4caf50', '#5eb762', '#70bf73', '#82c785', '#94cf96', '#a6d7a8'],
-                        ['#8bc34a', '#97c95c', '#a2cf6e', '#aed580', '#b9db92', '#c5e1a5'],
-                        ['#cddc39', '#d2e04d', '#d7e361', '#dce774', '#e1ea88', '#e6ee9c'],
-                        ['#ffeb3b', '#ffed4f', '#ffef62', '#fff176', '#fff389', '#fff59d'],
-                        ['#ffc107', '#ffc720', '#ffcd39', '#ffd451', '#ffda6a', '#ffe083'],
-                        ['#ff9800', '#ffa21a', '#ffad33', '#ffb74d', '#ffc166', '#ffcc80'],
-                        ['#ff5722', '#ff6838', '#ff794e', '#ff8964', '#ff9a7a', '#ffab91'],
-                        ['#795548', '#86665a', '#94776d', '#a1887f', '#af9991', '#bcaaa4']
+                        ['#c3362b','#dc3c31','#f44336', '#f5564a', '#f6695e', '#f77b72', '#f88e86', '#faa19b'],
+                        ['#ba184f','#d21b59','#e91e63', '#eb3573', '#ed4b82', '#f06292', '#f278a1', '#f48fb1'],
+                        ['#7d1f8d','#8c239e','#9c27b0', '#a63db8', '#b052c0', '#ba68c8', '#c47dd0', '#ce93d8'],
+                        ['#522e92','#5d34a5','#673ab7', '#764ebe', '#8561c5', '#9575cd', '#a489d4', '#b39ddb'],
+                        ['#324191','#3949a3','#3f51b5', '#5262bc', '#6574c4', '#7985cb', '#8c97d3', '#9fa8da'],
+                        ['#1a78c2','#1e87db','#2196f3', '#37a1f4', '#4dabf5', '#64b6f7', '#7ac0f8', '#90cbf9'],
+                        ['#0287c3','#0398dc','#03a9f4', '#1cb2f5', '#35baf6', '#4fc3f7', '#68cbf8', '#81d4fa'],
+                        ['#0096aa','#00a9bf','#00bcd4', '#1ac3d8', '#33c9dd', '#4dd0e1', '#66d7e5', '#80deea'],
+                        ['#00786d','#00877a','#009688', '#1aa194', '#33aba0', '#4db6ac', '#66c0b8', '#80cbc4'],
+                        ['#3d8c40','#449e48','#4caf50', '#5eb762', '#70bf73', '#82c785', '#94cf96', '#a6d7a8'],
+                        ['#6f9c3b','#7db043','#8bc34a', '#97c95c', '#a2cf6e', '#aed580', '#b9db92', '#c5e1a5'],
+                        ['#a4b02e','#b9c633','#cddc39', '#d2e04d', '#d7e361', '#dce774', '#e1ea88', '#e6ee9c'],
+                        ['#ccbc2f','#e6d435','#ffeb3b', '#ffed4f', '#ffef62', '#fff176', '#fff389', '#fff59d'],
+                        ['#cc9a06','#e6ae06','#ffc107', '#ffc720', '#ffcd39', '#ffd451', '#ffda6a', '#ffe083'],
+                        ['#cc7a00','#e68900','#ff9800', '#ffa21a', '#ffad33', '#ffb74d', '#ffc166', '#ffcc80'],
+                        ['#cc461b','#e64e1f','#ff5722', '#ff6838', '#ff794e', '#ff8964', '#ff9a7a', '#ffab91'],
+                        ['#61443a','#6d4d41','#795548', '#86665a', '#94776d', '#a1887f', '#af9991', '#bcaaa4']
                       ]}
                     />
                   </div>

@@ -58,7 +58,6 @@ interface AddOwedItemProps {
       };
       
       React.useEffect(() => {
-        console.log(editItem);
         updateState(editItem);
       }, [editItem]);
       
@@ -99,7 +98,6 @@ interface AddOwedItemProps {
             const responseData = error.response?.data;
             setPostMsg("Error: " + responseData)
           } else {
-            console.error(error)
           }
         }
         setOpenAlert(true);
@@ -137,7 +135,6 @@ interface AddOwedItemProps {
             const responseData = error.response?.data;
             setPostMsg("Error: " + responseData)
           } else {
-            console.error(error)
           }
         }
         setOpenAlert(true);
@@ -171,7 +168,6 @@ interface AddOwedItemProps {
             const responseData = error.response?.data;
             setPostMsg("Error: " + responseData)
           } else {
-            console.error(error)
           }
         }
         setOpenAlert(true);

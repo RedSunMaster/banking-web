@@ -93,7 +93,6 @@ function NavBar({ isLoggedIn, setIsLoggedIn }: NavBarProps) {
       setIsLoggedIn(false);
       navigate('/login');
     } catch (error) {
-      console.error(error);
     }
   };
 

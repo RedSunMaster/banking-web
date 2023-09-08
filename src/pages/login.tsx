@@ -70,7 +70,6 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
         const responseData = error.response?.data;
         setPostMsg("Error: " + responseData)
       } else {
-        console.error(error)
       }
 
     }
@@ -89,7 +88,6 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
         const responseData = error.response?.data;
         setPostMsg("Error: " + responseData)
       } else {
-        console.error(error)
       }
 
     }
@@ -113,7 +111,6 @@ export const Login = ({setIsLoggedIn}: LoginProps) => {
         const responseData = error.response?.data;
         setPostMsg("Error: " + responseData)
       } else {
-        console.error(error)
       }
     }
     setOpenAlert(true);

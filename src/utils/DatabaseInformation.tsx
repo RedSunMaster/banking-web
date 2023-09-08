@@ -30,7 +30,6 @@ const fetchTransactions = async () => {
       }));
       return formattedData;
     } catch (error) {
-      console.error(error);
       return null;
     }
   };
@@ -46,7 +45,6 @@ const fetchTransactions = async () => {
       }
       return response.data;
     } catch (error) {
-      console.log(error);
       return null;
     }
   };
@@ -62,7 +60,6 @@ const fetchTransactions = async () => {
       }
       return response.data;
     } catch (error) {
-      console.log(error);
       return null;
     }
   };
@@ -79,7 +76,6 @@ const fetchTransactions = async () => {
       }
       return response.data;
     } catch (error) {
-      console.log(error);
       return null;
     }
   };
@@ -95,7 +91,6 @@ const fetchTransactions = async () => {
       }
       return response.data;
     } catch (error) {
-      console.log(error);
       return null;
     }
   };
@@ -115,7 +110,6 @@ export const getDatabaseInformation = async () => {
       return {transactions,balances,categories,user,owedItems}
       
     } catch (error) {
-      console.log(error);
     }
     return []
   };
