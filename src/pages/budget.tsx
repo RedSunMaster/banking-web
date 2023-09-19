@@ -83,7 +83,7 @@ export const Budget = () => {
 
     setOpenAlert(false);
   };
-  const sum = Object.values(enteredValues).reduce((acc, value) => acc + value, 0);
+  const sum = Number(Object.values(enteredValues).reduce((acc, value) => acc + value, 0).toFixed(2));
 
 
   const handleDistributeBudget = async (event: React.MouseEvent<HTMLButtonElement>) => {

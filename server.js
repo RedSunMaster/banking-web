@@ -28,8 +28,8 @@ app.get('*', function (req, res) {
   
 
 // read SSL/TLS certificate and private key
-const privateKey = fs.readFileSync('privkey.pem');
-const certificate = fs.readFileSync('fullchain.pem');
+const privateKey = fs.readFileSync('E:/BankingAPI/Frontend/banking-web/privkey.pem');
+const certificate = fs.readFileSync('E:/BankingAPI/Frontend/banking-web/fullchain.pem');
 const credentials = { key: privateKey, cert: certificate };
 
 // create HTTPS server
