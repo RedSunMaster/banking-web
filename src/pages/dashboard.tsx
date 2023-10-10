@@ -9,23 +9,33 @@ import 'react-virtualized/styles.css'; // only needs to be imported once
 import TransactionItem from '../types/Transaction';
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, List, ListItem, ListItemText, Snackbar } from '@mui/material';
+import { Alert, Checkbox, IconButton, List, ListItem, ListItemText, Snackbar } from '@mui/material';
 import { AutoSizer } from 'react-virtualized';
 import { useNavigate } from 'react-router-dom';
 import checkIsLoggedIn from '../auth/auth';
 import { AddCategoryModal } from '../components/addCategoryModal';
 import AddTransactionModal from '../components/addTransactionModal';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import AddIcon from '@mui/icons-material/Add';
+import AddBalanceModal from '../components/addBalanceModal';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 
 
 export const Dashboard = () => {
-  const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
+  const { categories, balances, filteredBalances, customBalances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const [openAlert, setOpenAlert] = React.useState(false);
   const [postMsg, setPostMsg] = React.useState('')
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  const [openBalance, setOpenBalance] = React.useState(false);
+  const handleOpenBalance = () => setOpenBalance(true);
+  const handleCloseBalance = () => setOpenBalance(false);
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+  const [addCustomBalance, setAddCustomBalance] = React.useState(false);
 
   
   const navigate = useNavigate()
@@ -113,25 +123,24 @@ export const Dashboard = () => {
   }, {} as Record<string, TransactionItem[]>);
 
 
-  const sortedBalances = balances.slice().sort((a, b) => a.Amount - b.Amount);
-  
-  const pieChartData = {
-    series: [
-      {
-        data: sortedBalances.sort((a, b) => a.Amount - b.Amount).map((balance) => ({
-          id: balance.Category,
-          value: balance.Amount,
-          color: balance.Colour,
-          label: balance.Category
-        })),
-        innerRadius: 75,
-        outerRadius: 125,
-        paddingAngle: 5,
-        cornerRadius: 5,
-        startAngle: -180,
-        endAngle: 180,
-      },],
-    };
+  const sortedFilteredBalances = filteredBalances.slice().sort((a, b) => a.Amount - b.Amount);
+    const filteredPieChartData = {
+      series: [
+        {
+          data: sortedFilteredBalances.sort((a, b) => a.Amount - b.Amount).map((balance) => ({
+            id: balance.Category,
+            value: balance.Amount,
+            color: balance.Colour,
+            label: balance.Category
+          })),
+          innerRadius: 75,
+          outerRadius: 125,
+          paddingAngle: 5,
+          cornerRadius: 5,
+          startAngle: -180,
+          endAngle: 180,
+        },],
+      };
 
     const monthlySums = Object.entries(groupedTransactions).map(([year, transactions]) => {
       const sums = transactions.reduce((acc, transaction) => {
@@ -183,6 +192,29 @@ export const Dashboard = () => {
       0
     );
 
+    const handleDeleteBalance = async (id: Number) => {
+      try {
+        const authToken = Cookies.get("authToken");
+        const data = {
+          "balanceId": id,
+        };
+    
+        const response = await axios.request({
+          method: 'delete',
+          url: `${rootUrl}/api/customBalances`,
+          headers: { Authorization: `Bearer ${authToken}` },
+          data: data
+        });
+    
+        if (response.status === 200) {
+          setUpdateBalances(true);
+        }
+      } catch (error) {
+        // handle error
+      }
+    };
+    
+
     return (
       <Box sx={{ flexGrow: 1 }}>
         <AddTransactionModal 
@@ -201,6 +233,15 @@ export const Dashboard = () => {
           setUpdateBalances={setUpdateBalances} 
           setOpenAlert={setOpenAlert}
           setPostMsg={setPostMsg}
+      />
+      <AddBalanceModal 
+          categories={categories}
+          setUpdateBalances={setUpdateBalances} 
+          setOpenAlert={setOpenAlert}
+          setPostMsg={setPostMsg}
+          open = {openBalance}
+          handleOpenCategory={handleOpenBalance}
+          handleCloseCategory={handleCloseBalance}
       />
         <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
         <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
@@ -228,8 +269,22 @@ export const Dashboard = () => {
                     Welcome Back {user.fName}
                   </Typography>
                   <Typography variant="h6">
-                    Total Balance <b style={{color: 'green'}}>${totalBalance.toFixed(2)}</b>
+                    Total Balance <b style={{color: 'blue'}}>${totalBalance.toFixed(2)}</b>
                   </Typography>
+                  {customBalances.map((balance, index) => (
+                    <div key={index}>
+                      <Typography variant="h6">
+                        {balance.Balance} <b style={{color: 'green'}}>${balance.Total}</b>
+                        <IconButton onClick={() => handleDeleteBalance(balance.balanceId)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Typography>
+
+                    </div>
+                  ))}
+                  <IconButton color="primary" aria-label="add balance" style={{ border: '1px solid black' }} onClick={() => handleOpenBalance()}>
+                    <AddIcon />
+                  </IconButton>
                   </Grid>
                 </Grid>
               </CardContent>
@@ -241,12 +296,37 @@ export const Dashboard = () => {
               <CardContent>
               <List sx={{width:'100%'}}>
                 {balances.map((balance) => (
-                  <Box sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}>
-                  <ListItem
-                          onClick={(event: React.MouseEvent<HTMLLIElement>) =>
-                            navigate(`/transactions?category=${balance.Category}`)
+                  <Box 
+                    sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}
+                    onClick={(event) => {
+                      // Check if the target is not the checkbox
+                      if ((event.target as HTMLInputElement).type !== 'checkbox') {
+                        navigate(`/transactions?category=${balance.Category}`)
+                      }
+                    }}
+                  >
+                    <ListItem>
+                      <Checkbox
+                        checked={filteredBalances.map((balance) => balance.Category).includes(balance.Category)}
+                        onChange={async (event) => {
+                          try {
+                            const authToken = Cookies.get("authToken");
+                            console.log(event.target.checked)
+                            const data = {
+                              "action": event.target.checked ? 'add' : 'remove',
+                              "categoryName": balance.Category
+                            };
+                            const response = await axios.patch(`${rootUrl}/api/filteredCategories`, data, {
+                              headers: { Authorization: `Bearer ${authToken}` },
+                            });
+                            if (response.status === 200) {
+                              setUpdateBalances(true);
+                            }
+                          } catch(error) {
+                            
                           }
-                        >                      
+                        }}
+                      />
                       <ListItemText primary={balance.Category.toUpperCase()}/>
                       <Box sx={{ flexGrow: 1 }} />
                       <Typography align="right" variant="body2">
@@ -256,6 +336,8 @@ export const Dashboard = () => {
                   </Box>
                 ))}
               </List>
+
+
               </CardContent>
             </Card>
           </Grid>
@@ -266,16 +348,16 @@ export const Dashboard = () => {
               <Card elevation={4} sx={{height:400}} >
                     <CardContent sx={{height:'100%'}}>
                   <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
-                    Balances Distribution
+                    Filtered Balances Distribution
                   </Typography>
                   <AutoSizer>
                       {({height, width}) => (
                   <PieChart 
-                    series={pieChartData.series} 
+                    series={filteredPieChartData.series} 
                     height={height} 
                     width={width} 
                     />)}
-                    </AutoSizer>
+                  </AutoSizer>
               </CardContent>
             </Card>
           </Grid>

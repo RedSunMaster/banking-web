@@ -6,6 +6,7 @@ import UserItem from "../types/UserItem";
 import Cookies from "js-cookie";
 import React from 'react';
 import OwedItem from "../types/OwedItem";
+import TotalItem from "../types/TotalItem";
 
 interface DatabaseInformationProviderProps {
     children: React.ReactNode;
@@ -40,6 +41,24 @@ const fetchTransactions = async () => {
       const response = await axios.get<BalanceItem[]>(`${rootUrl}/api/balances`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
+      const response2 = await axios.get<BalanceItem[]>(`${rootUrl}/api/filteredBalances`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status !== 200) {
+        return null;
+      }
+      return [response.data, response2.data];
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const fetchCustomBalances = async () => {
+    try {
+      const authToken = Cookies.get('authToken');
+      const response = await axios.get<TotalItem[]>(`${rootUrl}/api/customBalances`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
       if (response.status !== 200) {
         return null;
       }
@@ -48,6 +67,7 @@ const fetchTransactions = async () => {
       return null;
     }
   };
+
   
   const fetchCategories = async () => {
     try {
@@ -100,14 +120,18 @@ const fetchTransactions = async () => {
 export const getDatabaseInformation = async () => {
     try {
       const transactions = await fetchTransactions();
-      const balances = await fetchBalances();
+      const fetchBalancesResult = await fetchBalances();
       const categories = await fetchCategories();
       const user = await fetchUser();
       const owedItems = await fetchOwedItems();
-      
+      if (fetchBalancesResult !== null) {
+        const [balances, filteredBalances, customBalances] = fetchBalancesResult;
+        return {transactions,balances,filteredBalances, customBalances,categories,user,owedItems}
+      } else {
+          return []
+      }
 
 
-      return {transactions,balances,categories,user,owedItems}
       
     } catch (error) {
     }
@@ -127,6 +151,8 @@ export const getDatabaseInformation = async () => {
 export const DatabaseInformationContext = React.createContext<{
   categories: CategoryItem[];
   balances: BalanceItem[]; // Update this line to specify it's an array of BalanceItem
+  filteredBalances: BalanceItem[];
+  customBalances: TotalItem[];
   transactions: TransactionItem[];
   owedItems: OwedItem[];
   user: UserItem;
@@ -140,6 +166,8 @@ export const DatabaseInformationContext = React.createContext<{
 }>({
   categories: [],
   balances: [], // Initialize it as an empty array
+  filteredBalances: [],
+  customBalances: [],
   transactions: [],
   owedItems: [],
   user: emptyUserItem,
@@ -158,6 +186,9 @@ export const DatabaseInformationContext = React.createContext<{
   }: DatabaseInformationProviderProps) => {
     const [categories, setCategories] = React.useState<CategoryItem[]>([]);
     const [balances, setBalances] = React.useState<BalanceItem[]>([]);
+    const [filteredBalances, setFilteredBalances] = React.useState<BalanceItem[]>([]);
+    const [customBalances, setCustomBalances] = React.useState<TotalItem[]>([]);
+
     const [transactions, setTransactions] = React.useState<TransactionItem[]>([]);
     const [owedItems, setOwedItems] = React.useState<OwedItem[]>([]);
     const [user, setUser] = React.useState<UserItem>(emptyUserItem);
@@ -205,8 +236,12 @@ export const DatabaseInformationContext = React.createContext<{
       const fetchData = async () => {
         if (updateBalances) {
         const data = await fetchBalances();
-        if (data) {
-          setBalances(data);
+        const customBalancesData = await fetchCustomBalances();
+        if (data && customBalancesData) {
+          const [newBalances, newFilBalances] = data;
+          setBalances(newBalances);
+          setFilteredBalances(newFilBalances);
+          setCustomBalances(customBalancesData)
         }
         setUpdateBalances(false);
       }
@@ -259,7 +294,7 @@ export const DatabaseInformationContext = React.createContext<{
     // Provide the databaseInformation state and the setUpdateValues function to child components
     return (
       <DatabaseInformationContext.Provider
-        value={{ categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser }}
+        value={{ categories, balances, filteredBalances, customBalances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser }}
       >
         {children}
       </DatabaseInformationContext.Provider>
