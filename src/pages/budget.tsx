@@ -8,7 +8,7 @@ import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, Button, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar } from '@mui/material';
+import { Alert, Button, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
 import axios, { AxiosError } from 'axios';
 import checkIsLoggedIn from '../auth/auth';
@@ -30,6 +30,9 @@ export const Budget = () => {
   const [income, setIncome] = React.useState(0)
   const [transferAmount, setTransferAmount] = React.useState(0)
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+
+
+  const theme = useTheme();
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, category: string) => {
     setEnteredValues((prevValues) => ({
@@ -202,7 +205,7 @@ export const Budget = () => {
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
-              <CardContent>
+              <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
               <Grid container direction="column" width='100%'>
                   <Grid>
                   <Typography variant="h5" style={{ fontWeight: 'bold' }}>
@@ -242,7 +245,7 @@ export const Budget = () => {
           <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 2 }} spacing={0}>
           <Grid xs={2} sm={4} md={6} lg={8} xl={10}>
             <Card elevation={4} >
-              <CardContent>
+              <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
               <List sx={{width:'100%'}}>
                 {balances.map((balance) => (
                   <Box sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}>
@@ -275,7 +278,7 @@ export const Budget = () => {
           </Grid>
           <Grid xs={2} sm={4} md={6} lg={8} xl={10} >
             <Card elevation={4} >
-              <CardContent sx={{display:'flex', flexDirection:'column'}}>
+              <CardContent sx={{display:'flex', flexDirection:'column', bgcolor: theme.palette.secondary.main}}>
               <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
               <InputLabel htmlFor="outlined-adornment-category">From</InputLabel>
               <Select

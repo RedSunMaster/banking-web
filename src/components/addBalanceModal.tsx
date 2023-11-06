@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -26,7 +26,7 @@ interface AddCategoryModalProps {
 export const AddBalanceModal = ({categories, setUpdateBalances, setOpenAlert, setPostMsg,open, handleOpenCategory, handleCloseCategory}: AddCategoryModalProps) => {
     const [balanceName, setBalanceName] = React.useState('') 
     const [openCategory, setOpenCategory] = React.useState(false);
-
+    const theme = useTheme();
     const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
     const [selectedCategories, setSelectedCategories] = React.useState<number[]>([]);
@@ -77,10 +77,18 @@ export const AddBalanceModal = ({categories, setUpdateBalances, setOpenAlert, se
         disableScrollLock={true}
         onClose={handleCloseCategory}
         closeAfterTransition
-        sx={{ alignContent: 'center' }}
+        sx={{ 
+          alignContent: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
+
           <Fade in={open}>
-            <Box className={'modal'}>
+          <Grid container justifyContent="center" alignItems="top">
+            <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
+            <Box className={'modal'}  justifyContent="center" sx={{bgcolor: theme.palette.secondary.main,flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
               <h2 className='pageTitle'>Add Custom Balance</h2>
               <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
                 <InputLabel htmlFor="outlined-adornment-description">Custom Balance Name</InputLabel>
@@ -111,6 +119,8 @@ export const AddBalanceModal = ({categories, setUpdateBalances, setOpenAlert, se
               </FormControl>
               <Button variant="outlined" fullWidth sx={{ marginTop: 1 }} onClick={handleAddBalance}>Add</Button>
             </Box>
+              </Grid>
+              </Grid>
           </Fade>
         </Modal></>
     )

@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -55,7 +55,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
       }
       setOpenAlert(true);
     };
-
+    const theme = useTheme();
     return (
       <><Fab
         color="primary"
@@ -72,10 +72,12 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
         disableScrollLock={true}
         onClose={handleCloseCategory}
         closeAfterTransition
-        sx={{ alignContent: 'center' }}
+        sx={{ alignContent: 'center'}}
       >
           <Fade in={openCategory}>
-            <Box className={'modal'}>
+          <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
+            <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
+            <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width: 'auto' }}>
               <h2 className='pageTitle'>Add Category</h2>
               <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
                 <InputLabel htmlFor="outlined-adornment-description">Category Name</InputLabel>
@@ -119,6 +121,8 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
 
               <Button variant="outlined" fullWidth sx={{ marginTop: 1 }} onClick={handleAddCategory}>Add</Button>
             </Box>
+            </Grid>
+            </Grid>
           </Fade>
         </Modal></>
     )

@@ -15,6 +15,8 @@ import {
   Avatar,
   ListItemIcon,
   ListItemButton,
+  SvgIcon,
+  Icon,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -30,13 +32,19 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SavingsIcon from '@mui/icons-material/Savings';
 import checkIsLoggedIn from '../auth/auth';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import McNutLogo from '../mcnutlogo.svg'
 const drawerWidth = 240;
 
 type NavBarProps = {
   isLoggedIn: boolean;
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+  isDarkMode: boolean;
+  setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
 };
+
+
 
 const pages = [
   { name: 'Dashboard', destination: '/dashboard', icon: <DashboardIcon /> },
@@ -50,14 +58,17 @@ const settings = [
   { name: 'Logout', destination: '/logout', icon: <LogoutIcon /> },
 ];
 
-export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
+export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDarkMode, setIsDarkMode }) => {
   const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const theme = useTheme(); // This line automatically gets the current theme object
+
 
   const navigate = useNavigate();
 
   const [leftDrawerOpen, setLeftDrawerOpen] = React.useState(false);
   const [rightDrawerOpen, setRightDrawerOpen] = React.useState(false);
+
+
 
   const handleToggleDrawer = (drawer: 'left' | 'right') => {
     if (drawer === 'left') {
@@ -105,12 +116,12 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn }) => 
 
   return (
     <div style={{ display: 'flex'}}>
-      <AppBar position="static" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
+      <AppBar position="static" sx={{ zIndex: theme.zIndex.drawer + 1, bgcolor: theme.palette.primary.main }}>
         <Container maxWidth={false}>
           <Toolbar>
-            <AttachMoneyIcon
-              sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }}
-            />
+            <Icon>
+              <img src={McNutLogo} height={25} width={25}/>
+            </Icon>
             <Box
               sx={{
                 flexGrow: 1,
@@ -121,7 +132,6 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn }) => 
                 size="large"
                 aria-label="account of current user"
                 onClick={() => handleToggleDrawer('left')} // Open the left drawer
-                color="inherit"
               >
                 <MenuIcon />
               </IconButton>
@@ -136,7 +146,6 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn }) => 
                 display: { xs: 'flex', md: 'none' },
                 flexGrow: 1,
                 fontWeight: 500,
-                color: 'inherit',
                 textDecoration: 'none',
               }}
             >
@@ -149,11 +158,18 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn }) => 
                   onClick={() => {
                     navigate(page.destination);
                   }}
-                  sx={{ my: 2, color: 'white', display: 'block' }}
+                  sx={{ my: 2, color: 'inherit', display: 'block' }}
                 >
                   {page.name}
                 </Button>
               ))}
+            </Box>
+            <Box sx={{ flexGrow: 0 }}>
+              <IconButton
+                size='large'
+                onClick={() => {setIsDarkMode(!isDarkMode)}}
+                sx={{marginRight:'10px'}}
+              >{isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}</IconButton>
             </Box>
             <Box sx={{ flexGrow: 0 }}>
               <Avatar {...(isLoggedIn ? stringAvatar(user.fName + " " + user.lName) : {})} onClick={() => handleToggleDrawer('right')} />

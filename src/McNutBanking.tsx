@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import {createTheme,ThemeProvider} from "@mui/material/styles";
 import {Login} from './pages/login';
 import NavBar from './components/navbar';
+import CssBaseline from "@mui/material/CssBaseline";
 
 const MoneyOwed = lazy(() => import('./pages/money-owed') as unknown as Promise<{ default: React.ComponentType }>);
 const Dashboard = lazy(() => import('./pages/dashboard') as unknown as Promise<{ default: React.ComponentType }>);
@@ -27,20 +28,46 @@ const themeOptions = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#284B63',
+      main: '#84563C',
     },
     secondary: {
-      main: '#102633',
+      main: '#E7CE96',
     },
     background: {
-      default: '#EEF0EB',
+      default: '#EEE0B1',
     },
+    text: {
+      primary: '#84563C',
+    }
+  },
+});
+
+const darkThemeOptions = createTheme({
+  typography: {
+    fontFamily: 'Poppins, sans-serif',
+  },
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#5F4336',
+    },
+    secondary: {
+      main: '#84563C',
+    },
+    background: {
+      default: '#3B2A1F',
+    },
+    text: {
+      primary: '#D9BE91',
+    }
   },
 });
 
 function McNutBanking() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isDarkMode, setIsDarkMode] = React.useState(false);
+
   React.useEffect(() => {
     if (Cookies.get('authToken')) {
       checkIsLoggedIn().then((result) => {
@@ -62,9 +89,10 @@ function McNutBanking() {
   return (
     <div>
       <Router>
-        <ThemeProvider theme={themeOptions}>
+      <ThemeProvider theme={isDarkMode ? darkThemeOptions : themeOptions}>
+        <CssBaseline enableColorScheme/>
           <DatabaseInformationProvider>
-            <NavBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+            <NavBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
           </DatabaseInformationProvider>
           <div className="content">
             <Routes>

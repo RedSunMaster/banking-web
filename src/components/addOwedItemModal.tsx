@@ -1,4 +1,4 @@
-import { Fab, Modal, Fade, Box, FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, OutlinedInput, Button } from "@mui/material";
+import { Fab, Modal, Fade, Box, FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, OutlinedInput, Button, useTheme, Grid } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios, { AxiosError } from "axios";
@@ -48,7 +48,7 @@ interface AddOwedItemProps {
     );
     const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
-
+    const theme = useTheme();
     const updateState = (data: OwedItem | undefined) => {
         setCategory(data ? data.Category: '');
         setDescription(data ? data.Description : "");
@@ -195,7 +195,9 @@ interface AddOwedItemProps {
         closeAfterTransition
       >
         <Fade in={open}>
-          <Box className={'modal'}>
+        <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
+            <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
+          <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto' }}>
           <h2 className='pageTitle'>Log Owed Item</h2>
           <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -266,6 +268,8 @@ interface AddOwedItemProps {
       )
       }
         </Box>
+        </Grid>
+        </Grid>
         </Fade>
       </Modal>
 

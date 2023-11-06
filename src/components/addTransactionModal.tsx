@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, InputAdornment, MenuItem, Select, SelectChangeEvent, Switch } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, InputAdornment, MenuItem, Select, SelectChangeEvent, Switch, useTheme, Grid } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -40,7 +40,7 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
   const [trans_type, setTransaction] = React.useState(
     editItem ? editItem.Transaction : "Withdraw"
   );
-
+  const theme = useTheme();
 
   const updateState = (data: TransactionItem | undefined) => {
     setCategory(data ? data.Category: inputCategory);
@@ -199,7 +199,7 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
       closeAfterTransition
     >
       <Fade in={open}>
-        <Box className={'modal'}>
+      <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main }}>
         <h2 className='pageTitle'>Add Transaction</h2>
         <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
         <LocalizationProvider dateAdapter={AdapterDayjs}>

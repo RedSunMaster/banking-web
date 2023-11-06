@@ -32,16 +32,11 @@ code {
 }
 .modal {
   position: absolute;
-  top: 50%;
-  left: 50%;
   transform: translate(-50%, -50%);
-  width: 70vw;
-  height: 70vh;
   border-radius: 12px;
   padding: 16px 32px 24px 32px;
   overflow: auto;
   box-shadow: 16;
-  background-color: white;
 }
 
 
@@ -73,11 +68,11 @@ code {
     font-size: 17px;
   }
   
-  /* Change the color of links on hover */
+  /* Change the color of links on hover
   .topnav a:hover {
     background-color: #ddd;
     color: black;
-  }
+  } */
   
   /* Create a right-aligned (split) link inside the navigation bar */
   .topnav a.split {

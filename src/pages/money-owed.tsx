@@ -8,7 +8,7 @@ import { BarChart, ScatterChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Button, FormControl, IconButton, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar } from '@mui/material';
+import { Button, FormControl, IconButton, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, useTheme } from '@mui/material';
 import axios, { AxiosError } from 'axios';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -42,7 +42,7 @@ export const MoneyOwed = () => {
     const [payedItems, setPayedItems] = React.useState<OwedItem[]>([])
     const [notPayedItems, setNotPayedItems] = React.useState<OwedItem[]>([])
     const [payedTab, setPayedTab] = React.useState(false)
-
+    const theme = useTheme();
 
 
     const handleOwedSuccess = async (id: number) => {
@@ -282,7 +282,7 @@ export const MoneyOwed = () => {
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
-              <CardContent>
+              <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
               <Grid container direction="column" width='100%'>
                   <Grid>
                   <Typography variant="h5" style={{ fontWeight: 'bold' }}>
@@ -321,7 +321,7 @@ export const MoneyOwed = () => {
             <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
                 <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                     <Card elevation={4} sx={{height:400}}>
-                      <CardContent sx={{height:'100%'}}>
+                      <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
                         <AutoSizer>
                           {({height, width}) => (
                               <FixedSizeList
@@ -340,7 +340,7 @@ export const MoneyOwed = () => {
                 </Grid>
                 <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                   <Card elevation={4} sx={{height:400}} >
-                    <CardContent sx={{height:'100%'}}>
+                    <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
                     <AutoSizer>
                       {({height, width}) => (
                         <ScatterChart
@@ -359,7 +359,7 @@ export const MoneyOwed = () => {
                 </Grid>
                 <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                 <Card elevation={4} sx={{height:400}} >
-                <CardContent sx={{height:'100%'}}>
+                <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
                     <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                       AVG Payback Per Person
                     </Typography>
@@ -390,7 +390,7 @@ export const MoneyOwed = () => {
             <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
               <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                 <Card elevation={4}>
-                  <CardContent>
+                  <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
                     <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
                       <InputLabel htmlFor="outlined-adornment-filter">
                         Filter Person
@@ -422,7 +422,7 @@ export const MoneyOwed = () => {
                   </CardContent>
                 </Card>
                 <Card elevation={4} sx={{ height: 300 }}>
-                  <CardContent sx={{ height: "100%" }}>
+                  <CardContent sx={{ height: "100%", bgcolor: theme.palette.secondary.main }}>
                     <Typography style={{ position: 'absolute', top: 15, left: 15, right: 0, textAlign: 'left' }}>
                       Total: ${filterPersonItems.reduce((acc, item) => acc + item.Amount, 0).toFixed(2)}
                     </Typography>
