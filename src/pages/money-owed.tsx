@@ -282,7 +282,7 @@ export const MoneyOwed = () => {
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
-              <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
+              <CardContent sx={{bgcolor: theme.palette.info.main}}>
               <Grid container direction="column" width='100%'>
                   <Grid>
                   <Typography variant="h5" style={{ fontWeight: 'bold' }}>
@@ -321,7 +321,7 @@ export const MoneyOwed = () => {
             <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
                 <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                     <Card elevation={4} sx={{height:400}}>
-                      <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
+                      <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
                         <AutoSizer>
                           {({height, width}) => (
                               <FixedSizeList
@@ -340,7 +340,7 @@ export const MoneyOwed = () => {
                 </Grid>
                 <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                   <Card elevation={4} sx={{height:400}} >
-                    <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
+                    <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
                     <AutoSizer>
                       {({height, width}) => (
                         <ScatterChart
@@ -359,7 +359,7 @@ export const MoneyOwed = () => {
                 </Grid>
                 <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                 <Card elevation={4} sx={{height:400}} >
-                <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
+                <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
                     <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                       AVG Payback Per Person
                     </Typography>
@@ -390,7 +390,7 @@ export const MoneyOwed = () => {
             <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
               <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                 <Card elevation={4}>
-                  <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
+                  <CardContent sx={{bgcolor: theme.palette.info.main}}>
                     <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
                       <InputLabel htmlFor="outlined-adornment-filter">
                         Filter Person
@@ -422,7 +422,7 @@ export const MoneyOwed = () => {
                   </CardContent>
                 </Card>
                 <Card elevation={4} sx={{ height: 300 }}>
-                  <CardContent sx={{ height: "100%", bgcolor: theme.palette.secondary.main }}>
+                  <CardContent sx={{ height: "100%", bgcolor: theme.palette.info.main }}>
                     <Typography style={{ position: 'absolute', top: 15, left: 15, right: 0, textAlign: 'left' }}>
                       Total: ${filterPersonItems.reduce((acc, item) => acc + item.Amount, 0).toFixed(2)}
                     </Typography>

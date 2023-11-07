@@ -219,17 +219,17 @@ export const Dashboard = () => {
 
     return (
       <Box sx={{ flexGrow: 1 }}>
-            <AddTransactionModal 
-                categories={categories}
-                setUpdateTransactions={setUpdateTransactions} 
-                setUpdateBalances={setUpdateBalances} 
-                setOpenAlert={setOpenAlert}
-                setPostMsg={setPostMsg}
-                handleOpen={handleOpen}
-                handleClose={handleClose}
-                open={open}
-                inputCategory={''}
-            />
+        <AddTransactionModal 
+            categories={categories}
+            setUpdateTransactions={setUpdateTransactions} 
+            setUpdateBalances={setUpdateBalances} 
+            setOpenAlert={setOpenAlert}
+            setPostMsg={setPostMsg}
+            handleOpen={handleOpen}
+            handleClose={handleClose}
+            open={open}
+            inputCategory={''}
+        />
       <AddCategoryModal 
           setUpdateCategories={setUpdateCategories} 
           setUpdateBalances={setUpdateBalances} 
@@ -264,7 +264,7 @@ export const Dashboard = () => {
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
-              <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
+              <CardContent sx={{bgcolor: theme.palette.info.main}}>
               <Grid container direction="column" width='100%'>
                   <Grid>
                   <Typography variant="h5" style={{ fontWeight: 'bold' }}>
@@ -295,7 +295,7 @@ export const Dashboard = () => {
           <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 3, xl: 3 }} spacing={0}>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
             <Card elevation={4} >
-              <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
+              <CardContent sx={{bgcolor: theme.palette.info.main}}>
               <List sx={{width:'100%'}}>
                 {balances.map((balance) => (
                   <Box 
@@ -348,7 +348,7 @@ export const Dashboard = () => {
             <>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
               <Card elevation={4} sx={{height:400}} >
-                <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
+                <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
                   <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                     Filtered Balances Distribution
                   </Typography>
@@ -365,7 +365,7 @@ export const Dashboard = () => {
           </Grid>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                 <Card elevation={4} sx={{height:400}} >
-                    <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
+                    <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
                   <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                     Monthly Spending
                   </Typography>
@@ -387,7 +387,7 @@ export const Dashboard = () => {
           </Grid>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
           <Card elevation={4} sx={{height:400}} >
-                    <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
+                    <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
               <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                 Weekly Spending Comparison
               </Typography>
@@ -409,7 +409,7 @@ export const Dashboard = () => {
           </Grid></> ) : (
             <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
             <Card elevation={4} sx={{height:400}} >
-                  <CardContent sx={{height:'100%', bgcolor: theme.palette.secondary.main}}>
+                  <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
                 <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
                   Balances Distribution
                 </Typography>

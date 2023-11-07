@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, InputAdornment, MenuItem, Select, SelectChangeEvent, Switch, useTheme, Grid } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, InputAdornment, MenuItem, Select, SelectChangeEvent, Switch, useTheme, Grid, IconButton } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -8,6 +8,7 @@ import dayjs, { Dayjs } from "dayjs";
 import CategoryItem from "../types/CategoryItem";
 import AddIcon from '@mui/icons-material/Add';
 import TransactionItem from "../types/Transaction";
+import CloseIcon from '@mui/icons-material/Close';
 
 
 
@@ -200,7 +201,14 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
     >
       <Fade in={open}>
       <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main }}>
-        <h2 className='pageTitle'>Add Transaction</h2>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <IconButton
+                size='large'
+                onClick={handleClose}
+              ><CloseIcon /></IconButton>
+              <h2 className='pageTitle'>Add Transaction</h2>
+              <div></div>
+              </Box>
         <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker

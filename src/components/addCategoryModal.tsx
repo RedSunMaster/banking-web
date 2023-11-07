@@ -1,10 +1,10 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
 import { SwatchesPicker } from "react-color";
 import CategoryIcon from '@mui/icons-material/Category';
-
+import CloseIcon from '@mui/icons-material/Close';
 
 
 interface AddCategoryModalProps {
@@ -77,8 +77,15 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
           <Fade in={openCategory}>
           <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
             <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
-            <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width: 'auto' }}>
+            <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <IconButton
+                size='large'
+                onClick={handleCloseCategory}
+              ><CloseIcon /></IconButton>
               <h2 className='pageTitle'>Add Category</h2>
+              <div></div>
+              </Box>
               <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
                 <InputLabel htmlFor="outlined-adornment-description">Category Name</InputLabel>
                 <OutlinedInput

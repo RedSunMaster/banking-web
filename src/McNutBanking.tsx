@@ -7,6 +7,9 @@ import {createTheme,ThemeProvider} from "@mui/material/styles";
 import {Login} from './pages/login';
 import NavBar from './components/navbar';
 import CssBaseline from "@mui/material/CssBaseline";
+import { CircularProgress } from '@mui/material';
+
+
 
 const MoneyOwed = lazy(() => import('./pages/money-owed') as unknown as Promise<{ default: React.ComponentType }>);
 const Dashboard = lazy(() => import('./pages/dashboard') as unknown as Promise<{ default: React.ComponentType }>);
@@ -28,16 +31,19 @@ const themeOptions = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#84563C',
+      main: '#bec1b8',
     },
     secondary: {
-      main: '#E7CE96',
+      main: '#e4e7e4',
     },
     background: {
-      default: '#EEE0B1',
+      default: '#f2f1f3',
     },
     text: {
-      primary: '#84563C',
+      primary: '#000000',
+    },
+    info: {
+      main: '#c1c0c2',
     }
   },
 });
@@ -49,17 +55,21 @@ const darkThemeOptions = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#5F4336',
+      main: '#44473e',
     },
     secondary: {
-      main: '#84563C',
+      main: '#181b18',
     },
     background: {
-      default: '#3B2A1F',
+      default: '#0d0c0e',
     },
     text: {
-      primary: '#D9BE91',
+      primary: '#ffffff',
+    },
+    info: {
+      main: '#3d3c3e',
     }
+
   },
 });
 
@@ -83,7 +93,7 @@ function McNutBanking() {
   // Check if the databaseInformation state is undefined
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return <CircularProgress />
   }
 
   return (
@@ -97,7 +107,7 @@ function McNutBanking() {
           <div className="content">
             <Routes>
             <Route path="/reset-password" element={
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense fallback={<CircularProgress />}>
                 <PasswordReset />
               </Suspense>
             } />
@@ -106,23 +116,23 @@ function McNutBanking() {
                 element={isLoggedIn ? 
                 (
                 <DatabaseInformationProvider>
-                  <Suspense fallback={<div>Loading...</div>}>
+                  <Suspense fallback={<CircularProgress />}>
                     <Dashboard />
                     </Suspense>
                 </DatabaseInformationProvider>
-                 ): (<Suspense fallback={<div>Loading...</div>}><Navigate to="/login" /></Suspense>)}
+                 ): (<Suspense fallback={<CircularProgress />}><Navigate to="/login" /></Suspense>)}
               />
               <Route
                 path="/dashboard"
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
-                      <Suspense fallback={<div>Loading...</div>}>
+                      <Suspense fallback={<CircularProgress />}>
                         <Dashboard />
                       </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
-                    <Suspense fallback={<div>Loading...</div>}><Navigate to="/login" /></Suspense>
+                    <Suspense fallback={<CircularProgress />}><Navigate to="/login" /></Suspense>
 
                   )
                 }
@@ -136,12 +146,12 @@ function McNutBanking() {
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
-                      <Suspense fallback={<div>Loading...</div>}>
+                      <Suspense fallback={<CircularProgress />}>
                       <Transactions />
                       </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
-                    <Suspense fallback={<div>Loading...</div>}><Navigate to="/login" /></Suspense>
+                    <Suspense fallback={<CircularProgress />}><Navigate to="/login" /></Suspense>
                   )
                 }
               />
@@ -150,12 +160,12 @@ function McNutBanking() {
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
-                      <Suspense fallback={<div>Loading...</div>}>
+                      <Suspense fallback={<CircularProgress />}>
                       <MoneyOwed />
                     </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
-                    <Suspense fallback={<div>Loading...</div>}><Navigate to="/login" /></Suspense>
+                    <Suspense fallback={<CircularProgress />}><Navigate to="/login" /></Suspense>
                   )
                 }
               />
@@ -164,12 +174,12 @@ function McNutBanking() {
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
-                      <Suspense fallback={<div>Loading...</div>}>
+                      <Suspense fallback={<CircularProgress />}>
                     <Account />
                     </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
-                    <Suspense fallback={<div>Loading...</div>}><Navigate to="/login" /></Suspense>
+                    <Suspense fallback={<CircularProgress />}><Navigate to="/login" /></Suspense>
                   )
                 }
               />
@@ -178,12 +188,12 @@ function McNutBanking() {
                 element={
                   isLoggedIn ? (
                     <DatabaseInformationProvider>
-                      <Suspense fallback={<div>Loading...</div>}>
+                      <Suspense fallback={<CircularProgress />}>
                     <Budget />
                     </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
-                    <Suspense fallback={<div>Loading...</div>}><Navigate to="/login" /></Suspense>
+                    <Suspense fallback={<CircularProgress />}><Navigate to="/login" /></Suspense>
                   )
                 }
               />

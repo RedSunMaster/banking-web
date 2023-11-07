@@ -1,4 +1,4 @@
-import { Fab, Modal, Fade, Box, FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, OutlinedInput, Button, useTheme, Grid } from "@mui/material";
+import { Fab, Modal, Fade, Box, FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, OutlinedInput, Button, useTheme, Grid, IconButton } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios, { AxiosError } from "axios";
@@ -9,7 +9,7 @@ import CategoryItem from "../types/CategoryItem";
 import OwedItem from "../types/OwedItem";
 import React from "react";
 import AddIcon from '@mui/icons-material/Add';
-
+import CloseIcon from '@mui/icons-material/Close';
 
 
 
@@ -198,7 +198,14 @@ interface AddOwedItemProps {
         <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
             <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
           <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto' }}>
-          <h2 className='pageTitle'>Log Owed Item</h2>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <IconButton
+                size='large'
+                onClick={handleClose}
+              ><CloseIcon /></IconButton>
+              <h2 className='pageTitle'>Log Owed Item</h2>
+              <div></div>
+              </Box>
           <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker

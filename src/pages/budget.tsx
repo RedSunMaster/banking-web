@@ -8,11 +8,12 @@ import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, Button, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar, useTheme } from '@mui/material';
+import { Alert, Button, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar, Switch, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
 import axios, { AxiosError } from 'axios';
 import checkIsLoggedIn from '../auth/auth';
 import { useNavigate } from 'react-router-dom';
+import { CircularProgress } from '@mui/material';
 
 
 interface EnteredValues {
@@ -22,7 +23,8 @@ interface EnteredValues {
 export const Budget = () => {
   const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const [openAlert, setOpenAlert] = React.useState(false);
-  
+  const [isLoading, setIsLoading] = React.useState(false);
+
   const [postMsg, setPostMsg] = React.useState('')
   const [toCategory, setToCategory] = React.useState('')
   const [fromCategory, setFromCategory] = React.useState('')
@@ -30,6 +32,7 @@ export const Budget = () => {
   const [income, setIncome] = React.useState(0)
   const [transferAmount, setTransferAmount] = React.useState(0)
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+  const [distributeByPercentage, setDistributeByPercentage] = React.useState(false);
 
 
   const theme = useTheme();
@@ -91,10 +94,11 @@ export const Budget = () => {
 
   const handleDistributeBudget = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    if (sum === income && sum !== 0 && income !== 0) {
+    setIsLoading(true);
+    if ((distributeByPercentage && sum === 100) || (!distributeByPercentage && sum === income)) {
       try {
         for (const category in enteredValues) {
-          const value = enteredValues[category];
+          const value = distributeByPercentage ? (enteredValues[category] / 100 * income) : enteredValues[category];
           if (value != 0) {
             const authToken = Cookies.get("authToken");
             const date = dayjs(new Date()).format("YYYY-MM-DD").toString();
@@ -105,7 +109,7 @@ export const Budget = () => {
               "amount": value,
               "trans_type": "Deposit",
             };
-        
+    
             const response = await axios.post(`${rootUrl}/api/transactions`, data, {
               headers: { Authorization: `Bearer ${authToken}` },
             });
@@ -131,7 +135,9 @@ export const Budget = () => {
       setPostMsg("Error: " + "Have not reached full allocation");
       setOpenAlert(true);
     }
+    setIsLoading(false);
   };
+  
 
 
   const handleTransfer = async (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -191,7 +197,9 @@ export const Budget = () => {
           {postMsg}
         </Alert>
         </Snackbar>
-        {categories.length === 0 && balances.length === 0 ? (
+        {isLoading ? (
+            <CircularProgress />
+          ) : categories.length === 0 && balances.length === 0 ? (
           // Display a message if there are no transactions
           <Box>
             <Typography variant='h4'>
@@ -205,7 +213,7 @@ export const Budget = () => {
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 2, sm: 8, md: 12, lg: 16, xl: 20 }}>
           <Grid xs={2} sm={8} md={12} lg={16} xl={20}>
             <Card elevation={12} sx={{width:'100%', display:'flex', position:'relative', flexDirection: 'column'}}>
-              <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
+              <CardContent sx={{bgcolor: theme.palette.info.main}}>
               <Grid container direction="column" width='100%'>
                   <Grid>
                   <Typography variant="h5" style={{ fontWeight: 'bold' }}>
@@ -226,17 +234,31 @@ export const Budget = () => {
                   </Grid>
                   <Grid>
                   <Typography variant="body1">
-                    <span>Percentage Allocation: </span>
+                  <span>Percentage Allocation: </span>
+                  <span
+                    style={{
+                      fontWeight: 'bold',
+                      color: ((distributeByPercentage && sum === 100) || (!distributeByPercentage && sum === income)) ? 'green' : 'red',
+                    }}
+                  >
+                    {distributeByPercentage ? `${sum.toFixed(2)}%` : `${(sum / income * 100).toFixed(2)}%`}
+                  </span>
+                </Typography>
+
+                  <Typography variant="body1">
+                    <span>Distribute by: </span>
                     <span
                       style={{
                         fontWeight: 'bold',
-                        color: sum === income && sum !== 0 ? 'green' : 'red',
                       }}
                     >
-                      {(sum / income * 100).toFixed(2)}%
+                      {distributeByPercentage ? 'Percentage' : 'Value'}
                     </span>
+                    <Switch
+                      checked={distributeByPercentage}
+                      onChange={(event) => setDistributeByPercentage(event.target.checked)}
+                    />
                   </Typography>
-
                   </Grid>
                 </Grid>
               </CardContent>
@@ -245,28 +267,27 @@ export const Budget = () => {
           <Masonry columns={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 2 }} spacing={0}>
           <Grid xs={2} sm={4} md={6} lg={8} xl={10}>
             <Card elevation={4} >
-              <CardContent sx={{bgcolor: theme.palette.secondary.main}}>
+              <CardContent sx={{bgcolor: theme.palette.info.main}}>
               <List sx={{width:'100%'}}>
                 {balances.map((balance) => (
                   <Box sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}>
-                  <ListItem>                      
-                  <ListItemText
-                      primary={balance.Category.toUpperCase()}
-                      secondary={`${balance.Amount} (${(balance.Amount + (isNaN(enteredValues[balance.Category]) ? 0 : +enteredValues[balance.Category].toFixed(2))).toFixed(2)})`}
-                    />
-
+                    <ListItem>                      
+                      <ListItemText
+                        primary={balance.Category.toUpperCase()}
+                        secondary={`${balance.Amount} (${distributeByPercentage ? (balance.Amount + (enteredValues[balance.Category] || 0) / 100 * income).toFixed(2) : (balance.Amount + (isNaN(enteredValues[balance.Category]) ? 0 : +enteredValues[balance.Category])).toFixed(2)})`}
+                      />
                       <Box sx={{ flexGrow: 1 }} />
                       <FormControl sx={{width:100}}>
-                      <InputLabel htmlFor="outlined-adornment-fName">{balance.Category}</InputLabel>
-                      <OutlinedInput
+                        <InputLabel htmlFor="outlined-adornment-fName">{balance.Category}</InputLabel>
+                        <OutlinedInput
                         id="outlined-adornment-lNmae"
                         label={balance.Category}
                         type="number"
                         onChange={(event) => onChange(event, balance.Category)}
                       />
-
                       </FormControl>
                     </ListItem>
+
                   </Box>
                 ))}
               <Button variant="contained" fullWidth sx={{ marginTop: 1, height:50}} onClick={handleDistributeBudget}>Distribute Budget</Button>
@@ -278,7 +299,7 @@ export const Budget = () => {
           </Grid>
           <Grid xs={2} sm={4} md={6} lg={8} xl={10} >
             <Card elevation={4} >
-              <CardContent sx={{display:'flex', flexDirection:'column', bgcolor: theme.palette.secondary.main}}>
+              <CardContent sx={{display:'flex', flexDirection:'column', bgcolor: theme.palette.info.main}}>
               <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
               <InputLabel htmlFor="outlined-adornment-category">From</InputLabel>
               <Select

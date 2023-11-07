@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -8,7 +8,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import CategoryItem from "../types/CategoryItem";
 import Check from '@mui/icons-material/Check';
-
+import CloseIcon from '@mui/icons-material/Close';
 
 
 interface AddCategoryModalProps {
@@ -88,8 +88,15 @@ export const AddBalanceModal = ({categories, setUpdateBalances, setOpenAlert, se
           <Fade in={open}>
           <Grid container justifyContent="center" alignItems="top">
             <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
-            <Box className={'modal'}  justifyContent="center" sx={{bgcolor: theme.palette.secondary.main,flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main}}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <IconButton
+                size='large'
+                onClick={handleCloseCategory}
+              ><CloseIcon /></IconButton>
               <h2 className='pageTitle'>Add Custom Balance</h2>
+              <div></div>
+              </Box>
               <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
                 <InputLabel htmlFor="outlined-adornment-description">Custom Balance Name</InputLabel>
                 <OutlinedInput
