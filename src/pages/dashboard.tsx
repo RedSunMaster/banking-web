@@ -284,7 +284,7 @@ export const Dashboard = () => {
 
                     </div>
                   ))}
-                  <IconButton color="primary" aria-label="add balance" style={{ border: '1px solid black' }} onClick={() => handleOpenBalance()}>
+                  <IconButton aria-label="add balance" sx={{bgcolor: theme.palette.primary.main, color: 'white'}}style={{ border: '1px solid black', backgroundColor: theme.palette.primary.main }} onClick={() => handleOpenBalance()}>
                     <AddIcon />
                   </IconButton>
                   </Grid>
@@ -309,6 +309,7 @@ export const Dashboard = () => {
                   >
                     <ListItem>
                       <Checkbox
+                        color='primary'
                         checked={filteredBalances.map((balance) => balance.Category).includes(balance.Category)}
                         onChange={async (event) => {
                           try {

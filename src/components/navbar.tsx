@@ -67,6 +67,7 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
 
   const [leftDrawerOpen, setLeftDrawerOpen] = React.useState(false);
   const [rightDrawerOpen, setRightDrawerOpen] = React.useState(false);
+  const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
 
 
@@ -88,14 +89,15 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
   React.useEffect(() => {
     if (isLoggedIn) {
       setUpdateUser(true);
-    } else {
+      fetchDarkMode().then((darkMode) => {
+        setIsDarkMode(darkMode);
+      });
     }
-  }, [isLoggedIn])
+  }, [isLoggedIn]);
   
 
   const logoutUser = async () => {
     try {
-      const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
       const authToken = Cookies.get('authToken');
       await axios.post(`${rootUrl}/api/logout`, null, {
         headers: { Authorization: `Bearer ${authToken}` },
@@ -106,6 +108,41 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
     } catch (error) {
     }
   };
+
+
+  interface DarkModeResponse {
+    darkMode: boolean;
+  }
+  
+  const fetchDarkMode = async () => {
+    try {
+      const authToken = Cookies.get('authToken');
+      const response = await axios.get<DarkModeResponse[]>(`${rootUrl}/api/darkMode`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status !== 200) {
+        return false;
+      }
+      return response.data[0].darkMode;
+    } catch (error) {
+      return false;
+    }
+  };
+  
+
+  const updateDarkMode = async () => {
+    try {
+      const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+      const authToken = Cookies.get('authToken');
+      await axios.patch(`${rootUrl}/api/darkMode`, null, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      fetchDarkMode().then((darkMode) => {
+        setIsDarkMode(darkMode);
+      });
+    } catch (error) {
+    }
+  };  
 
   function stringAvatar(name: string) {
     return {
@@ -147,6 +184,7 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
                 flexGrow: 1,
                 fontWeight: 500,
                 textDecoration: 'none',
+                color: 'white'
               }}
             >
               McNut Budgeting
@@ -167,7 +205,7 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
             <Box sx={{ flexGrow: 0 }}>
               <IconButton
                 size='large'
-                onClick={() => {setIsDarkMode(!isDarkMode)}}
+                onClick={updateDarkMode}
                 sx={{marginRight:'10px'}}
               >{isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}</IconButton>
             </Box>

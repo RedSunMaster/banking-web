@@ -186,6 +186,7 @@ interface AddOwedItemProps {
       >
         <AddIcon />
       </Fab>
+
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
@@ -197,7 +198,7 @@ interface AddOwedItemProps {
         <Fade in={open}>
         <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
             <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
-          <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto' }}>
+        <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <IconButton
                 size='large'
@@ -276,7 +277,7 @@ interface AddOwedItemProps {
       }
         </Box>
         </Grid>
-        </Grid>
+      </Grid>
         </Fade>
       </Modal>
 

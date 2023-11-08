@@ -24,6 +24,7 @@ const Navigate = lazy(() =>
 
 
 
+
 const themeOptions = createTheme({
   typography: {
     fontFamily: 'Poppins, sans-serif',
@@ -31,23 +32,23 @@ const themeOptions = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#bec1b8',
+      main: '#aeb2af',
     },
     secondary: {
-      main: '#e4e7e4',
+      main: '#ebeaeb',
     },
     background: {
-      default: '#f2f1f3',
+      default: '#fdfcfd',
     },
     text: {
-      primary: '#000000',
+      primary: '#100f10',
     },
     info: {
-      main: '#c1c0c2',
+      main: '#ebeaeb',
     }
+
   },
 });
-
 const darkThemeOptions = createTheme({
   typography: {
     fontFamily: 'Poppins, sans-serif',
@@ -55,19 +56,19 @@ const darkThemeOptions = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#44473e',
+      main: '#4d514e',
     },
     secondary: {
-      main: '#181b18',
+      main: '#151415',
     },
     background: {
-      default: '#0d0c0e',
+      default: '#030203',
     },
     text: {
-      primary: '#ffffff',
+      primary: '#f0eff0',
     },
     info: {
-      main: '#3d3c3e',
+      main: '#0B0A0B',
     }
 
   },
