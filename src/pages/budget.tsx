@@ -79,7 +79,25 @@ export const Budget = () => {
 
 
 
-
+  React.useEffect(() => {
+    // Convert enteredValues from value to percentage or vice versa
+    const convertedValues = Object.fromEntries(
+      Object.entries(enteredValues).map(([category, value]) => {
+        const balance = balances.find((balance) => balance.Category === category)?.Amount || 0;
+        if (distributeByPercentage) {
+          // Convert from value to percentage
+          return [category, Number(((value / income) * 100).toFixed(2))];
+        } else {
+          // Convert from percentage to value
+          return [category, Number(((value / 100) * income).toFixed(2))];
+        }
+      })
+    );
+  
+    setEnteredValues(convertedValues);
+  }, [distributeByPercentage]);
+  
+  
     
   
   const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -280,19 +298,19 @@ export const Budget = () => {
                       <FormControl sx={{width:100}}>
                         <InputLabel htmlFor="outlined-adornment-fName">{balance.Category}</InputLabel>
                         <OutlinedInput
-                        id="outlined-adornment-lNmae"
-                        label={balance.Category}
-                        type="number"
-                        onChange={(event) => onChange(event, balance.Category)}
-                      />
+                          id="outlined-adornment-lNmae"
+                          label={balance.Category}
+                          type="number"
+                          value={enteredValues[balance.Category] || ''} // Use the value from the state
+                          onChange={(event) => onChange(event, balance.Category)}
+                        />
                       </FormControl>
                     </ListItem>
-
                   </Box>
                 ))}
-              <Button variant="contained" fullWidth sx={{ marginTop: 1, height:50}} onClick={handleDistributeBudget}>Distribute Budget</Button>
-
+                <Button variant="contained" fullWidth sx={{ marginTop: 1, height:50}} onClick={handleDistributeBudget}>Distribute Budget</Button>
               </List>
+
 
               </CardContent>
             </Card>

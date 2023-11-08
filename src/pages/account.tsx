@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import { Button, Snackbar } from '@mui/material';
+import { Button, Grid, Snackbar } from '@mui/material';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 import Alert from '@mui/lab/Alert';
 import checkIsLoggedIn from '../auth/auth';
@@ -101,6 +101,8 @@ export const Account = () => {
 
 
   return (
+    <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
+    <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
     <Box sx={{ flexGrow: 1 }}>
         <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
         <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
@@ -157,6 +159,8 @@ export const Account = () => {
           </div>
     </Box>
     </Box>
+    </Grid>
+    </Grid>
   );
 };
 

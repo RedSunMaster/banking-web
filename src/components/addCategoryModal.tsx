@@ -96,12 +96,24 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
                   onChange={(event) => setCategoryName(event.target.value)} />
               </FormControl>
               <FormControl fullWidth sx={{ marginTop: 1, display: 'flex', justifyContent: 'center' }} variant="outlined">                  
-              <div style={{ margin:'auto', display: 'flex', justifyContent: 'center', height:250, width:'100%' }}>
+              <div style={{ margin:'auto', display: 'flex', justifyContent: 'center', height:250, width:'100%', backgroundColor: theme.palette.secondary.main }}>
                     <SwatchesPicker
                       width={2000}
                       height={250}
                       color={colour}
                       onChange={(color) => setColour(color.hex)}
+                      styles={{
+                        default : {
+                          body: {
+                            backgroundColor: theme.palette.secondary.main, 
+                            boxShadow: '0',
+                          },
+                          picker: {
+                            backgroundColor: theme.palette.secondary.main,
+                            boxShadow: '0',
+                          }
+                        }
+                      }}
                       colors={[
                         ['#c3362b','#dc3c31','#f44336', '#f5564a', '#f6695e', '#f77b72', '#f88e86', '#faa19b'],
                         ['#ba184f','#d21b59','#e91e63', '#eb3573', '#ed4b82', '#f06292', '#f278a1', '#f48fb1'],
