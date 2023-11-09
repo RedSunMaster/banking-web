@@ -44,7 +44,7 @@ const themeOptions = createTheme({
       primary: '#100f10',
     },
     info: {
-      main: '#ebeaeb',
+      main: '#e0dee0',
     }
 
   },
@@ -68,7 +68,7 @@ const darkThemeOptions = createTheme({
       primary: '#f0eff0',
     },
     info: {
-      main: '#0B0A0B',
+      main: '#141314',
     }
 
   },

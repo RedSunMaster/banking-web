@@ -105,7 +105,22 @@ export const Dashboard = () => {
       !transaction.Description.includes("Trans")
   );
 
+  const filteredDepositTransactions = transactions.filter(
+    (transaction) =>
+      transaction.Amount > 0 &&
+      !transaction.Description.includes("Balance") &&
+      !transaction.Description.includes("Trans")
+  );
+
   const groupedTransactions = filteredTransactions.reduce((acc, transaction) => {
+    const year = transaction.Date.getFullYear();
+    if (!acc[year]) acc[year] = [];
+    acc[year].push(transaction);
+    return acc;
+  }, {} as Record<number, TransactionItem[]>);
+  
+
+  const groupedDepositTransactions = filteredDepositTransactions.reduce((acc, transaction) => {
     const year = transaction.Date.getFullYear();
     if (!acc[year]) acc[year] = [];
     acc[year].push(transaction);
@@ -144,7 +159,16 @@ export const Dashboard = () => {
         },],
       };
 
-    const monthlySums = Object.entries(groupedTransactions).map(([year, transactions]) => {
+    const monthlySpendingSums = Object.entries(groupedTransactions).map(([year, transactions]) => {
+      const sums = transactions.reduce((acc, transaction) => {
+        const month = transaction.Date.getMonth();
+        acc[month] += transaction.Amount;
+        return acc;
+      }, Array.from({ length: 12 }, () => 0));
+      return { year, sums: sums.map((sum) => Math.abs(Number(sum.toFixed(2)))) };
+    });
+
+    const monthlyEarningSums = Object.entries(groupedDepositTransactions).map(([year, transactions]) => {
       const sums = transactions.reduce((acc, transaction) => {
         const month = transaction.Date.getMonth();
         acc[month] += transaction.Amount;
@@ -183,7 +207,12 @@ export const Dashboard = () => {
     }));
 
     
-    const lineSeries = monthlySums.map(({ year, sums }) => ({
+    const spendingLineSeries = monthlySpendingSums.map(({ year, sums }) => ({
+      data: sums,
+      label: year
+    }));
+
+    const earningLineSeries = monthlyEarningSums.map(({ year, sums }) => ({
       data: sums,
       label: year
     }));
@@ -284,7 +313,7 @@ export const Dashboard = () => {
 
                     </div>
                   ))}
-                  <IconButton aria-label="add balance" sx={{bgcolor: theme.palette.primary.main, color: 'white'}}style={{ border: '1px solid black', backgroundColor: theme.palette.primary.main }} onClick={() => handleOpenBalance()}>
+                  <IconButton aria-label="add balance" sx={{bgcolor: theme.palette.primary.main, color: theme.palette.text.primary }} style={{ border: '1px solid', borderBlockColor: theme.palette.text.primary, backgroundColor: theme.palette.primary.main }} onClick={() => handleOpenBalance()}>
                     <AddIcon />
                   </IconButton>
                   </Grid>
@@ -365,28 +394,6 @@ export const Dashboard = () => {
             </Card>
           </Grid>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
-                <Card elevation={4} sx={{height:400}} >
-                    <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
-                  <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
-                    Monthly Spending
-                  </Typography>
-                  <AutoSizer>
-                      {({height, width}) => (
-                      <LineChart
-                        series={lineSeries}
-                        height={height-20}
-                        width={width}
-                        xAxis={[{
-                          data: months,
-                          scaleType: 'band',
-
-                        }]}
-                   ></LineChart> )}
-                   </AutoSizer>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
           <Card elevation={4} sx={{height:400}} >
                     <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
               <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
@@ -407,6 +414,50 @@ export const Dashboard = () => {
               </AutoSizer>
             </CardContent>
           </Card>
+          </Grid>
+          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
+                <Card elevation={4} sx={{height:400}} >
+                    <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
+                  <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
+                    Monthly Spending
+                  </Typography>
+                  <AutoSizer>
+                      {({height, width}) => (
+                      <LineChart
+                        series={spendingLineSeries}
+                        height={height-20}
+                        width={width}
+                        xAxis={[{
+                          data: months,
+                          scaleType: 'band',
+
+                        }]}
+                   ></LineChart> )}
+                   </AutoSizer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
+                <Card elevation={4} sx={{height:400}} >
+                    <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
+                  <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
+                    Monthly Earning
+                  </Typography>
+                  <AutoSizer>
+                      {({height, width}) => (
+                      <LineChart
+                        series={earningLineSeries}
+                        height={height-20}
+                        width={width}
+                        xAxis={[{
+                          data: months,
+                          scaleType: 'band',
+
+                        }]}
+                   ></LineChart> )}
+                   </AutoSizer>
+              </CardContent>
+            </Card>
           </Grid></> ) : (
             <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
             <Card elevation={4} sx={{height:400}} >
