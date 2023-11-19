@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, InputAdornment, MenuItem, Select, SelectChangeEvent, Switch, useTheme, Grid, IconButton } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, InputAdornment, MenuItem, Select, SelectChangeEvent, Switch, useTheme, Grid, IconButton, Autocomplete, TextField } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -9,6 +9,7 @@ import CategoryItem from "../types/CategoryItem";
 import AddIcon from '@mui/icons-material/Add';
 import TransactionItem from "../types/Transaction";
 import CloseIcon from '@mui/icons-material/Close';
+import GoalItem from "../types/GoalItem";
 
 
 
@@ -17,6 +18,8 @@ interface AddTransactionModalProps {
   setUpdateTransactions: (value: boolean) => void;
   setUpdateBalances: (value: boolean) => void;
   setOpenAlert: (value: boolean) => void;
+  goalItems: GoalItem[];
+  setUpdateGoalItems: (value: boolean) => void;
   setPostMsg: (value: string) => void;
   item?: TransactionItem;
   handleOpen: () => void;
@@ -27,7 +30,7 @@ interface AddTransactionModalProps {
 
 
 
-export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdateBalances, setOpenAlert, setPostMsg, item, handleOpen, handleClose, open, inputCategory}: AddTransactionModalProps) => {
+export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdateBalances, setOpenAlert, goalItems, setUpdateGoalItems, setPostMsg, item, handleOpen, handleClose, open, inputCategory}: AddTransactionModalProps) => {
   const [editItem, setEditItem] = React.useState<TransactionItem | undefined>(item)
   
   const [category, setCategory] = React.useState(editItem ? editItem.Category : "");
@@ -42,6 +45,7 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
     editItem ? editItem.Transaction : "Withdraw"
   );
   const theme = useTheme();
+  const [notAchievedItems, setNotAchievedItems] = React.useState<GoalItem[]>([])
 
   const updateState = (data: TransactionItem | undefined) => {
     setCategory(data ? data.Category: inputCategory);
@@ -59,7 +63,22 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
     setEditItem(item);
     updateState(item);
   }, [item]);
+
+  React.useEffect(() => {
+    setUpdateGoalItems(true);
+  }, [])
   
+
+  React.useEffect(() => {
+    try {
+      if (goalItems.length !== 0) {
+        const notAchievedItems = goalItems.filter((goalItem) => goalItem.achieved == false);
+        setNotAchievedItems(notAchievedItems);
+      }
+    } catch (error) {
+    }
+  }, [goalItems]);
+
 
 
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
@@ -272,17 +291,23 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
         />
       </FormControl>
 
+      <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+  <Autocomplete
+    id="outlined-adornment-description"
+    options={notAchievedItems.map((item) => item.goalName + ' - ' + item.uniqueCode)}
+    freeSolo
+    value={description}
+    onInputChange={(event, newValue) => {
+      if (newValue !== null) {
+        setDescription(newValue);
+      }
+    }}
+    renderInput={(params) => (
+      <TextField {...params} label="Description" variant="outlined" />
+    )}
+  />
+</FormControl>
 
-      <FormControl fullWidth sx={{ marginTop: 1 }}  variant="outlined">
-        <InputLabel htmlFor="outlined-adornment-description">Description</InputLabel>
-        <OutlinedInput
-          id="outlined-adornment-description"
-          label="Description"
-          type='text'
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-        />
-      </FormControl>
       {editItem ? (
         <Box display={'flex'} flexDirection={'row'}>        
           <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 1, marginRight: 2}} onClick={handleDeleteTransaction}>Delete</Button>

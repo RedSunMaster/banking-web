@@ -21,6 +21,7 @@ import checkIsLoggedIn from '../auth/auth';
 import { useNavigate } from 'react-router-dom';
 import AddCategoryModal from '../components/addCategoryModal';
 import AddTransactionModal from '../components/addTransactionModal';
+import GoalItem from '../types/GoalItem';
 
 
 
@@ -32,7 +33,7 @@ interface TransactionGroup {
 
 
 export const Transactions = () => {
-    const { categories, balances, transactions, user, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateTransactions } = React.useContext(DatabaseInformationContext);
+    const { categories, balances, transactions, goalItems, user, setUpdateGoalItems, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateTransactions } = React.useContext(DatabaseInformationContext);
     const [category, setCategory] = React.useState('');
     const [openAlert, setOpenAlert] = React.useState(false);
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
@@ -96,6 +97,7 @@ export const Transactions = () => {
       }
   }, []);
   
+
 
     React.useEffect(() => {
       if (transactions) {
@@ -256,6 +258,8 @@ export const Transactions = () => {
             setUpdateTransactions={setUpdateTransactions} 
             setUpdateBalances={setUpdateBalances} 
             setOpenAlert={setOpenAlert}
+            goalItems={goalItems}
+            setUpdateGoalItems={setUpdateGoalItems}
             setPostMsg={setPostMsg}
             item={item}
             handleOpen={handleOpen}

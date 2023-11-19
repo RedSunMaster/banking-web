@@ -24,7 +24,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 
 export const Dashboard = () => {
-  const { categories, balances, filteredBalances, customBalances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
+  const { categories, balances, filteredBalances, customBalances, transactions, goalItems, setUpdateGoalItems, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const [openAlert, setOpenAlert] = React.useState(false);
   const [postMsg, setPostMsg] = React.useState('')
   const [open, setOpen] = React.useState(false);
@@ -118,7 +118,7 @@ export const Dashboard = () => {
     acc[year].push(transaction);
     return acc;
   }, {} as Record<number, TransactionItem[]>);
-  
+  console.log(groupedTransactions);
 
   const groupedDepositTransactions = filteredDepositTransactions.reduce((acc, transaction) => {
     const year = transaction.Date.getFullYear();
@@ -159,19 +159,21 @@ export const Dashboard = () => {
         },],
       };
 
-    const monthlySpendingSums = Object.entries(groupedTransactions).map(([year, transactions]) => {
-      const sums = transactions.reduce((acc, transaction) => {
-        const month = transaction.Date.getMonth();
-        acc[month] += transaction.Amount;
-        return acc;
-      }, Array.from({ length: 12 }, () => 0));
-      return { year, sums: sums.map((sum) => Math.abs(Number(sum.toFixed(2)))) };
+      const monthlySpendingSums = Object.entries(groupedTransactions).map(([year, transactions]) => {
+        const sums = transactions.reduce((acc, transaction) => {
+            const month = transaction.Date.getMonth();
+            acc[month] += Number(transaction.Amount);
+            return acc;
+        }, Array.from({ length: 12 }, () => 0));
+        console.log(sums);
+        return { year, sums: sums.map((sum) => Math.abs(Number(sum.toFixed(2)))) };
     });
+    
 
     const monthlyEarningSums = Object.entries(groupedDepositTransactions).map(([year, transactions]) => {
       const sums = transactions.reduce((acc, transaction) => {
         const month = transaction.Date.getMonth();
-        acc[month] += transaction.Amount;
+        acc[month] += Number(transaction.Amount);
         return acc;
       }, Array.from({ length: 12 }, () => 0));
       return { year, sums: sums.map((sum) => Math.abs(Number(sum.toFixed(2)))) };
@@ -253,6 +255,8 @@ export const Dashboard = () => {
             setUpdateTransactions={setUpdateTransactions} 
             setUpdateBalances={setUpdateBalances} 
             setOpenAlert={setOpenAlert}
+            goalItems={goalItems}
+            setUpdateGoalItems={setUpdateGoalItems}
             setPostMsg={setPostMsg}
             handleOpen={handleOpen}
             handleClose={handleClose}

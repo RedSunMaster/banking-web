@@ -34,6 +34,7 @@ import checkIsLoggedIn from '../auth/auth';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import FlagIcon from '@mui/icons-material/Flag';
 import McNutLogo from '../mcnutlogo.svg'
 const drawerWidth = 240;
 
@@ -50,6 +51,7 @@ const pages = [
   { name: 'Dashboard', destination: '/dashboard', icon: <DashboardIcon /> },
   { name: 'Transactions', destination: '/transactions', icon: <AddShoppingCartIcon /> },
   { name: 'Money Owed', destination: '/owed', icon: <ReceiptLongIcon /> },
+  { name: 'Goals', destination: '/goals', icon: <FlagIcon /> },
   { name: 'Budget / Transfer', destination: '/budget', icon: <SavingsIcon /> },
 ];
 

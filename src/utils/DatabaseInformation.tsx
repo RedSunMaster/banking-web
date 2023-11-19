@@ -6,6 +6,8 @@ import UserItem from "../types/UserItem";
 import Cookies from "js-cookie";
 import React from 'react';
 import OwedItem from "../types/OwedItem";
+import GoalItem from "../types/GoalItem";
+
 import TotalItem from "../types/TotalItem";
 
 interface DatabaseInformationProviderProps {
@@ -100,6 +102,23 @@ const fetchTransactions = async () => {
     }
   };
   
+  const fetchGoalItems = async () => {
+    try {
+      const authToken = Cookies.get('authToken');
+      const response = await axios.get<GoalItem[]>(`${rootUrl}/api/goals`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status !== 200) {
+        return null;
+      }
+      return response.data;
+      
+    } catch (error) {
+      return null;
+    }
+  };
+
+
   const fetchUser = async () => {
     try {
       const authToken = Cookies.get('authToken');
@@ -124,9 +143,10 @@ export const getDatabaseInformation = async () => {
       const categories = await fetchCategories();
       const user = await fetchUser();
       const owedItems = await fetchOwedItems();
+      const goalItems = await fetchGoalItems();
       if (fetchBalancesResult !== null) {
         const [balances, filteredBalances, customBalances] = fetchBalancesResult;
-        return {transactions,balances,filteredBalances, customBalances,categories,user,owedItems}
+        return {transactions,balances,filteredBalances, customBalances,categories,user,owedItems, goalItems}
       } else {
           return []
       }
@@ -155,6 +175,7 @@ export const DatabaseInformationContext = React.createContext<{
   customBalances: TotalItem[];
   transactions: TransactionItem[];
   owedItems: OwedItem[];
+  goalItems: GoalItem[];
   user: UserItem;
 
   setUpdateValues: React.Dispatch<React.SetStateAction<boolean>>;
@@ -162,6 +183,7 @@ export const DatabaseInformationContext = React.createContext<{
   setUpdateBalances: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateTransactions: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateOwedItems: React.Dispatch<React.SetStateAction<boolean>>;
+  setUpdateGoalItems: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateUser: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   categories: [],
@@ -170,12 +192,14 @@ export const DatabaseInformationContext = React.createContext<{
   customBalances: [],
   transactions: [],
   owedItems: [],
+  goalItems: [],
   user: emptyUserItem,
   setUpdateValues: () => {},
   setUpdateCategories: () => {},
   setUpdateBalances: () => {},
   setUpdateTransactions: () => {},
   setUpdateOwedItems: () => {},
+  setUpdateGoalItems: () => {},
   setUpdateUser: () => {},
 });
 
@@ -191,6 +215,8 @@ export const DatabaseInformationContext = React.createContext<{
 
     const [transactions, setTransactions] = React.useState<TransactionItem[]>([]);
     const [owedItems, setOwedItems] = React.useState<OwedItem[]>([]);
+    const [goalItems, setGoalItems] = React.useState<GoalItem[]>([]);
+
     const [user, setUser] = React.useState<UserItem>(emptyUserItem);
 
     const [updateValues, setUpdateValues] = React.useState(false);
@@ -198,6 +224,7 @@ export const DatabaseInformationContext = React.createContext<{
     const [updateBalances, setUpdateBalances] = React.useState(false);
     const [updateTransactions, setUpdateTransactions] = React.useState(false);
     const [updateOwedItems, setUpdateOwedItems] = React.useState(false);
+    const [updateGoalItems, setUpdateGoalItems] = React.useState(false);
     const [updateUser, setUpdateUser] = React.useState(false);
 
   
@@ -213,6 +240,7 @@ export const DatabaseInformationContext = React.createContext<{
             setBalances(data.balances?? []);
             setUser(data.user?? emptyUserItem);
             setOwedItems(data.owedItems?? []);
+            setGoalItems(data.goalItems?? []);
           }
       }
       };
@@ -277,6 +305,20 @@ export const DatabaseInformationContext = React.createContext<{
 
     React.useEffect(() => {
       const fetchData = async () => {
+        const data = await fetchGoalItems();
+        if (data) {
+          setGoalItems(data);
+        }
+        setUpdateGoalItems(false);
+      };
+      if (updateGoalItems) {
+        fetchData();
+      }
+    }, [updateGoalItems]);
+    
+
+    React.useEffect(() => {
+      const fetchData = async () => {
         if(updateUser) {
           const data = await fetchUser();
           if (data) {
@@ -294,7 +336,7 @@ export const DatabaseInformationContext = React.createContext<{
     // Provide the databaseInformation state and the setUpdateValues function to child components
     return (
       <DatabaseInformationContext.Provider
-        value={{ categories, balances, filteredBalances, customBalances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser }}
+        value={{ categories, balances, filteredBalances, customBalances, transactions, owedItems, goalItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateGoalItems, setUpdateUser }}
       >
         {children}
       </DatabaseInformationContext.Provider>
@@ -303,4 +345,4 @@ export const DatabaseInformationContext = React.createContext<{
   
 
 
-export {fetchBalances, fetchCategories, fetchTransactions, fetchUser}
+export {fetchBalances, fetchCategories, fetchTransactions, fetchUser, fetchGoalItems}

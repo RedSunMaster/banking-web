@@ -12,6 +12,7 @@ import { CircularProgress } from '@mui/material';
 
 
 const MoneyOwed = lazy(() => import('./pages/money-owed') as unknown as Promise<{ default: React.ComponentType }>);
+const Goals = lazy(() => import('./pages/goals') as unknown as Promise<{ default: React.ComponentType }>);
 const Dashboard = lazy(() => import('./pages/dashboard') as unknown as Promise<{ default: React.ComponentType }>);
 const Account = lazy(() => import('./pages/account') as unknown as Promise<{ default: React.ComponentType }>);
 const Budget = lazy(() => import('./pages/budget') as unknown as Promise<{ default: React.ComponentType }>);
@@ -163,6 +164,20 @@ function McNutBanking() {
                     <DatabaseInformationProvider>
                       <Suspense fallback={<CircularProgress />}>
                       <MoneyOwed />
+                    </Suspense>
+                    </DatabaseInformationProvider>
+                  ) : (
+                    <Suspense fallback={<CircularProgress />}><Navigate to="/login" /></Suspense>
+                  )
+                }
+              />
+              <Route
+                path="/goals"
+                element={
+                  isLoggedIn ? (
+                    <DatabaseInformationProvider>
+                      <Suspense fallback={<CircularProgress />}>
+                      <Goals />
                     </Suspense>
                     </DatabaseInformationProvider>
                   ) : (
