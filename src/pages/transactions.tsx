@@ -21,7 +21,10 @@ import checkIsLoggedIn from '../auth/auth';
 import { useNavigate } from 'react-router-dom';
 import AddCategoryModal from '../components/addCategoryModal';
 import AddTransactionModal from '../components/addTransactionModal';
-import GoalItem from '../types/GoalItem';
+import Cookies from 'js-cookie';
+import axios from 'axios';
+
+
 
 
 
@@ -42,6 +45,12 @@ export const Transactions = () => {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+    const [openCategory, setOpenCategory] = React.useState(false);
+
+    const handleOpenCategory = () => setOpenCategory(true);
+    const handleCloseCategory = () => setOpenCategory(false);
+  
+
     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -55,6 +64,46 @@ export const Transactions = () => {
 
     const navigate = useNavigate();
     const theme = useTheme();
+
+
+    const [hadTutorial, setHadTutorial] = React.useState(false);
+
+    interface TutorialResponse {
+      hadTutorial: boolean;
+    }
+    
+
+
+    const fetchTutorialState = async () => {
+      try {
+        const authToken = Cookies.get('authToken');
+        const response = await axios.get<TutorialResponse[]>(`${rootUrl}/api/tutorial`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (response.status !== 200) {
+          return false;
+        }
+        return response.data[0].hadTutorial;
+      } catch (error) {
+        return false;
+      }
+    };
+    
+    const updateTutorialState = async () => {
+      try {
+        const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+        const authToken = Cookies.get('authToken');
+        await axios.patch(`${rootUrl}/api/tutorial`, null, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        fetchTutorialState().then((hadTutorial) => {
+          setHadTutorial(hadTutorial);
+        });
+      } catch (error) {
+      }
+    };  
+
+
 
     const handleSetItem = (item: TransactionItem | undefined, callback: () => void) => {
       setItem(item);
@@ -272,6 +321,9 @@ export const Transactions = () => {
           setUpdateBalances={setUpdateBalances} 
           setOpenAlert={setOpenAlert}
           setPostMsg={setPostMsg}
+          openCategory={openCategory}
+          handleCloseCategory={handleCloseCategory}
+          handleOpenCategory={handleOpenCategory}
       />
         <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
         <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>

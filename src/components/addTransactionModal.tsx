@@ -55,6 +55,9 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
     setTransaction(data ? data.Transaction : "Withdraw");
   };
   
+
+
+
   React.useEffect(() => {
     updateState(editItem);
   }, [editItem]);
@@ -205,6 +208,7 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
       color="primary"
       aria-label="add"
       size='large'
+      className="transactionFab"
       onClick={() => {handleOpen(); setEditItem(undefined)}}
       sx={{ position: 'fixed', bottom: 32, right: 32}}
     >
@@ -216,6 +220,7 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
       open={open}
       onClose={handleClose}
       disableScrollLock={ true }
+      className="transactionModal"
       closeAfterTransition
     >
       <Fade in={open}>

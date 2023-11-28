@@ -14,6 +14,7 @@ import axios, { AxiosError } from 'axios';
 import checkIsLoggedIn from '../auth/auth';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgress } from '@mui/material';
+import Joyride, { ACTIONS, CallBackProps, EVENTS, STATUS, Step } from 'react-joyride';
 
 
 interface EnteredValues {
@@ -21,7 +22,7 @@ interface EnteredValues {
 }
 
 export const Budget = () => {
-  const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
+  const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, count, setUpdateCount  } = React.useContext(DatabaseInformationContext);
   const [openAlert, setOpenAlert] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -33,6 +34,72 @@ export const Budget = () => {
   const [transferAmount, setTransferAmount] = React.useState(0)
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
   const [distributeByPercentage, setDistributeByPercentage] = React.useState(false);
+
+
+  
+  const [hadTutorial, setHadTutorial] = React.useState(true);
+
+  interface TutorialResponse {
+    hadTutorial: boolean;
+  }
+  
+  const [stepIndex, setStepIndex] = React.useState(0);
+
+
+  const steps: Step[] = [
+    {
+      target: 'body',
+      content: (
+        <div>
+          <h3>Welcome to The Budget/Transfer Page</h3>
+          <p>
+            Input your income and distribute your funds across your categories, Or transfer money between your categories
+          </p>
+        </div>
+      ),
+      disableBeacon: true,
+    },
+  ];
+
+  const fetchTutorialState = async () => {
+    try {
+      const authToken = Cookies.get('authToken');
+      const response = await axios.get<TutorialResponse[]>(`${rootUrl}/api/tutorial`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status !== 200) {
+        return false;
+      }
+      return response.data[0].hadTutorial;
+    } catch (error) {
+      return false;
+    }
+  };
+  
+  const updateTutorialState = async () => {
+    try {
+      const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+      const authToken = Cookies.get('authToken');
+      await axios.patch(`${rootUrl}/api/tutorial`, null, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      fetchTutorialState().then((hadTutorial) => {
+        setHadTutorial(hadTutorial);
+      });
+    } catch (error) {
+    }
+  };  
+
+  const handleNext = () => {
+    setStepIndex((prevStepIndex) => prevStepIndex + 1);
+  };
+
+  React.useEffect(() => {
+    console.log(count)
+    if (count >= 4 && !hadTutorial) {
+      updateTutorialState()
+    }
+  }, [count]);
 
 
   const theme = useTheme();
@@ -75,6 +142,9 @@ export const Budget = () => {
     if (balances.length === 0) {
         setUpdateBalances(true);
     }
+    fetchTutorialState().then((hadTutorial) => {
+      setHadTutorial(hadTutorial)
+    })
   }, []);
 
 
@@ -216,7 +286,7 @@ export const Budget = () => {
         </Alert>
         </Snackbar>
         {isLoading ? (
-            <CircularProgress />
+            <CircularProgress sx={{zIndex:9999999999999999999}} />
           ) : categories.length === 0 && balances.length === 0 ? (
           // Display a message if there are no transactions
           <Box>
@@ -372,7 +442,35 @@ export const Budget = () => {
           </Grid>
           </Masonry>
         </Grid>
-        )}
+        )}{!hadTutorial || count < 4? (
+          <Joyride
+              stepIndex={stepIndex}
+              callback={(data: CallBackProps) => {
+                const { status, action, type, index } = data;
+                if (status === STATUS.FINISHED) {
+                  console.log("Ended")
+                  setUpdateCount(true)
+                } else if (type === EVENTS.STEP_AFTER && action === ACTIONS.NEXT) {
+                  handleNext();
+                } else if (status === STATUS.SKIPPED) {
+                  updateTutorialState()
+                }
+              }}
+              continuous
+              hideCloseButton
+              hideBackButton
+              run={!hadTutorial}
+              scrollToFirstStep
+              showProgress
+              showSkipButton
+              steps={steps}
+              styles={{
+                options: {
+                  zIndex: 99999999,
+                },
+              }}
+            /> 
+        ): (<></>)}
       </Box>
     );    
 };

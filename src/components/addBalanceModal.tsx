@@ -1,13 +1,10 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, useTheme, Grid, IconButton } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
-import { SwatchesPicker } from "react-color";
-import CategoryIcon from '@mui/icons-material/Category';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import CategoryItem from "../types/CategoryItem";
-import Check from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 
 
@@ -26,6 +23,8 @@ interface AddCategoryModalProps {
 export const AddBalanceModal = ({categories, setUpdateBalances, setOpenAlert, setPostMsg,open, handleOpenCategory, handleCloseCategory}: AddCategoryModalProps) => {
     const [balanceName, setBalanceName] = React.useState('') 
     const [openCategory, setOpenCategory] = React.useState(false);
+    
+
     const theme = useTheme();
     const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
@@ -36,12 +35,10 @@ export const AddBalanceModal = ({categories, setUpdateBalances, setOpenAlert, se
       setSelectedCategories(value);
     };
     
-    
-    
+
     const handleAddBalance = async (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
       try {
-        console.log(selectedCategories)
         const authToken = Cookies.get("authToken");
         const data = {
           "balanceName": balanceName,
@@ -132,7 +129,8 @@ export const AddBalanceModal = ({categories, setUpdateBalances, setOpenAlert, se
               </Grid>
               </Grid>
           </Fade>
-        </Modal></>
+        </Modal>
+        </>
     )
 }
 

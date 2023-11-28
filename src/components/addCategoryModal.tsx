@@ -5,6 +5,7 @@ import React from "react";
 import { SwatchesPicker } from "react-color";
 import CategoryIcon from '@mui/icons-material/Category';
 import CloseIcon from '@mui/icons-material/Close';
+import Joyride, { CallBackProps, STATUS } from "react-joyride";
 
 
 interface AddCategoryModalProps {
@@ -12,18 +13,20 @@ interface AddCategoryModalProps {
   setUpdateBalances: (value: boolean) => void;
   setOpenAlert: (value: boolean) => void;
   setPostMsg: (value: string) => void;
+  openCategory: boolean;
+  handleOpenCategory: () => void;
+  handleCloseCategory: () => void;
 }
 
 
 
-export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpenAlert, setPostMsg}: AddCategoryModalProps) => {
+export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpenAlert, handleOpenCategory, handleCloseCategory, openCategory, setPostMsg}: AddCategoryModalProps) => {
     const [colour, setColour] = React.useState('')
     const [categoryName, setCategoryName] = React.useState('') 
-    const [openCategory, setOpenCategory] = React.useState(false);
-    const handleOpenCategory = () => setOpenCategory(true);
-    const handleCloseCategory = () => setOpenCategory(false);
+
 
     const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+
 
 
     const handleAddCategory = async (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -40,7 +43,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
         });
         if (response.status === 200) {
           setPostMsg("Successfully Added Category");
-          setOpenCategory(false);
+          handleCloseCategory()
           setUpdateCategories(true);
           setUpdateBalances(true);
         } else {
@@ -62,6 +65,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
         aria-label="add_category"
         size='large'
         onClick={handleOpenCategory}
+        className="categoryFab"
         sx={{ position: 'fixed', bottom: 32, right: 96 }}
       >
         <CategoryIcon />
@@ -73,6 +77,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
         onClose={handleCloseCategory}
         closeAfterTransition
         sx={{ alignContent: 'center'}}
+        className="categoryModal"
       >
           <Fade in={openCategory}>
           <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
@@ -86,7 +91,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
               <h2 className='pageTitle'>Add Category</h2>
               <div></div>
               </Box>
-              <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+              <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined" className="categoryInput">
                 <InputLabel htmlFor="outlined-adornment-description">Category Name</InputLabel>
                 <OutlinedInput
                   id="outlined-adornment-description"
@@ -95,7 +100,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
                   value={categoryName}
                   onChange={(event) => setCategoryName(event.target.value)} />
               </FormControl>
-              <FormControl fullWidth sx={{ marginTop: 1, display: 'flex', justifyContent: 'center' }} variant="outlined">                  
+              <FormControl fullWidth sx={{ marginTop: 1, display: 'flex', justifyContent: 'center' }} variant="outlined" className="categoryColourInput">                  
               <div style={{ margin:'auto', display: 'flex', justifyContent: 'center', height:250, width:'100%', backgroundColor: theme.palette.secondary.main }}>
                     <SwatchesPicker
                       width={2000}

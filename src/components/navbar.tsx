@@ -14,12 +14,9 @@ import {
   Typography,
   Avatar,
   ListItemIcon,
-  ListItemButton,
-  SvgIcon,
-  Icon,
+  ListItemButton, Icon
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useTheme } from '@mui/material/styles'; // Correct import here
 import Cookies from 'js-cookie';
 import axios from 'axios';
@@ -30,12 +27,11 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SavingsIcon from '@mui/icons-material/Savings';
-import checkIsLoggedIn from '../auth/auth';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import FlagIcon from '@mui/icons-material/Flag';
-import McNutLogo from '../mcnutlogo.svg'
+import McNutLogo from '../mcnutlogo.svg';
 const drawerWidth = 240;
 
 type NavBarProps = {
@@ -48,11 +44,11 @@ type NavBarProps = {
 
 
 const pages = [
-  { name: 'Dashboard', destination: '/dashboard', icon: <DashboardIcon /> },
-  { name: 'Transactions', destination: '/transactions', icon: <AddShoppingCartIcon /> },
-  { name: 'Money Owed', destination: '/owed', icon: <ReceiptLongIcon /> },
-  { name: 'Goals', destination: '/goals', icon: <FlagIcon /> },
-  { name: 'Budget / Transfer', destination: '/budget', icon: <SavingsIcon /> },
+  { name: 'Dashboard', destination: '/dashboard', icon: <DashboardIcon />, className: 'dashboard' },
+  { name: 'Transactions', destination: '/transactions', icon: <AddShoppingCartIcon />, className: 'transactions' },
+  { name: 'Money Owed', destination: '/owed', icon: <ReceiptLongIcon />, className: 'owed' },
+  { name: 'Goals', destination: '/goals', icon: <FlagIcon />, className: 'goals' },
+  { name: 'Budget / Transfer', destination: '/budget', icon: <SavingsIcon />, className: 'budget' },
 ];
 
 const settings = [
@@ -175,26 +171,11 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
                 <MenuIcon />
               </IconButton>
             </Box>
-            <Typography
-              variant="h5"
-              noWrap
-              component="a"
-              href="/"
-              sx={{
-                mr: 2,
-                display: { xs: 'flex', md: 'none' },
-                flexGrow: 1,
-                fontWeight: 500,
-                textDecoration: 'none',
-                color: 'white'
-              }}
-            >
-              McNut Budgeting
-            </Typography>
             <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
               {pages.map((page) => (
                 <Button
                   key={page.name}
+                  className={page.className}
                   onClick={() => {
                     navigate(page.destination);
                   }}
@@ -238,7 +219,7 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
         <List>
           {pages.map((page, index) => {
                 return (
-                  <div key={page.name}>
+                  <div key={page.name} className={page.className}>
                     {index !== 0 && <Divider />} {/* Add a divider if not the first item */}
                     <ListItemButton>
                     <ListItem

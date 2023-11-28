@@ -22,11 +22,12 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import checkIsLoggedIn from '../auth/auth';
 import AddOwedItemModal from '../components/addOwedItemModal';
+import Joyride, { ACTIONS, CallBackProps, EVENTS, STATUS, Step } from 'react-joyride';
 
 
 
 export const MoneyOwed = () => {
-    const { categories, user, owedItems, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateOwedItems} = React.useContext(DatabaseInformationContext);
+    const { categories, user, owedItems, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateOwedItems, count, setUpdateCount } = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
     const [person, setPerson] = React.useState('');
@@ -44,6 +45,67 @@ export const MoneyOwed = () => {
     const [payedTab, setPayedTab] = React.useState(false)
     const theme = useTheme();
 
+
+    const [hadTutorial, setHadTutorial] = React.useState(true);
+
+    interface TutorialResponse {
+      hadTutorial: boolean;
+    }
+    
+
+
+    const fetchTutorialState = async () => {
+      try {
+        const authToken = Cookies.get('authToken');
+        const response = await axios.get<TutorialResponse[]>(`${rootUrl}/api/tutorial`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (response.status !== 200) {
+          return false;
+        }
+        return response.data[0].hadTutorial;
+      } catch (error) {
+        return false;
+      }
+    };
+    
+    const updateTutorialState = async () => {
+      try {
+        const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+        const authToken = Cookies.get('authToken');
+        await axios.patch(`${rootUrl}/api/tutorial`, null, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        fetchTutorialState().then((hadTutorial) => {
+          setHadTutorial(hadTutorial);
+        });
+      } catch (error) {
+      }
+    };  
+
+    const [stepIndex, setStepIndex] = React.useState(0);
+  
+  
+    const steps: Step[] = [
+      {
+        target: '.owedFab',
+        content: (
+          <div>
+            <h3>Log an Owed Item</h3>
+            <p>
+              Use this action button to log an item that someone owes you.
+            </p>
+          </div>
+        ),
+        disableBeacon: true,
+      },
+    ];
+  
+
+    const handleNext = () => {
+      setStepIndex((prevStepIndex) => prevStepIndex + 1);
+    };
+  
 
     const handleOwedSuccess = async (id: number) => {
       try{
@@ -114,9 +176,18 @@ export const MoneyOwed = () => {
     if (user.email === "") {
       setUpdateUser(true)
     }
-    
+    fetchTutorialState().then((hadTutorial) => {
+      setHadTutorial(hadTutorial)
+    })
   }, []);
 
+
+  React.useEffect(() => {
+    console.log(count)
+    if (count >= 4 && !hadTutorial) {
+      updateTutorialState()
+    }
+  }, [count]);
 
 
 
@@ -450,7 +521,35 @@ export const MoneyOwed = () => {
             <Typography variant="h6">You don't have any owed items yet.</Typography>
           ))}         
         </Grid>
-        )}
+        )}{!hadTutorial || count < 4? (
+          <Joyride
+              stepIndex={stepIndex}
+              callback={(data: CallBackProps) => {
+                const { status, action, type, index } = data;
+                if (status === STATUS.FINISHED) {
+                  console.log("Ended")
+                  setUpdateCount(true)
+                } else if (type === EVENTS.STEP_AFTER && action === ACTIONS.NEXT) {
+                  handleNext();
+                } else if (status === STATUS.SKIPPED) {
+                  updateTutorialState()
+                }
+              }}
+              continuous
+              hideCloseButton
+              hideBackButton
+              run={!hadTutorial}
+              scrollToFirstStep
+              showProgress
+              showSkipButton
+              steps={steps}
+              styles={{
+                options: {
+                  zIndex: 99999999,
+                },
+              }}
+            /> 
+        ): (<></>)}
       </Box>
   );
 };

@@ -3,12 +3,11 @@ import Cookies from 'js-cookie';
 import { DatabaseInformationProvider } from './utils/DatabaseInformation';
 import checkIsLoggedIn from './auth/auth';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import {createTheme,ThemeProvider} from "@mui/material/styles";
-import {Login} from './pages/login';
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { Login } from './pages/login';
 import NavBar from './components/navbar';
 import CssBaseline from "@mui/material/CssBaseline";
 import { CircularProgress } from '@mui/material';
-
 
 
 const MoneyOwed = lazy(() => import('./pages/money-owed') as unknown as Promise<{ default: React.ComponentType }>);

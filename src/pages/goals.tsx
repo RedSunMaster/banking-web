@@ -4,11 +4,11 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography/Typography';
 import CardContent from '@mui/material/CardContent';
 import Cookies from 'js-cookie';
-import { BarChart, ScatterChart } from '@mui/x-charts';
+import { ScatterChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Button, FormControl, IconButton, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, useTheme, CircularProgress } from '@mui/material';
+import { Button, IconButton, Alert, Snackbar, useTheme, CircularProgress } from '@mui/material';
 import axios, { AxiosError } from 'axios';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -22,15 +22,12 @@ import { useNavigate } from 'react-router-dom';
 import checkIsLoggedIn from '../auth/auth';
 import GoalItem from '../types/GoalItem';
 import AddGoalItemModal from '../components/addGoalItemModal';
-import TransactionItem from '../types/Transaction';
-import LinearProgress, { LinearProgressProps } from '@mui/material/LinearProgress';
-import { isNull } from 'util';
-
+import Joyride, { ACTIONS, CallBackProps, EVENTS, STATUS, Step } from 'react-joyride';
 
 
 
 export const Goals = () => {
-    const { categories, user, transactions, goalItems, setUpdateUser, setUpdateCategories, setUpdateTransactions, setUpdateGoalItems} = React.useContext(DatabaseInformationContext);
+    const { categories, user, transactions, goalItems, setUpdateUser, setUpdateCategories, setUpdateTransactions, setUpdateGoalItems, count, setUpdateCount } = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
     const handleOpen = () => setOpen(true);
@@ -43,7 +40,77 @@ export const Goals = () => {
     const [notAchievedItems, setNotAchievedItems] = React.useState<GoalItem[]>([])
     const [achievedTab, setAchievedTab] = React.useState(false)
     const theme = useTheme();
+    const [stepIndex, setStepIndex] = React.useState(0);
 
+  
+
+    
+    const [hadTutorial, setHadTutorial] = React.useState(true);
+
+    interface TutorialResponse {
+      hadTutorial: boolean;
+    }
+    
+
+
+    const fetchTutorialState = async () => {
+      try {
+        const authToken = Cookies.get('authToken');
+        const response = await axios.get<TutorialResponse[]>(`${rootUrl}/api/tutorial`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (response.status !== 200) {
+          return false;
+        }
+        return response.data[0].hadTutorial;
+      } catch (error) {
+        return false;
+      }
+    };
+    
+    const updateTutorialState = async () => {
+      try {
+        const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+        const authToken = Cookies.get('authToken');
+        await axios.patch(`${rootUrl}/api/tutorial`, null, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        fetchTutorialState().then((hadTutorial) => {
+          setHadTutorial(hadTutorial);
+        });
+      } catch (error) {
+      }
+    };  
+
+
+  
+    const steps: Step[] = [
+      {
+        target: '.goalFab',
+        content: (
+          <div>
+            <h3>Add A Goal</h3>
+            <p>
+              Create yourself a goal here, and track its progress.
+            </p>
+          </div>
+        ),
+        disableBeacon: true,
+      },
+    ];
+  
+
+    const handleNext = () => {
+      setStepIndex((prevStepIndex) => prevStepIndex + 1);
+    };
+  
+
+    React.useEffect(() => {
+      console.log(count)
+      if (count >= 4 && !hadTutorial) {
+        updateTutorialState()
+      }
+    }, [count]);
 
     const handleGoalSuccess = async (id: number) => {
       try{
@@ -116,21 +183,18 @@ export const Goals = () => {
     if (transactions.length === 0) {
       setUpdateTransactions(true)
     }
-    
+    fetchTutorialState().then((hadTutorial) => {
+      setHadTutorial(hadTutorial)
+    })
   }, []);
 
 
 
 
   React.useEffect(() => {
-    try {
-      if (goalItems.length !== 0) {
-        const notAchievedItems = goalItems.filter((goalItem) => goalItem.achieved == false);
-        setNotAchievedItems(notAchievedItems);
-        setAchievedItems(goalItems.filter((goalItem) => goalItem.achieved == true));
-      }
-    } catch (error) {
-    }
+    const notAchievedItems = goalItems.filter((goalItem) => goalItem.achieved == false);
+    setNotAchievedItems(notAchievedItems);
+    setAchievedItems(goalItems.filter((goalItem) => goalItem.achieved == true));
   }, [goalItems, setUpdateGoalItems]);
   
 
@@ -185,7 +249,7 @@ export const Goals = () => {
     
       // Filter transactions by category
       const categoryTransactions = transactions.filter(transaction => transaction.Category === item.category);
-      const savedMoney = categoryTransactions.filter(transaction => transaction.Description === item.uniqueCode);
+      const savedMoney = categoryTransactions.filter(transaction => transaction.Description.includes(item.uniqueCode));
     
       const totalSavedMoney = savedMoney.reduce((total, transaction) => total + Math.abs(transaction.Amount), 0);
     
@@ -404,15 +468,41 @@ export const Goals = () => {
                     </AutoSizer>
                   </CardContent>
                 </Card>
-
-
               </Grid>
             </Masonry>
           ) : (
             <Typography variant="h6">You don't have goals yet.</Typography>
           ))}         
         </Grid>
-        )}
+        )}{!hadTutorial || count < 4? (
+          <Joyride
+              stepIndex={stepIndex}
+              callback={(data: CallBackProps) => {
+                const { status, action, type, index } = data;
+                if (status === STATUS.FINISHED) {
+                  console.log("Ended")
+                  setUpdateCount(true)
+                } else if (type === EVENTS.STEP_AFTER && action === ACTIONS.NEXT) {
+                  handleNext();
+                } else if (status === STATUS.SKIPPED) {
+                  updateTutorialState()
+                }
+              }}
+              continuous
+              hideCloseButton
+              hideBackButton
+              run={!hadTutorial}
+              scrollToFirstStep
+              showProgress
+              showSkipButton
+              steps={steps}
+              styles={{
+                options: {
+                  zIndex: 99999999,
+                },
+              }}
+            /> 
+        ): (<></>)}
       </Box>
   );
 };

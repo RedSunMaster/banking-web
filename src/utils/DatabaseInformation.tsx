@@ -177,7 +177,9 @@ export const DatabaseInformationContext = React.createContext<{
   owedItems: OwedItem[];
   goalItems: GoalItem[];
   user: UserItem;
+  count: number;
 
+  setUpdateCount: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateValues: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateCategories: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateBalances: React.Dispatch<React.SetStateAction<boolean>>;
@@ -194,6 +196,9 @@ export const DatabaseInformationContext = React.createContext<{
   owedItems: [],
   goalItems: [],
   user: emptyUserItem,
+  count: 0,
+
+  setUpdateCount: () => {},
   setUpdateValues: () => {},
   setUpdateCategories: () => {},
   setUpdateBalances: () => {},
@@ -217,8 +222,13 @@ export const DatabaseInformationContext = React.createContext<{
     const [owedItems, setOwedItems] = React.useState<OwedItem[]>([]);
     const [goalItems, setGoalItems] = React.useState<GoalItem[]>([]);
 
-    const [user, setUser] = React.useState<UserItem>(emptyUserItem);
 
+    const [count, setCount] = React.useState(0);
+
+    const [updateCount, setUpdateCount] = React.useState(false);
+
+
+    const [user, setUser] = React.useState<UserItem>(emptyUserItem);
     const [updateValues, setUpdateValues] = React.useState(false);
     const [updateCategories, setUpdateCategories] = React.useState(false);
     const [updateBalances, setUpdateBalances] = React.useState(false);
@@ -259,6 +269,15 @@ export const DatabaseInformationContext = React.createContext<{
       };
       fetchData();
     }, [updateCategories]);
+
+    React.useEffect(() => {
+      if (updateCount) {
+        console.log('Changed')
+        setCount(count + 1);
+        setUpdateCount(false);
+      }
+    }, [updateCount]);
+
 
     React.useEffect(() => {
       const fetchData = async () => {
@@ -336,7 +355,7 @@ export const DatabaseInformationContext = React.createContext<{
     // Provide the databaseInformation state and the setUpdateValues function to child components
     return (
       <DatabaseInformationContext.Provider
-        value={{ categories, balances, filteredBalances, customBalances, transactions, owedItems, goalItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateGoalItems, setUpdateUser }}
+        value={{ categories, balances, filteredBalances, customBalances, transactions, owedItems, goalItems, user,count, setUpdateCount, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateGoalItems, setUpdateUser }}
       >
         {children}
       </DatabaseInformationContext.Provider>
