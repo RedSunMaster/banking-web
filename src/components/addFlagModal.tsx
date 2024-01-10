@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton, TextField } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -6,28 +6,26 @@ import { SwatchesPicker } from "react-color";
 import CategoryIcon from '@mui/icons-material/Category';
 import CloseIcon from '@mui/icons-material/Close';
 import Joyride, { CallBackProps, STATUS } from "react-joyride";
-import CategoryItem from "../types/CategoryItem";
+import { FlagCircle } from "@mui/icons-material";
+import FlagItem from "../types/FlagItem";
 
 
-interface AddCategoryModalProps {
-  setUpdateCategories: (value: boolean) => void;
-  setUpdateBalances: (value: boolean) => void;
+interface AddFlagModalProps {
+  setUpdateFlags: (value: boolean) => void;
+  setUpdateTransactions: (value: boolean) => void;
   setOpenAlert: (value: boolean) => void;
   setPostMsg: (value: string) => void;
-  openCategory: boolean;
-  handleOpenCategory: () => void;
-  handleCloseCategory: () => void;
-  chosenCategory?: CategoryItem;
-
+  openFlag: boolean;
+  handleOpenFlag: () => void;
+  handleCloseFlag: () => void;
+  chosenFlag?: FlagItem;
 }
 
 
 
-export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpenAlert, handleOpenCategory, handleCloseCategory, openCategory, setPostMsg, chosenCategory}: AddCategoryModalProps) => {
-    const [colour, setColour] = React.useState(chosenCategory? chosenCategory.colour : '')
-    const [categoryName, setCategoryName] = React.useState(chosenCategory? chosenCategory.categoryName : '') 
-
-
+export const AddFlagModal = ({setUpdateFlags,setUpdateTransactions, setOpenAlert, handleOpenFlag, handleCloseFlag, openFlag, setPostMsg, chosenFlag}: AddFlagModalProps) => {
+    const [colour, setColour] = React.useState('')
+    const [flagName, setFlagName] = React.useState('') 
 
     const [open, setOpen] = React.useState(false);
     const [inputValue, setInputValue] = React.useState('');
@@ -38,29 +36,29 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
     const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
     React.useEffect(() => {
-      if (chosenCategory) {
-        setColour(chosenCategory?.colour)
-        setCategoryName(chosenCategory?.categoryName)
+      if (chosenFlag) {
+        setColour(chosenFlag?.flagColour)
+        setFlagName(chosenFlag?.flagName)
       }
-    }, [chosenCategory])
+    }, [chosenFlag])
 
-    const handleAddCategory = async (event: React.MouseEvent<HTMLButtonElement>) => {
+
+    const handleAddFlag = async (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
       try {
         const authToken = Cookies.get("authToken");
         const data = {
-          "categoryName": categoryName,
-          "colour": colour,
+          "flagName": flagName,
+          "flagColour": colour,
         };
     
-        const response = await axios.post(`${rootUrl}/api/categories`, data, {
+        const response = await axios.post(`${rootUrl}/api/flags`, data, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         if (response.status === 200) {
           setPostMsg("Successfully Added Category");
-          handleCloseCategory()
-          setUpdateCategories(true);
-          setUpdateBalances(true);
+          handleCloseFlag()
+          setUpdateFlags(true);
         } else {
           setPostMsg("Error" + response.data);
         }
@@ -75,33 +73,32 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
     };
 
 
-    const handleDeleteCategory = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleDeleteFlag = async (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
-      if (inputValue !== chosenCategory?.categoryName) {
-        alert('Incorrect Category Name');
+      if (inputValue !== chosenFlag?.flagName) {
+        alert('Incorrect Flag Name');
         handleClose()
-        handleCloseCategory()
+        handleCloseFlag()
         setInputValue('')
         return;
       }
       try {
         const authToken = Cookies.get("authToken");
         const data = {
-          "categoryId": chosenCategory?.categoryId
+          "flagId": chosenFlag?.flagId
         };
     
         const response = await axios({
           method: 'delete',
-          url: `${rootUrl}/api/categories`,
+          url: `${rootUrl}/api/flags`,
           data: data,
           headers: { Authorization: `Bearer ${authToken}` },
         });
         if (response.status === 200) {
-          setPostMsg("Successfully Deleted Category");
-          setUpdateCategories(true);
-          handleCloseCategory()
-          handleClose()
-          setInputValue("")
+          setPostMsg("Successfully Deleted Flag");
+          setUpdateTransactions(true);
+          setUpdateFlags(true);
+          handleCloseFlag();
         } else {
           setPostMsg("Error" + response.statusText);
         }
@@ -116,22 +113,22 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
       setOpenAlert(true);
     }
   
-    const handleEditCategory = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleUpdateFlag = async (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
       try {
         const authToken = Cookies.get("authToken");
         const data = {
-          "categoryId": chosenCategory?.categoryId,
-          "categoryName": categoryName,
-          "colour": colour
+          "flagId": chosenFlag?.flagId,
+          "flagName": flagName,
+          "flagColour": colour
         };
-        const response = await axios.patch(`${rootUrl}/api/categories`, data, {
+        const response = await axios.patch(`${rootUrl}/api/flags`, data, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         if (response.status === 200) {
           setPostMsg("Successfully Updated Transaction");
-          setUpdateCategories(true);
-          handleCloseCategory()
+          setUpdateFlags(true);
+          handleCloseFlag()
         } else {
           setPostMsg("Error" + response.data);
         }
@@ -153,66 +150,38 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const theme = useTheme();
     return (
-      <><Fab
-        color="primary"
-        aria-label="add_category"
-        size='large'
-        onClick={handleOpenCategory}
-        className="categoryFab"
-        sx={{ position: 'fixed', bottom: 32, right: 96 }}
-      >
-        <CategoryIcon />
-      </Fab><Modal
+      <><Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
-        open={openCategory}
+        open={openFlag}
         disableScrollLock={true}
-        onClose={handleCloseCategory}
+        onClose={handleCloseFlag}
         closeAfterTransition
         sx={{ alignContent: 'center'}}
         className="categoryModal"
       >
-          <Fade in={openCategory}>
+          <Fade in={openFlag}>
           <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
             <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
         <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <IconButton
                 size='large'
-                onClick={handleCloseCategory}
+                onClick={handleCloseFlag}
               ><CloseIcon /></IconButton>
-              <h2 className='pageTitle'>{chosenCategory? "Edit Category" : "Add Category"}</h2>
+              <h2 className='pageTitle'>{chosenFlag? "Edit Flag" : "Add Flag"}</h2>
               <div></div>
               </Box>
               <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined" className="categoryInput">
-                <InputLabel htmlFor="outlined-adornment-description">Category Name</InputLabel>
+                <InputLabel htmlFor="outlined-adornment-description">Flag Name</InputLabel>
                 <OutlinedInput
                   id="outlined-adornment-description"
                   label="Category Name"
                   type='text'
-                  value={categoryName}
-                  onChange={(event) => setCategoryName(event.target.value)} />
+                  value={flagName}
+                  onChange={(event) => setFlagName(event.target.value)} />
               </FormControl>
               <FormControl fullWidth sx={{ marginTop: 1, display: 'flex', justifyContent: 'center' }} variant="outlined" className="categoryColourInput">                  
               <div style={{ margin:'auto', display: 'flex', justifyContent: 'center', height:250, width:'100%', backgroundColor: theme.palette.secondary.main }}>
@@ -257,42 +226,34 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
               </FormControl>
 
 
-              {chosenCategory ? (
+              {chosenFlag ? (
                 <Box display={'flex'} flexDirection={'row'}>        
                   <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 1, marginRight: 2}} onClick={handleOpen}>Delete</Button>   
                   <Modal
                     open={open} onClose={handleClose}
                     aria-labelledby="modal-title"
                     aria-describedby="modal-description">
-                    <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
-                    <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
-                    <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>                        <h2>{}Deleting This Category Could Remove Valuable Data{}</h2>
+                    <Box sx={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width:400, height:'100%', bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+                        <h2>{}Deleting This Flag Could Remove Valuable Data{}</h2>
                         <p>Proceed With Caution - This CANNOT Be Reverted</p>
-                        <p>What Will Be DELETED: </p>
-                        <ul>
-                        <li>All GOALS Associated With Category</li>
-                        <li>All TRANSACTIONS Associated With Category</li>
-                        <li>All MONEY OWED ITEMS Associated With Category</li>
-                        </ul>
                         <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
-                        <InputLabel htmlFor="outlined-adornment-amount">Confirm Category Name</InputLabel>
-                        <OutlinedInput value={inputValue} label={"Confirm Category Name"} sx={{width:'100%'}} onChange={(e) => setInputValue(e.target.value)} />
+                        <InputLabel htmlFor="outlined-adornment-amount">Confirm Flag Name</InputLabel>
+                        <OutlinedInput value={inputValue} label={"Confirm Flag Name"} sx={{width:'100%'}} onChange={(e) => setInputValue(e.target.value)} />
                         </FormControl>
                         <br />
                         <Box display={'flex'} flexDirection={'row'}>
-                        <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 2}} onClick={handleDeleteCategory}>DELETE</Button>
+                        <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 2}} onClick={handleDeleteFlag}>DELETE</Button>
                         <Button variant="contained" color="success" fullWidth sx={{ marginTop: 2}} onClick={handleClose}>Cancel</Button>
                         </Box>
                     </Box>
-                    </Grid>
-                    </Grid>
-                  </Modal>           
-                  <Button variant="contained" color="success" fullWidth sx={{ marginTop: 1}} onClick={handleEditCategory}>Update</Button>
+                  </Modal>  
+                  <Button variant="contained" color="success" fullWidth sx={{ marginTop: 1}} onClick={handleUpdateFlag}>Update</Button>
                 </Box>
               ) : (
-                <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddCategory}>Add</Button>
+                <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddFlag}>Add</Button>
               )
-              }            </Box>
+              }
+            </Box>
             </Grid>
             </Grid>
           </Fade>
@@ -304,4 +265,4 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
 
 
 
-export default AddCategoryModal
+export default AddFlagModal

@@ -14,7 +14,7 @@ import {
   Typography,
   Avatar,
   ListItemIcon,
-  ListItemButton, Icon
+  ListItemButton, Icon, Modal, ThemeProvider, createTheme, Grid
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles'; // Correct import here
@@ -32,6 +32,16 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import FlagIcon from '@mui/icons-material/Flag';
 import McNutLogo from '../mcnutlogo.svg';
+import CalculateIcon from '@mui/icons-material/Calculate';
+import Calculator from 'awesome-react-calculator'
+import { ReactCalculator } from "simple-react-calculator";
+import CloseIcon from '@mui/icons-material/Close';
+
+import SettingsIcon from '@mui/icons-material/Settings';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { AutoSizer } from 'react-virtualized';
+
+
 const drawerWidth = 240;
 
 type NavBarProps = {
@@ -53,16 +63,51 @@ const pages = [
 
 const settings = [
   { name: 'Account', destination: '/account', icon: <AccountCircleIcon /> },
+  { name: 'Settings', destination: '/settings', icon: <SettingsIcon /> },
   { name: 'Logout', destination: '/logout', icon: <LogoutIcon /> },
 ];
 
 export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDarkMode, setIsDarkMode }) => {
   const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const theme = useTheme(); // This line automatically gets the current theme object
+  document.documentElement.style.setProperty('--background-color', theme.palette.mode === 'dark' ? '#141314' : '#e0dee0');
+  document.documentElement.style.setProperty('--color', theme.palette.mode === 'dark' ? 'white' : 'black');
 
+  const [open, setOpen] = React.useState(false);
 
+  const themeOptions = createTheme({
+    typography: {
+      fontFamily: 'Poppins, sans-serif',
+    },
+    palette: {
+      mode: 'light',
+      primary: {
+        main: '#aeb2af',
+      },
+      secondary: {
+        main: '#ebeaeb',
+      },
+      background: {
+        default: '#fdfcfd',
+      },
+      text: {
+        primary: '#100f10',
+      },
+      info: {
+        main: '#e0dee0',
+      }
+  
+    },
+  });
+
+  const openCalculator = () => {
+    setOpen(true);
+  };
   const navigate = useNavigate();
-
+  const [openCalculatorModal, setOpenCalculatorModal] = React.useState(false);
+  const handleModalToggle = () => {
+    setOpenCalculatorModal(!openCalculatorModal);
+  };
   const [leftDrawerOpen, setLeftDrawerOpen] = React.useState(false);
   const [rightDrawerOpen, setRightDrawerOpen] = React.useState(false);
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
@@ -150,6 +195,7 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
   
 
   return (
+    <>
     <div style={{ display: 'flex'}}>
       <AppBar position="static" sx={{ zIndex: theme.zIndex.drawer + 1, bgcolor: theme.palette.primary.main }}>
         <Container maxWidth={false}>
@@ -166,6 +212,7 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
               <IconButton
                 size="large"
                 aria-label="account of current user"
+                className='toggleDrawer'
                 onClick={() => handleToggleDrawer('left')} // Open the left drawer
               >
                 <MenuIcon />
@@ -185,6 +232,22 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
                 </Button>
               ))}
             </Box>
+          <Box sx={{ flexGrow: 0 }}>
+            <IconButton
+              size='large'
+              onClick={() => {navigate(0)}}
+              sx={{marginRight:'10px'}}
+            ><RefreshIcon/></IconButton>
+          </Box>
+
+          <Box sx={{ flexGrow: 0 }}>
+            <IconButton
+              size='large'
+              onClick={handleModalToggle}
+              sx={{marginRight:'10px'}}
+            ><CalculateIcon/></IconButton>
+          </Box>
+
             <Box sx={{ flexGrow: 0 }}>
               <IconButton
                 size='large'
@@ -198,10 +261,9 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
           </Toolbar>
         </Container>
       </AppBar>
-            <Drawer
+      <Drawer
         variant="temporary"
         anchor="left"
-        className='test'
         open={leftDrawerOpen}
         disableScrollLock={ true }
         onClose={() => handleToggleDrawer('left')}
@@ -292,6 +354,29 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
 
       )}
     </div>
+      <Modal
+      open={true}
+      className={openCalculatorModal ? '' : 'hidden'} // Add this line
+      onClose={() => setOpenCalculatorModal(false)}
+      aria-labelledby="modal-title"
+      aria-describedby="modal-description">
+      <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
+      <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
+      <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <IconButton
+                size='large'
+                onClick={() => setOpenCalculatorModal(false)}
+              ><CloseIcon /></IconButton>
+              <h2 className='pageTitle'>Calculator</h2>
+              <div></div>
+              </Box>
+        <Calculator></Calculator>
+      </Box>
+      </Grid>
+      </Grid>
+    </Modal>
+    </>
   );
 }
 

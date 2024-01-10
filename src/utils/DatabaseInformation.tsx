@@ -9,6 +9,8 @@ import OwedItem from "../types/OwedItem";
 import GoalItem from "../types/GoalItem";
 
 import TotalItem from "../types/TotalItem";
+import FlagItem from "../types/FlagItem";
+import RecurringTransactionItem from "../types/RecurringTransaction";
 
 interface DatabaseInformationProviderProps {
     children: React.ReactNode;
@@ -30,6 +32,26 @@ const fetchTransactions = async () => {
       const formattedData = response.data.map((transaction: TransactionItem) => ({
         ...transaction,
         Date: new Date(transaction.Date),
+      }));
+      return formattedData;
+    } catch (error) {
+      return null;
+    }
+  };
+
+
+  const fetchRecurringTransactions = async () => {
+    try {
+      const authToken = Cookies.get('authToken');
+      const response = await axios.get(`${rootUrl}/api/recurring`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status !== 200) {
+        return null;
+      }
+      const formattedData = response.data.map((recurringItem: RecurringTransactionItem) => ({
+        ...recurringItem,
+        Date: new Date(recurringItem.Date),
       }));
       return formattedData;
     } catch (error) {
@@ -119,6 +141,23 @@ const fetchTransactions = async () => {
   };
 
 
+  const fetchFlagItems = async () => {
+    try {
+      const authToken = Cookies.get('authToken');
+      const response = await axios.get<FlagItem[]>(`${rootUrl}/api/flags`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status !== 200) {
+        return null;
+      }
+      return response.data;
+      
+    } catch (error) {
+      return null;
+    }
+  };
+
+
   const fetchUser = async () => {
     try {
       const authToken = Cookies.get('authToken');
@@ -139,14 +178,16 @@ const fetchTransactions = async () => {
 export const getDatabaseInformation = async () => {
     try {
       const transactions = await fetchTransactions();
+      const recurringTransactions = await fetchRecurringTransactions();
       const fetchBalancesResult = await fetchBalances();
       const categories = await fetchCategories();
       const user = await fetchUser();
       const owedItems = await fetchOwedItems();
       const goalItems = await fetchGoalItems();
+      const flags = await fetchFlagItems();
       if (fetchBalancesResult !== null) {
         const [balances, filteredBalances, customBalances] = fetchBalancesResult;
-        return {transactions,balances,filteredBalances, customBalances,categories,user,owedItems, goalItems}
+        return {transactions,recurringTransactions,balances,filteredBalances, customBalances,categories,user,owedItems, goalItems, flags}
       } else {
           return []
       }
@@ -174,8 +215,10 @@ export const DatabaseInformationContext = React.createContext<{
   filteredBalances: BalanceItem[];
   customBalances: TotalItem[];
   transactions: TransactionItem[];
+  recurringTransactions: RecurringTransactionItem[];
   owedItems: OwedItem[];
   goalItems: GoalItem[];
+  flagItems: FlagItem[];
   user: UserItem;
   count: number;
 
@@ -184,17 +227,21 @@ export const DatabaseInformationContext = React.createContext<{
   setUpdateCategories: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateBalances: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateTransactions: React.Dispatch<React.SetStateAction<boolean>>;
+  setUpdateRecTransactions: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateOwedItems: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateGoalItems: React.Dispatch<React.SetStateAction<boolean>>;
   setUpdateUser: React.Dispatch<React.SetStateAction<boolean>>;
+  setUpdateFlags: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   categories: [],
   balances: [], // Initialize it as an empty array
   filteredBalances: [],
   customBalances: [],
   transactions: [],
+  recurringTransactions: [],
   owedItems: [],
   goalItems: [],
+  flagItems: [],
   user: emptyUserItem,
   count: 0,
 
@@ -203,9 +250,11 @@ export const DatabaseInformationContext = React.createContext<{
   setUpdateCategories: () => {},
   setUpdateBalances: () => {},
   setUpdateTransactions: () => {},
+  setUpdateRecTransactions: () => {},
   setUpdateOwedItems: () => {},
   setUpdateGoalItems: () => {},
   setUpdateUser: () => {},
+  setUpdateFlags: () => {},
 });
 
   
@@ -219,8 +268,11 @@ export const DatabaseInformationContext = React.createContext<{
     const [customBalances, setCustomBalances] = React.useState<TotalItem[]>([]);
 
     const [transactions, setTransactions] = React.useState<TransactionItem[]>([]);
+    const [recurringTransactions, setRecTransactions] = React.useState<RecurringTransactionItem[]>([]);
+
     const [owedItems, setOwedItems] = React.useState<OwedItem[]>([]);
     const [goalItems, setGoalItems] = React.useState<GoalItem[]>([]);
+    const [flagItems, setFlagItems] = React.useState<FlagItem[]>([]);
 
 
     const [count, setCount] = React.useState(0);
@@ -233,9 +285,12 @@ export const DatabaseInformationContext = React.createContext<{
     const [updateCategories, setUpdateCategories] = React.useState(false);
     const [updateBalances, setUpdateBalances] = React.useState(false);
     const [updateTransactions, setUpdateTransactions] = React.useState(false);
+    const [updateRecTransactions, setUpdateRecTransactions] = React.useState(false);
+
     const [updateOwedItems, setUpdateOwedItems] = React.useState(false);
     const [updateGoalItems, setUpdateGoalItems] = React.useState(false);
     const [updateUser, setUpdateUser] = React.useState(false);
+    const [updateFlags, setUpdateFlags] = React.useState(false);
 
   
     // Fetch the data when the provider is mounted or when updateValues changes
@@ -246,11 +301,13 @@ export const DatabaseInformationContext = React.createContext<{
           setUpdateValues(false);
           if (!Array.isArray(data)) {
             setTransactions(data.transactions?? []);
+            setRecTransactions(data.recurringTransactions?? []);
             setCategories(data.categories?? []);
             setBalances(data.balances?? []);
             setUser(data.user?? emptyUserItem);
             setOwedItems(data.owedItems?? []);
             setGoalItems(data.goalItems?? []);
+            setFlagItems(data.flags?? []);
           }
       }
       };
@@ -296,6 +353,7 @@ export const DatabaseInformationContext = React.createContext<{
       fetchData();
     }, [updateBalances]);
 
+
     React.useEffect(() => {
       const fetchData = async () => {
         if (updateTransactions) {
@@ -308,6 +366,33 @@ export const DatabaseInformationContext = React.createContext<{
       };
       fetchData();
     }, [updateTransactions]);
+
+    React.useEffect(() => {
+      const fetchData = async () => {
+        if (updateRecTransactions) {
+        const data = await fetchRecurringTransactions();
+        if (data) {
+          setRecTransactions(data);
+        }
+        setUpdateRecTransactions(false);
+      }
+      };
+      fetchData();
+    }, [updateRecTransactions]);
+
+    React.useEffect(() => {
+      const fetchData = async () => {
+        if (updateFlags) {
+        const data = await fetchFlagItems();
+        if (data) {
+          setFlagItems(data);
+        }
+        setUpdateFlags(false);
+      }
+      };
+      fetchData();
+    }, [updateFlags]);
+
 
     React.useEffect(() => {
       const fetchData = async () => {
@@ -355,7 +440,7 @@ export const DatabaseInformationContext = React.createContext<{
     // Provide the databaseInformation state and the setUpdateValues function to child components
     return (
       <DatabaseInformationContext.Provider
-        value={{ categories, balances, filteredBalances, customBalances, transactions, owedItems, goalItems, user,count, setUpdateCount, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateGoalItems, setUpdateUser }}
+        value={{ categories, balances, filteredBalances, customBalances, transactions, recurringTransactions, owedItems, goalItems, user,count, flagItems, setUpdateFlags, setUpdateCount, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateRecTransactions, setUpdateOwedItems, setUpdateGoalItems, setUpdateUser }}
       >
         {children}
       </DatabaseInformationContext.Provider>
@@ -364,4 +449,4 @@ export const DatabaseInformationContext = React.createContext<{
   
 
 
-export {fetchBalances, fetchCategories, fetchTransactions, fetchUser, fetchGoalItems}
+export {fetchBalances, fetchCategories, fetchTransactions, fetchUser, fetchGoalItems, fetchFlagItems}

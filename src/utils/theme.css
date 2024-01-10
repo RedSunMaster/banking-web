@@ -35,8 +35,8 @@ code {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
+  width: 100wh;
+  height: 100vh;
   border-radius: 12px;
   padding: 16px 32px 24px 32px;
   overflow: auto;
@@ -83,6 +83,36 @@ code {
   /* Create a right-aligned (split) link inside the navigation bar */
   .topnav a.split {
     float: right;
+  }
+
+  .react-calculator {
+    height:80% !important
+  }
+
+  .button-panel .button {
+    background-color: var(--background-color) !important;
+    color: var(--color) !important;
+    box-shadow: none !important;
+
+
+  }
+
+  .result-panel {
+    background-color: var(--background-color) !important;
+    overflow: hidden !important;
+  }
+
+  .cur-row {
+    color: var(--color) !important;
+
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .outlined-adornment-description {
+    z-index: 9999;
   }
 
 .pageTitle {

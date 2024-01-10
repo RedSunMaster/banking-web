@@ -8,7 +8,7 @@ import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, Button, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar, Switch, useTheme } from '@mui/material';
+import { Alert, Autocomplete, Button, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar, Switch, TextField, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
 import axios, { AxiosError } from 'axios';
 import checkIsLoggedIn from '../auth/auth';
@@ -26,6 +26,7 @@ export const Budget = () => {
   const [openAlert, setOpenAlert] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
 
+
   const [postMsg, setPostMsg] = React.useState('')
   const [toCategory, setToCategory] = React.useState('')
   const [fromCategory, setFromCategory] = React.useState('')
@@ -34,7 +35,6 @@ export const Budget = () => {
   const [transferAmount, setTransferAmount] = React.useState(0)
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
   const [distributeByPercentage, setDistributeByPercentage] = React.useState(false);
-
 
   
   const [hadTutorial, setHadTutorial] = React.useState(true);
@@ -104,13 +104,6 @@ export const Budget = () => {
 
   const theme = useTheme();
 
-  const onChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, category: string) => {
-    setEnteredValues((prevValues) => ({
-      ...prevValues,
-      [category]: Number(event.target.value),
-    }));
-  };
-  
   const navigate = useNavigate()
 
   const onVisibilityChange = () => {
@@ -122,6 +115,7 @@ export const Budget = () => {
       })
     }
   };
+
 
   React.useLayoutEffect(() => {
     document.addEventListener("visibilitychange", onVisibilityChange);
@@ -163,11 +157,21 @@ export const Budget = () => {
         }
       })
     );
-  
+
     setEnteredValues(convertedValues);
   }, [distributeByPercentage]);
   
   
+
+  // React.useEffect(() => {
+  //   setSum(Number(Object.values(enteredValues).reduce((acc, value) => acc + value, 0)))
+  //   if (distributeByPercentage) {
+  //     setLeftToDistribute(Number((100 - sum).toFixed(4)))
+  //   }
+  //   else {
+  //     setLeftToDistribute(income - sum);
+  //   }
+  // }, [enteredValues])
     
   
   const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -177,13 +181,12 @@ export const Budget = () => {
 
     setOpenAlert(false);
   };
-  const sum = Number(Object.values(enteredValues).reduce((acc, value) => acc + value, 0).toFixed(2));
-
+  const values = [1, 0.5, 0.25]; // 
 
   const handleDistributeBudget = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     setIsLoading(true);
-    if ((distributeByPercentage && sum === 100) || (!distributeByPercentage && sum === income)) {
+    if ((distributeByPercentage && Number(sum.toFixed(2)) === 100) || (!distributeByPercentage && Number(sum.toFixed(2)) === income)) {
       try {
         for (const category in enteredValues) {
           const value = distributeByPercentage ? (enteredValues[category] / 100 * income) : enteredValues[category];
@@ -276,6 +279,15 @@ export const Budget = () => {
     }
     setOpenAlert(true);
   };
+
+
+  const sum = Number(Object.values(enteredValues).reduce((acc, value) => acc + value, 0))
+  let leftToAllocate = sum
+  if (distributeByPercentage) {
+    leftToAllocate = Number((100 - sum).toFixed(4))
+  } else {
+    leftToAllocate = income - sum;
+  }
   
 
     return (
@@ -312,11 +324,17 @@ export const Budget = () => {
                   <FormControl sx={{width:200}}>
                       <InputLabel htmlFor="outlined-adornment-fName">Income</InputLabel>
                       <OutlinedInput
-                        id="outlined-adornment-lNmae"
-                        label="Income"
-                        type="number"
-                        onChange={(event) => setIncome(Number(event.target.value))}
-                      />
+                      id="outlined-adornment-lNmae"
+                      label="Income"
+                      type="text"
+                      onChange={(event) => {
+                        let value = event.target.value;
+                          setIncome(Number(value))
+                      }}
+                    />
+
+
+
 
                       </FormControl>
                   </Grid>
@@ -326,7 +344,7 @@ export const Budget = () => {
                   <span
                     style={{
                       fontWeight: 'bold',
-                      color: ((distributeByPercentage && sum === 100) || (!distributeByPercentage && sum === income)) ? 'green' : 'red',
+                      color: ((distributeByPercentage && Number(sum.toFixed(2)) === 100) || (!distributeByPercentage && Number(sum.toFixed(2)) === income)) ? 'green' : 'red',
                     }}
                   >
                     {distributeByPercentage ? `${sum.toFixed(2)}%` : `${(sum / income * 100).toFixed(2)}%`}
@@ -365,16 +383,30 @@ export const Budget = () => {
                         secondary={`${balance.Amount} (${distributeByPercentage ? (balance.Amount + (enteredValues[balance.Category] || 0) / 100 * income).toFixed(2) : (balance.Amount + (isNaN(enteredValues[balance.Category]) ? 0 : +enteredValues[balance.Category])).toFixed(2)})`}
                       />
                       <Box sx={{ flexGrow: 1 }} />
-                      <FormControl sx={{width:100}}>
-                        <InputLabel htmlFor="outlined-adornment-fName">{balance.Category}</InputLabel>
-                        <OutlinedInput
-                          id="outlined-adornment-lNmae"
-                          label={balance.Category}
-                          type="number"
-                          value={enteredValues[balance.Category] || ''} // Use the value from the state
-                          onChange={(event) => onChange(event, balance.Category)}
+
+                      <FormControl sx={{ width: 200 }} variant="outlined">
+                        <Autocomplete
+                          id="outlined-adornment-description"
+                          options={values.map(value => leftToAllocate * value)}
+                          freeSolo
+                          value={enteredValues[balance.Category] ? enteredValues[balance.Category] : ''}
+                          onInputChange={(event, newValue) => {
+                            if (newValue !== null) {
+                              setEnteredValues((prevValues) => ({
+                                ...prevValues,
+                                [balance.Category]: Number(Number(newValue).toFixed(2)),
+                              }));
+                            }
+                          }}
+                          renderInput={(params) => (
+                            <TextField {...params} label={balance.Category} variant="outlined" />
+                          )}
+                          renderOption={(props, option, state) => (
+                            <li {...props}>{option.toFixed(2)}</li>
+                          )}
                         />
                       </FormControl>
+
                     </ListItem>
                   </Box>
                 ))}
@@ -464,11 +496,6 @@ export const Budget = () => {
               showProgress
               showSkipButton
               steps={steps}
-              styles={{
-                options: {
-                  zIndex: 99999999,
-                },
-              }}
             /> 
         ): (<></>)}
       </Box>

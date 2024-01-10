@@ -7,7 +7,7 @@ import { LineChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, useTheme } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, useTheme, Menu, IconButton, List } from '@mui/material';
 import dayjs from 'dayjs';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -22,8 +22,14 @@ import { useNavigate } from 'react-router-dom';
 import AddCategoryModal from '../components/addCategoryModal';
 import AddTransactionModal from '../components/addTransactionModal';
 import Cookies from 'js-cookie';
-import axios from 'axios';
-
+import axios, { AxiosError } from 'axios';
+import AddFlagModal from '../components/addFlagModal';
+import FlagIcon from '@mui/icons-material/Flag';
+import FlagItem from '../types/FlagItem';
+import { FlagPicker } from '../components/transactionFlagMenu';
+import Transaction from '../types/Transaction';
+import AddRecurringTransactionModal from '../components/addRecurringTransactionModal';
+import RecurringTransactionItem from '../types/RecurringTransaction';
 
 
 
@@ -36,7 +42,7 @@ interface TransactionGroup {
 
 
 export const Transactions = () => {
-    const { categories, balances, transactions, goalItems, user, setUpdateGoalItems, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateTransactions } = React.useContext(DatabaseInformationContext);
+    const { categories, balances, transactions, goalItems, user,recurringTransactions, flagItems,setUpdateRecTransactions, setUpdateGoalItems, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateFlags } = React.useContext(DatabaseInformationContext);
     const [category, setCategory] = React.useState('');
     const [openAlert, setOpenAlert] = React.useState(false);
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
@@ -45,10 +51,44 @@ export const Transactions = () => {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+
+    const [openRec, setOpenRec] = React.useState(false);
+    const handleOpenRec = () => setOpenRec(true);
+    const handleCloseRec = () => setOpenRec(false);
+
+    const [canOpen, setCanOpen] = React.useState(false);
+
     const [openCategory, setOpenCategory] = React.useState(false);
 
     const handleOpenCategory = () => setOpenCategory(true);
     const handleCloseCategory = () => setOpenCategory(false);
+
+    const [openFlag, setOpenFlag] = React.useState(false);
+
+    const handleOpenFlag = () => setOpenFlag(true);
+    const handleCloseFlag = () => setOpenFlag(false);
+  
+    const [selectedIndex, setIndex] = React.useState<number>(0);
+
+    const [openTransactionId, setOpenTransactionId] = React.useState<number | null>(null);
+    const [pickedFlagTransaction, setPickedFlagTransactionTransactionId] = React.useState<Transaction | null>(null);
+
+    const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
+
+
+    const handleClickFlags = (event: React.MouseEvent<HTMLButtonElement>, transaction: Transaction, index: number) => {
+      setOpenTransactionId(transaction.transactionID);
+      setAnchorEl(event.currentTarget)
+      setPickedFlagTransactionTransactionId(transaction);
+      setIndex(index);
+    };
+    
+    const handleCloseFlags = () => {
+      setPickedFlagTransactionTransactionId(null)
+      setAnchorEl(null);
+      setOpenTransactionId(null);
+      setIndex(0);
+    };
   
 
     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -58,57 +98,31 @@ export const Transactions = () => {
     const [filterCategory, setFilterCategory] = React.useState('')
     const [postMsg, setPostMsg] = React.useState('')
     const [item, setItem] = React.useState<TransactionItem | undefined>(undefined)
+    const [recurringItem, setRecurringItem] = React.useState<RecurringTransactionItem | undefined>(undefined)
 
     const [filterTransactions, setFilterTransactions] = React.useState<TransactionItem[]>([])
+    const [filterRecTransactions, setFilterRecTransactions] = React.useState<RecurringTransactionItem[]>([])
+
     const [filterBalance, setFilterBalance] = React.useState<BalanceItem>()
 
     const navigate = useNavigate();
     const theme = useTheme();
 
 
-    const [hadTutorial, setHadTutorial] = React.useState(false);
-
-    interface TutorialResponse {
-      hadTutorial: boolean;
-    }
-    
-
-
-    const fetchTutorialState = async () => {
-      try {
-        const authToken = Cookies.get('authToken');
-        const response = await axios.get<TutorialResponse[]>(`${rootUrl}/api/tutorial`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (response.status !== 200) {
-          return false;
-        }
-        return response.data[0].hadTutorial;
-      } catch (error) {
-        return false;
-      }
-    };
-    
-    const updateTutorialState = async () => {
-      try {
-        const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
-        const authToken = Cookies.get('authToken');
-        await axios.patch(`${rootUrl}/api/tutorial`, null, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        fetchTutorialState().then((hadTutorial) => {
-          setHadTutorial(hadTutorial);
-        });
-      } catch (error) {
-      }
-    };  
-
-
 
     const handleSetItem = (item: TransactionItem | undefined, callback: () => void) => {
       setItem(item);
+      setRecurringItem(undefined)
       callback();
     };
+
+    const handleSetRecItem = (item: RecurringTransactionItem | undefined, callback: () => void) => {
+      console.log(item)
+      setRecurringItem(item)
+      setItem(undefined)
+      callback();
+    };
+    
 
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -144,8 +158,15 @@ export const Transactions = () => {
       if (balances.length === 0) {
           setUpdateBalances(true);
       }
+      if (flagItems.length === 0) {
+        setUpdateFlags(true);
+      }
+      if (recurringTransactions.length === 0) {
+        setUpdateRecTransactions(true);
+      }
   }, []);
-  
+
+
 
 
     React.useEffect(() => {
@@ -162,6 +183,10 @@ export const Transactions = () => {
               transactions.filter(
                 (transaction) => transaction.Category === category)
               )
+            setFilterRecTransactions(
+              recurringTransactions.filter(
+                (transaction) => transaction.Category === category)
+              )
           } else {
             setFilterCategory(categories[0].categoryName)
             setCategory(categories[0].categoryName)
@@ -171,6 +196,10 @@ export const Transactions = () => {
                 (transaction) => transaction.Category === categories[0].categoryName
               )
             );
+            setFilterRecTransactions(
+              recurringTransactions.filter(
+                (transaction) => transaction.Category === categories[0].categoryName)
+              )
           }
         } else {
             setFilterTransactions(
@@ -178,12 +207,43 @@ export const Transactions = () => {
                 (transaction) => transaction.Category === filterCategory
               )
             );
+            setFilterRecTransactions(
+              recurringTransactions.filter(
+                (transaction) => transaction.Category === filterCategory)
+              )
             setFilterBalance(balances.find((balance) => balance.Category === filterCategory))
 
           }
       }
     }
     }, [transactions, balances]);
+
+    React.useEffect(() => {
+      if (recurringTransactions) {
+        if (filterCategory === "") {
+          const urlParams = new URLSearchParams(window.location.search);
+          const category = urlParams.get('category');
+          if (category) {
+            setFilterRecTransactions(
+              recurringTransactions.filter(
+                (transaction) => transaction.Category === category)
+              )
+          } else {
+            setFilterRecTransactions(
+              recurringTransactions.filter(
+                (transaction) => transaction.Category === categories[0].categoryName)
+              )
+          }
+        } else {
+            setFilterRecTransactions(
+              recurringTransactions.filter(
+                (transaction) => transaction.Category === filterCategory)
+              )
+
+          }
+    }
+    }, [recurringTransactions]);
+
 
 
     const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -194,27 +254,127 @@ export const Transactions = () => {
       setOpenAlert(false);
     };
 
-  
 
-    
+    const updateTransactionFlags = async (flagId: Number, transcationId: Number) => {
+      try {
+        const authToken = Cookies.get("authToken");
+        const data = {
+          "flagId": flagId,
+          "transactionId": transcationId,
+        };
+        const response = await axios.patch(`${rootUrl}/api/flagOperation`, data, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (response.status === 200) {
+          setPostMsg("Transaction Altered");
+          handleCloseFlag()
+          setUpdateFlags(true);
+          setUpdateTransactions(true);
+          setUpdateBalances(true);
+        } else {
+          setPostMsg("Error" + response.data);
+        }
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        }
+      }
+      setOpenAlert(true);
+    };
+
+    const handleFlagChange = (transactionId: Number, flagId: Number) => {
+      updateTransactionFlags(flagId, transactionId)
+      setAnchorEl(null)
+      handleCloseFlags()
+    }
+
+    const refs = filterTransactions.map(() => React.createRef<HTMLButtonElement>());
+
+
+
+
 
     function renderRow(props: ListChildComponentProps) {
       const { index, style } = props;
       const transaction = filterTransactions[index];
+      const transactionFlagIds = transaction?.Flags?.split(',');
+      const transactionFlags = transactionFlagIds?.map((id) =>
+        flagItems.find((flag) => flag.flagId === Number(id))
+      );
     
       return (
-        <ListItem style={style} key={transaction?.transactionID} sx={{ display: 'flex' }}>
-          <ListItemButton onClick={() => {handleSetItem(transaction, handleOpen);}}>
-            <ListItemText primary={transaction?.Description} secondary={dayjs(transaction?.Date).format("DD-MM-YYYY")} />
-            <Box sx={{ flexGrow: 1 }} />
-            <Typography align="right" variant="body2">
-              ${transaction?.Amount}
-            </Typography>
+        <ListItem style={style} key={index} sx={{ display: "flex" }}>
+          <ListItemButton id="edit-transaction-button" onClick={() => {handleSetItem(transaction, handleOpen);}}>
+            <Box sx={{ position: "relative" }}>
+              {transactionFlags?.map((flag, index) => (
+                <Box
+                  key={flag?.flagId}
+                  sx={{
+                    position: "absolute",
+                    top: -35,
+                    left: index * 5,
+                    width: "5px",
+                    height: "15px",
+                    backgroundColor: flag?.flagColour,
+                  }}
+                ></Box>
+              ))}
+            </Box>
+            <ListItemText
+              primary={transaction?.Description}
+              secondary={dayjs(transaction?.Date).format("DD-MM-YYYY")}
+            />
           </ListItemButton>
+          <Box sx={{ flexGrow: 1 }} />
+          <Typography align="right" variant="body2">
+            ${transaction?.Amount}
+          </Typography>
+          <IconButton ref={refs[index]} key={transaction.transactionID} className={index.toString()} onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleClickFlags(event, transaction, index)}>
+            <FlagIcon />
+          </IconButton>
         </ListItem>
       );
     }
 
+    function renderRecRow(props: ListChildComponentProps) {
+      const { index, style } = props;
+      filterRecTransactions.sort((a, b) => {
+        const remainingDaysA = calculateRemainingDays(a.Date, a.Frequency);
+        const remainingDaysB = calculateRemainingDays(b.Date, b.Frequency);
+        return remainingDaysA - remainingDaysB;
+      });    
+      const recTransaction = filterRecTransactions[index];
+    
+      return (
+        <ListItem style={style} key={index} sx={{ display: "flex" }}>
+          <ListItemButton id="edit-transaction-button" onClick={() => {handleSetRecItem(recTransaction, handleOpen);}}>
+          <ListItemText
+            primary={recTransaction?.Description}
+            secondary={
+              calculateRemainingDays(recTransaction.Date, recTransaction.Frequency) === 0
+                ? "Due Later Today"
+                : calculateRemainingDays(recTransaction.Date, recTransaction.Frequency) < 0
+                ? `Due ${Math.abs(calculateRemainingDays(recTransaction.Date, recTransaction.Frequency))} Days Ago`
+                : `${calculateRemainingDays(recTransaction.Date, recTransaction.Frequency)} Days Remaining`
+            }
+          />
+
+          </ListItemButton>
+          <Box sx={{ flexGrow: 1 }} />
+          <Typography align="right" variant="body2">
+            ${recTransaction?.Amount}
+          </Typography>
+        </ListItem>
+      );
+    }
+    function calculateRemainingDays(startDate: Date, frequency: number) {
+      const endDate = dayjs(startDate).add(frequency, 'day');
+      const today = dayjs();
+      return endDate.diff(today, 'day');
+    }
+    
     function renderAlikeRow(props: ListChildComponentProps) {
       const { index, style } = props;
       const item = percentageChanges[index];
@@ -237,7 +397,43 @@ export const Transactions = () => {
         </ListItem>
       );
     }
+
+    function renderGroupTransactions(props: ListChildComponentProps) {
+      const { index, style } = props;
+      const item = Object.values(groupedByFlags)[index];
+      const averageSpent = (item.total / item.count).toFixed(2);
+    
+      return (
+        <ListItem style={style} key={item.flagItem.flagId} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ width: 16, height: 16, backgroundColor: item.flagItem.flagColour, marginRight: 1 }} />
+            <ListItemText
+              primary={item.flagItem.flagName}
+              secondary={"Last Added: " + new Date(item.lastDate).toLocaleDateString()}
+            />
+          </Box>
+          <Box sx={{ textAlign: 'right' }}>
+            {"Avg: $" + averageSpent}
+          </Box>
+          <Box sx={{ textAlign: 'right' }}>
+            {"Total: $" + item.total.toFixed(2)}
+          </Box>
+        </ListItem>
+      );
+    }
+    
+    
+
+
+
     const filteredTransactionsLineChart = filterTransactions.filter(
+      (transaction) =>
+        transaction.Amount < 0 &&
+        !transaction.Description.includes("Balancing") &&
+        !transaction.Description.includes("Trans")
+    );
+
+    const totalFilteredTransactionsLineChart = transactions.filter(
       (transaction) =>
         transaction.Amount < 0 &&
         !transaction.Description.includes("Balancing") &&
@@ -248,7 +444,7 @@ export const Transactions = () => {
       const transactionDate = new Date(transaction.Date);
       return (
         transaction.Amount < 0 &&
-        !transaction.Description.includes("Balance") &&
+        !transaction.Description.includes("Balancing") &&
         !transaction.Description.includes("Trans") &&
         ((transactionDate >= startOfLastMonth && transactionDate <= endOfLastMonth) ||
           (transactionDate >= startOfCurrentMonth && transactionDate <= endOfCurrentMonth))
@@ -268,6 +464,35 @@ export const Transactions = () => {
       }
       return acc;
     }, {});
+
+
+    const groupedByFlags = totalFilteredTransactionsLineChart.reduce<{ [key: string]: { total: number, count: number, transactions: Transaction[], flagItem: FlagItem, lastDate: Date } }>((acc, transaction) => {
+      // Check if flagItems is empty
+      if (flagItems.length === 0) {
+        return acc;
+      }
+    
+      flagItems.forEach((flag: FlagItem) => {
+        if (transaction.Flags !== null) {
+          if (transaction.Flags.includes(flag.flagId.toString())) {
+            if (!acc[flag.flagName]) {
+              acc[flag.flagName] = { total: 0, count: 0, transactions: [], flagItem: flag, lastDate: transaction.Date }; // Initialize if not already present
+            }
+            acc[flag.flagName].total += Math.abs(transaction.Amount); // Add the transaction amount
+            acc[flag.flagName].count += 1; // Increment the transaction count
+            acc[flag.flagName].transactions.push(transaction); // Add the transaction to the list
+    
+            if (transaction.Date > acc[flag.flagName].lastDate) {
+              acc[flag.flagName].lastDate = transaction.Date;
+            }
+          }
+        }
+      });
+      return acc;
+    }, {});
+    
+    
+    
     
     const percentageChanges = Object.entries(groupedStatsTransactions)
       .filter(([_, { lastMonth, currentMonth }]) => lastMonth > 0 && currentMonth > 0)
@@ -275,8 +500,9 @@ export const Transactions = () => {
         description,
         percentageChange: ((currentMonth - lastMonth) / Math.abs(lastMonth)) * 100,
     }));
+
+
         
-  
     const groupedTransactions = filteredTransactionsLineChart.reduce((acc, transaction) => {
       const year = transaction.Date.getFullYear();
       if (!acc[year]) acc[year] = [];
@@ -292,11 +518,28 @@ export const Transactions = () => {
       }, Array.from({ length: 12 }, () => 0));
       return { year, sums: sums.map((sum) => Math.abs(Number(sum.toFixed(2)))) };
     });
+
+    const monthlyFlagSums = Object.values(groupedByFlags).map((item) => {
+      const sums = item.transactions.reduce((acc, transaction) => {
+        const month = new Date(transaction.Date).getMonth();
+        acc[month] += Math.abs(transaction.Amount);
+        return acc;
+      }, Array.from({ length: 12 }, () => 0));
+      return { flagItem: item.flagItem, sums: sums.map((sum) => Number(sum.toFixed(2))) };
+    });
+    
     
     const lineSeries = monthlySums.map(({ year, sums }) => ({
       data: sums,
       label: year
     }));
+
+    const lineSeriesFlags = monthlyFlagSums.map(({ flagItem, sums }) => ({
+      data: sums,
+      label: flagItem.flagName,
+      color: flagItem.flagColour // Add this line
+    }));
+    
     
 
 
@@ -305,12 +548,14 @@ export const Transactions = () => {
         <AddTransactionModal 
             categories={categories}
             setUpdateTransactions={setUpdateTransactions} 
+            setUpdateRecTransactions={setUpdateRecTransactions}
             setUpdateBalances={setUpdateBalances} 
             setOpenAlert={setOpenAlert}
             goalItems={goalItems}
             setUpdateGoalItems={setUpdateGoalItems}
             setPostMsg={setPostMsg}
             item={item}
+            recurringItem={recurringItem}
             handleOpen={handleOpen}
             handleClose={handleClose}
             open={open}
@@ -324,6 +569,15 @@ export const Transactions = () => {
           openCategory={openCategory}
           handleCloseCategory={handleCloseCategory}
           handleOpenCategory={handleOpenCategory}
+      />
+      <AddFlagModal 
+          setUpdateFlags={setUpdateFlags} 
+          setUpdateTransactions={setUpdateTransactions}
+          setOpenAlert={setOpenAlert}
+          setPostMsg={setPostMsg}
+          openFlag={openFlag}
+          handleCloseFlag={handleCloseFlag}
+          handleOpenFlag={handleOpenFlag}
       />
         <Snackbar open={openAlert} autoHideDuration={3000} onClose={handleCloseAlert}>
         <Alert onClose={handleCloseAlert} sx={{ width: '100%' }}>
@@ -365,8 +619,8 @@ export const Transactions = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 3, xl: 3 }} spacing={0}>
-          <Grid xs={2} sm={2} md={4} lg={8} xl={6}>
+          <Masonry columns={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 3 }} spacing={0}>
+          <Grid xs={2} sm={2} md={6} lg={8} xl={6}>
           <Card elevation={4}>
               <CardContent sx={{bgcolor: theme.palette.info.main}}>
                 <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
@@ -384,6 +638,10 @@ export const Transactions = () => {
                         (transaction) => transaction.Category === newCategory
                       )
                     );
+                    setFilterRecTransactions(
+                      recurringTransactions.filter(
+                        (transaction) => transaction.Category === newCategory)
+                      )
                     setFilterBalance(balances.find((balance) => balance.Category === newCategory))
                   }}
                   inputProps={{
@@ -400,7 +658,7 @@ export const Transactions = () => {
               </FormControl>
               </CardContent>
             </Card>
-            <Card elevation={4} sx={{height:300}}>
+            <Card elevation={4} sx={{height:700}}>
               <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
                 <AutoSizer>
                   {({height, width}) => (
@@ -415,10 +673,18 @@ export const Transactions = () => {
                     </FixedSizeList>
                   )}
               </AutoSizer>
+              <FlagPicker
+                flagItems={flagItems}
+                transaction={pickedFlagTransaction}
+                anchorEl={anchorEl}
+                open={pickedFlagTransaction? true : false && canOpen}
+                handleCloseFlags={handleCloseFlags}
+                handleOpenFlag={handleOpenFlag}
+                handleFlagChange={handleFlagChange} />
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={2} sm={2} md={4} lg={8} xl={6}> 
+          <Grid xs={2} sm={2} md={6} lg={8} xl={6}> 
           <Card elevation={4} sx={{height:300}}>
               <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
                 
@@ -440,7 +706,29 @@ export const Transactions = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={2} sm={2} md={4} lg={8} xl={6}> 
+          <Grid xs={2} sm={2} md={6} lg={8} xl={6}> 
+            <Card elevation={4} sx={{height:400}}>
+            <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
+                <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
+                  Recurring Payments
+                </Typography>
+                <AutoSizer style={{marginTop: 30}}>
+                  {({height, width}) => (
+                      <FixedSizeList
+                        width={width}
+                        height={height}
+                        itemSize={75}
+                        itemCount={filterRecTransactions.length}
+                        overscanCount={5}
+                      >
+                      {renderRecRow}
+                    </FixedSizeList>
+                    )}
+                </AutoSizer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid xs={2} sm={2} md={6} lg={8} xl={6}> 
             <Card elevation={4} sx={{height:400}}>
             <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
                 <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
@@ -459,6 +747,50 @@ export const Transactions = () => {
                     </FixedSizeList>
                     )}
                 </AutoSizer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid xs={2} sm={2} md={6} lg={8} xl={6}> 
+            <Card elevation={4} sx={{height:400}}>
+            <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
+                <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
+                  Grouped Transactions
+                </Typography>
+                <AutoSizer style={{marginTop: 30}}>
+                  {({height, width}) => (
+                      <FixedSizeList
+                        width={width}
+                        height={height}
+                        itemSize={75}
+                        itemCount={Object.keys(groupedByFlags).length}
+                        overscanCount={5}
+                      >
+                      {renderGroupTransactions}
+                    </FixedSizeList>
+                    )}
+                </AutoSizer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid xs={2} sm={2} md={6} lg={8} xl={6}> 
+          <Card elevation={4} sx={{height:300}}>
+              <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
+                
+                  <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
+                    Flag Spending
+                  </Typography>
+                  <AutoSizer>
+                  {({height, width}) => (
+                <LineChart
+                  series={lineSeriesFlags}
+                  height={height}
+                  width={width}
+                  xAxis={[{
+                    data: months,
+                    scaleType: 'band',
+                  }]}                  
+                   ></LineChart>)}
+                   </AutoSizer>
               </CardContent>
             </Card>
           </Grid>

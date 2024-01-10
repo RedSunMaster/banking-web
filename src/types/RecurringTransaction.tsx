@@ -1,13 +1,12 @@
-interface TransactionItem {
-    transactionID: number;
+interface RecurringTransactionItem {
+    recurringId: number;
     userId: number;
     Date: Date;
     Amount: number;
     Category: string;
     Description: string;
     Transaction: string;
-    Flags: string;
-    recurringId?: number;
+    Frequency: number;
   }
 
-export default TransactionItem
+export default RecurringTransactionItem

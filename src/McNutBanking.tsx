@@ -8,6 +8,7 @@ import { Login } from './pages/login';
 import NavBar from './components/navbar';
 import CssBaseline from "@mui/material/CssBaseline";
 import { CircularProgress } from '@mui/material';
+import Settings from './pages/settings'
 
 
 const MoneyOwed = lazy(() => import('./pages/money-owed') as unknown as Promise<{ default: React.ComponentType }>);
@@ -191,6 +192,20 @@ function McNutBanking() {
                     <DatabaseInformationProvider>
                       <Suspense fallback={<CircularProgress />}>
                     <Account />
+                    </Suspense>
+                    </DatabaseInformationProvider>
+                  ) : (
+                    <Suspense fallback={<CircularProgress />}><Navigate to="/login" /></Suspense>
+                  )
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  isLoggedIn ? (
+                    <DatabaseInformationProvider>
+                      <Suspense fallback={<CircularProgress />}>
+                    <Settings />
                     </Suspense>
                     </DatabaseInformationProvider>
                   ) : (

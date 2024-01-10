@@ -22,10 +22,11 @@ import AddBalanceModal from '../components/addBalanceModal';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import Joyride, {CallBackProps, STATUS, ACTIONS,EVENTS, Step} from 'react-joyride';
+import dayjs from 'dayjs';
 
 
 export const Dashboard = () => {
-  const { categories, balances, filteredBalances, customBalances, transactions, goalItems, setUpdateGoalItems, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser, count, setUpdateCount } = React.useContext(DatabaseInformationContext);
+  const { categories, balances, filteredBalances, customBalances, transactions, goalItems, flagItems, recurringTransactions, setUpdateFlags, setUpdateGoalItems,setUpdateRecTransactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser, count, setUpdateCount } = React.useContext(DatabaseInformationContext);
   const [openAlert, setOpenAlert] = React.useState(false);
   const [postMsg, setPostMsg] = React.useState('')
   const [open, setOpen] = React.useState(false);
@@ -44,7 +45,7 @@ export const Dashboard = () => {
   const handleOpenBalance = () => setOpenBalance(true);
   const handleCloseBalance = () => setOpenBalance(false);
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
-
+  const [steps, setSteps] = React.useState<Step[]>([]);
 
 
   const [hadTutorial, setHadTutorial] = React.useState(true);
@@ -97,97 +98,197 @@ export const Dashboard = () => {
     }
   }, [count]);
 
-  const steps: Step[] = [
-    {
-      target: 'body',
-      floaterProps: {
-        hideArrow: true
-      },
-      placement:'center',
-      content: (
-        <div>
-          <h3>Welcome To McNut Budgeting</h3>
-          <p>
-            Lets Start The Tour To Get You Familiar
-          </p>
-        </div>
-      ),
-      disableBeacon: true,
-    },
-    {
-      target: '.categoryFab',
-      content: (
-        <div>
-          <h3>Add Category</h3>
-          <p>
-            This action button is used for adding a category, needed for adding transactions.
-          </p>
-        </div>
-      ),
-      disableBeacon: true
-    },
-    {
-      target: '.transactionFab',
-      content: (
-        <div>
-          <h3>Add Transaction</h3>
-          <p>
-            This action button is used for adding a transaction, you can specify Date, Amount, Description and Category.
-          </p>
-        </div>
-      ),
-      disableBeacon: true
-    },
-    {
-      target: '.transactions',
-      content: (
-        <div>
-          <h3>Transactions Page</h3>
-          <p>
-            This section will show you all the specifics about your categories, including statistics, spending habits etc.
-          </p>
-        </div>
-      ),
-      disableBeacon: true
-    },
-    {
-      target: '.owed',
-      content: (
-        <div>
-          <h3>Money Owed Page</h3>
-          <p>
-            Here you can log items that are owed to you, they are automatically negated from your balance to accurately represent your current balance
-          </p>
-        </div>
-      ),
-      disableBeacon: true
-    },
-    {
-      target: '.goals',
-      content: (
-        <div>
-          <h3>Goals Page</h3>
-          <p>
-            Here you are able to set person finance goals, track your progress and save money daily
-          </p>
-        </div>
-      ),
-      disableBeacon: true
-    },
-    {
-      target: '.budget',
-      content: (
-        <div>
-          <h3>Budget/Transfer Page</h3>
-          <p>
-            Here is where you go with your income, this page will distribute your income across your categories.
-          </p>
-        </div>
-      ),
-      disableBeacon: true
-    },
-  ];
-  
+
+
+  React.useEffect(() => {
+    if (window.innerWidth <= 768) {
+      // Mobile steps
+      setSteps([
+        {
+          target: 'body',
+          floaterProps: {
+            hideArrow: true
+          },
+          placement:'center',
+          content: (
+            <div>
+              <h3>Welcome To McNut Budgeting</h3>
+              <p>
+                Lets Start The Tour To Get You Familiar
+              </p>
+            </div>
+          ),
+          disableBeacon: true,
+        },
+        {
+          target: '.categoryFab',
+          content: (
+            <div>
+              <h3>Add Category</h3>
+              <p>
+                This action button is used for adding a category, needed for adding transactions.
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.transactionFab',
+          content: (
+            <div>
+              <h3>Add Transaction</h3>
+              <p>
+                This action button is used for adding a transaction, you can specify Date, Amount, Description and Category.
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.toggleDrawer',
+          content: (
+            <div>
+              <h3>Transactions Page</h3>
+              <p>
+                This section will show you all the specifics about your categories, including statistics, spending habits etc.
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.toggleDrawer',
+          content: (
+            <div>
+              <h3>Money Owed Page</h3>
+              <p>
+                Here you can log items that are owed to you, they are automatically negated from your balance to accurately represent your current balance
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.toggleDrawer',
+          content: (
+            <div>
+              <h3>Goals Page</h3>
+              <p>
+                Here you are able to set person finance goals, track your progress and save money daily
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.toggleDrawer',
+          content: (
+            <div>
+              <h3>Budget/Transfer Page</h3>
+              <p>
+                Here is where you go with your income, this page will distribute your income across your categories.
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+      ]);
+    } else {
+      // Desktop steps
+      setSteps([
+        {
+          target: 'body',
+          floaterProps: {
+            hideArrow: true
+          },
+          placement:'center',
+          content: (
+            <div>
+              <h3>Welcome To McNut Budgeting</h3>
+              <p>
+                Lets Start The Tour To Get You Familiar
+              </p>
+            </div>
+          ),
+          disableBeacon: true,
+        },
+        {
+          target: '.categoryFab',
+          content: (
+            <div>
+              <h3>Add Category</h3>
+              <p>
+                This action button is used for adding a category, needed for adding transactions.
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.transactionFab',
+          content: (
+            <div>
+              <h3>Add Transaction</h3>
+              <p>
+                This action button is used for adding a transaction, you can specify Date, Amount, Description and Category.
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.transactions',
+          content: (
+            <div>
+              <h3>Transactions Page</h3>
+              <p>
+                This section will show you all the specifics about your categories, including statistics, spending habits etc.
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.owed',
+          content: (
+            <div>
+              <h3>Money Owed Page</h3>
+              <p>
+                Here you can log items that are owed to you, they are automatically negated from your balance to accurately represent your current balance
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.goals',
+          content: (
+            <div>
+              <h3>Goals Page</h3>
+              <p>
+                Here you are able to set person finance goals, track your progress and save money daily
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+        {
+          target: '.budget',
+          content: (
+            <div>
+              <h3>Budget/Transfer Page</h3>
+              <p>
+                Here is where you go with your income, this page will distribute your income across your categories.
+              </p>
+            </div>
+          ),
+          disableBeacon: true
+        },
+      ]);
+    }
+  }, []);
+
+
 
   const handleNext = () => {
     setStepIndex((prevStepIndex) => prevStepIndex + 1);
@@ -238,6 +339,12 @@ export const Dashboard = () => {
     }
     if (goalItems.length === 0) {
       setUpdateGoalItems(true);
+    }
+    if (flagItems.length === 0) {
+      setUpdateFlags(true)
+    }
+    if (recurringTransactions.length === 0) {
+      setUpdateRecTransactions(true)
     }
     fetchTutorialState().then((hadTutorial) => {
       setHadTutorial(hadTutorial)
@@ -511,6 +618,77 @@ export const Dashboard = () => {
       (sum, owedItem) => sum + owedItem.Amount,
       0
     );
+    function renderTransactionRow(props: ListChildComponentProps) {
+      const { index, style } = props;
+      const transaction = transactions[index];
+      const transactionFlagIds = transaction?.Flags?.split(',');
+      const transactionFlags = transactionFlagIds?.map((id) =>
+        flagItems.find((flag) => flag.flagId === Number(id))
+      );
+    
+      return (
+        <ListItem style={style} key={index} sx={{ display: "flex" }}>
+            <Box sx={{ position: "relative" }}>
+              {transactionFlags?.map((flag, index) => (
+                <Box
+                  key={flag?.flagId}
+                  sx={{
+                    position: "absolute",
+                    top: -35,
+                    left: index * 5,
+                    width: "5px",
+                    height: "15px",
+                    backgroundColor: flag?.flagColour,
+                  }}
+                ></Box>
+              ))}
+            </Box>
+            <ListItemText
+              primary={transaction?.Description}
+              secondary={dayjs(transaction?.Date).format("DD-MM-YYYY")}
+            />
+          <Box sx={{ flexGrow: 1 }} />
+          <Typography align="right" variant="body2">
+            ${transaction?.Amount}
+          </Typography>
+        </ListItem>
+      );
+    }
+
+    function renderRecRow(props: ListChildComponentProps) {
+      const { index, style } = props;
+      recurringTransactions.sort((a, b) => {
+        const remainingDaysA = calculateRemainingDays(a.Date, a.Frequency);
+        const remainingDaysB = calculateRemainingDays(b.Date, b.Frequency);
+        return remainingDaysA - remainingDaysB;
+      });      
+      const recTransaction = recurringTransactions[index];
+    
+      return (
+        <ListItem style={style} key={index} sx={{ display: "flex" }}>
+          <ListItemText
+            primary={recTransaction?.Description}
+            secondary={
+              calculateRemainingDays(recTransaction.Date, recTransaction.Frequency) === 0
+                ? "Due Later Today"
+                : calculateRemainingDays(recTransaction.Date, recTransaction.Frequency) < 0
+                ? `Due ${Math.abs(calculateRemainingDays(recTransaction.Date, recTransaction.Frequency))} Days Ago`
+                : `${calculateRemainingDays(recTransaction.Date, recTransaction.Frequency)} Days Remaining`
+            }
+          />
+
+          <Box sx={{ flexGrow: 1 }} />
+          <Typography align="right" variant="body2">
+            ${recTransaction?.Amount}
+          </Typography>
+        </ListItem>
+      );
+    }
+    function calculateRemainingDays(startDate: Date, frequency: number) {
+      const endDate = dayjs(startDate).add(frequency, 'day');
+      const today = dayjs();
+      return endDate.diff(today, 'day');
+    }
 
 
     return (
@@ -518,6 +696,7 @@ export const Dashboard = () => {
         <AddTransactionModal 
             categories={categories}
             setUpdateTransactions={setUpdateTransactions} 
+            setUpdateRecTransactions={setUpdateRecTransactions}
             setUpdateBalances={setUpdateBalances} 
             setOpenAlert={setOpenAlert}
             goalItems={goalItems}
@@ -664,6 +843,51 @@ export const Dashboard = () => {
               </CardContent>
             </Card>
           </Grid>
+          <Grid xs={2} sm={2} md={6} lg={8} xl={6}> 
+            <Card elevation={4} sx={{height:400}}>
+            <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
+                <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
+                All Transactions
+                </Typography>
+                <AutoSizer style={{marginTop: 30}}>
+                  {({height, width}) => (
+                      <FixedSizeList
+                        width={width}
+                        height={height}
+                        itemSize={75}
+                        itemCount={transactions.length}
+                        overscanCount={5}
+                      >
+                      {renderTransactionRow}
+                    </FixedSizeList>
+                    )}
+                </AutoSizer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
+                <Card elevation={4} sx={{ height: 300 }}>
+                  <CardContent sx={{ height: "100%", bgcolor: theme.palette.info.main }}>
+                  <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
+                    Upcoming Payments
+                  </Typography>
+                    <AutoSizer>
+                      {({ height, width }) => (
+                        <FixedSizeList
+                          width={width}
+                          height={height-30}
+                          itemSize={75}
+                          itemCount={recurringTransactions.length}
+                          overscanCount={5}
+                          style={{marginTop:30}}
+                        >
+                          {renderRecRow}
+                        </FixedSizeList>
+                      )}
+                    </AutoSizer>
+                  </CardContent>
+                </Card>
+              </Grid>
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
             <Card elevation={4} sx={{height:300}}>
               <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>
@@ -709,30 +933,6 @@ export const Dashboard = () => {
             </CardContent>
           </Card>
           </Grid>
-          <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
-                <Card elevation={4} sx={{ height: 300 }}>
-                  <CardContent sx={{ height: "100%", bgcolor: theme.palette.info.main }}>
-                  <Typography style={{ position: 'absolute', top: 15, left: 0, right: 0, textAlign: 'center' }}>
-                    Goals Summary
-                  </Typography>
-                    <AutoSizer>
-                      {({ height, width }) => (
-                        <FixedSizeList
-                          width={width}
-                          height={height-30}
-                          itemSize={75}
-                          itemCount={notAchievedItems.length}
-                          overscanCount={5}
-                          style={{marginTop:30}}
-                        >
-                          {renderRow}
-                        </FixedSizeList>
-                      )}
-                    </AutoSizer>
-                  </CardContent>
-                </Card>
-              </Grid>
-
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
                 <Card elevation={4} sx={{height:400}} >
                     <CardContent sx={{height:'100%', bgcolor: theme.palette.info.main}}>

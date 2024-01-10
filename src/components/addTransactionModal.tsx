@@ -10,18 +10,21 @@ import AddIcon from '@mui/icons-material/Add';
 import TransactionItem from "../types/Transaction";
 import CloseIcon from '@mui/icons-material/Close';
 import GoalItem from "../types/GoalItem";
+import RecurringTransactionItem from "../types/RecurringTransaction";
 
 
 
 interface AddTransactionModalProps {
   categories: CategoryItem[]
   setUpdateTransactions: (value: boolean) => void;
+  setUpdateRecTransactions: (value: boolean) => void;
   setUpdateBalances: (value: boolean) => void;
   setOpenAlert: (value: boolean) => void;
   goalItems: GoalItem[];
   setUpdateGoalItems: (value: boolean) => void;
   setPostMsg: (value: string) => void;
   item?: TransactionItem;
+  recurringItem?: RecurringTransactionItem;
   handleOpen: () => void;
   handleClose: () => void;
   open: boolean;
@@ -30,20 +33,24 @@ interface AddTransactionModalProps {
 
 
 
-export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdateBalances, setOpenAlert, goalItems, setUpdateGoalItems, setPostMsg, item, handleOpen, handleClose, open, inputCategory}: AddTransactionModalProps) => {
+export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdateRecTransactions, setUpdateBalances, setOpenAlert, goalItems, setUpdateGoalItems, setPostMsg, item, recurringItem, handleOpen, handleClose, open, inputCategory}: AddTransactionModalProps) => {
   const [editItem, setEditItem] = React.useState<TransactionItem | undefined>(item)
-  
+  const [editRecurringItem, setEditRecurringItem] = React.useState<RecurringTransactionItem | undefined>(recurringItem)
+
+
   const [category, setCategory] = React.useState(editItem ? editItem.Category : "");
-  const [description, setDescription] = React.useState(
-    editItem ? editItem.Description : ""
-  );
-  const [amount, setAmount] = React.useState(editItem ? Math.abs(editItem.Amount) : 0);
-  const [inputDate, setDate] = React.useState<Dayjs | null>(
-    editItem ? dayjs(editItem.Date) : dayjs()
-  );
-  const [trans_type, setTransaction] = React.useState(
-    editItem ? editItem.Transaction : "Withdraw"
-  );
+  const [description, setDescription] = React.useState(editItem ? editItem.Description : recurringItem ? recurringItem.Description : "");
+  const [amount, setAmount] = React.useState(editItem ? Math.abs(editItem.Amount) : recurringItem ? Math.abs(recurringItem.Amount) : 0);
+  const [frequency, setFrequency] = React.useState(recurringItem ? recurringItem.Frequency : 0);
+  const [inputDate, setDate] = React.useState<Dayjs | null>(editItem ? dayjs(editItem.Date) : recurringItem ? dayjs(recurringItem.Date) : dayjs());
+  const [trans_type, setTransaction] = React.useState(editItem ? editItem.Transaction : recurringItem ? recurringItem.Transaction: "Withdraw");
+
+  const [recurring, setRecurring] = React.useState<boolean>(recurringItem? true : false);
+  
+
+
+
+  
   const theme = useTheme();
   const [notAchievedItems, setNotAchievedItems] = React.useState<GoalItem[]>([])
 
@@ -54,18 +61,34 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
     setDate(data ? dayjs(data.Date) : dayjs());
     setTransaction(data ? data.Transaction : "Withdraw");
   };
+
+  const updateRecState = (data: RecurringTransactionItem | undefined) => {
+    setFrequency(data ? data.Frequency : 0)
+    setRecurring(data ? true : false);
+    if (!item) {
+      setCategory(data ? data.Category: inputCategory);
+      setDescription(data ? data.Description : "");
+      setAmount(data ? Math.abs(data.Amount) : 0);
+      setDate(data ? dayjs(data.Date) : dayjs());
+      setTransaction(data ? data.Transaction : "Withdraw");
+    }
+  };
+  
   
 
 
 
   React.useEffect(() => {
     updateState(editItem);
-  }, [editItem]);
+    updateRecState(editRecurringItem);
+  }, [editItem, editRecurringItem]);
   
   React.useEffect(() => {
     setEditItem(item);
+    setEditRecurringItem(recurringItem);
     updateState(item);
-  }, [item]);
+    updateRecState(recurringItem);
+  }, [item, recurringItem]);
 
   React.useEffect(() => {
     setUpdateGoalItems(true);
@@ -85,6 +108,127 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
 
 
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
+
+  const handleAddRecurringTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    try {
+      let inputAmount = Math.abs(amount);
+      const authToken = Cookies.get("authToken");
+      const date = dayjs(inputDate).format("YYYY-MM-DD").toString();
+      const data = {
+        "category": category,
+        "amount": inputAmount,
+        "description": description,
+        "startDate": date,
+        "trans_type": trans_type,
+        "frequency": frequency
+      };
+  
+      const response = await axios.post(`${rootUrl}/api/recurring`, data, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status === 200) {
+        setPostMsg("Successfully Added Recurring Transaction");
+        setUpdateRecTransactions(true)
+        setEditRecurringItem(undefined)
+        setEditItem(undefined)
+        handleClose()
+
+      } else {
+        setPostMsg("Error" + response.data);
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+      }
+    }
+    setOpenAlert(true);
+  };
+
+
+  const handleDeleteRecurringTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    try {
+      const authToken = Cookies.get("authToken");
+      const data = {
+        "recurringTransactionId": editRecurringItem?.recurringId
+      };
+  
+      const response = await axios({
+        method: 'delete',
+        url: `${rootUrl}/api/recurring`,
+        data: data,
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status === 200) {
+        setPostMsg("Successfully Deleted Recurring Transaction");
+        setUpdateRecTransactions(true)
+        setEditRecurringItem(undefined)
+        setEditItem(undefined)
+        handleClose()
+      } else {
+        setPostMsg("Error" + response.statusText);
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+      }
+    }
+    setOpenAlert(true);
+  }
+
+  const handleUpdateRecurringTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    try {
+      let inputAmount = Math.abs(amount);
+      const authToken = Cookies.get("authToken");
+      const date = dayjs(inputDate).format("YYYY-MM-DD").toString();
+      const data = {
+        "category": category,
+        "amount": inputAmount,
+        "description": description,
+        "startDate": date,
+        "trans_type": trans_type,
+        "frequency": frequency,
+        "recurringTransactionId": editRecurringItem?.recurringId
+      };
+      const response = await axios.patch(`${rootUrl}/api/recurring`, data, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (response.status === 200) {
+        setPostMsg("Successfully Updated Recurring Transaction");
+        setUpdateRecTransactions(true)
+        setEditRecurringItem(undefined)
+        setEditItem(undefined)
+        handleClose()
+      } else {
+        setPostMsg("Error" + response.data);
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        // Handle Axios error
+        const responseData = error.response?.data;
+        setPostMsg("Error: " + responseData)
+      } else {
+      }
+    }
+    setOpenAlert(true);
+  };
+
+
+
+
+
+
+
+
+
 
   const handleAddTransaction = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -108,8 +252,9 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
       });
       if (response.status === 200) {
         setPostMsg("Successfully Added Transaction");
-        handleClose()
+        setEditRecurringItem(undefined)
         setEditItem(undefined)
+        handleClose()
         setUpdateTransactions(true);
         setUpdateBalances(true);
       } else {
@@ -144,6 +289,8 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
       if (response.status === 200) {
         setPostMsg("Successfully Deleted Transaction");
         setUpdateTransactions(true);
+        setEditRecurringItem(undefined)
+        setEditItem(undefined)
         handleClose()
         setUpdateBalances(true);
       } else {
@@ -184,6 +331,8 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
       if (response.status === 200) {
         setPostMsg("Successfully Updated Transaction");
         setUpdateTransactions(true);
+        setEditRecurringItem(undefined)
+        setEditItem(undefined)
         handleClose()
         setUpdateBalances(true);
       } else {
@@ -209,7 +358,7 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
       aria-label="add"
       size='large'
       className="transactionFab"
-      onClick={() => {handleOpen(); setEditItem(undefined)}}
+      onClick={() => {handleOpen(); setEditItem(undefined); setEditRecurringItem(undefined);}}
       sx={{ position: 'fixed', bottom: 32, right: 32}}
     >
       <AddIcon />
@@ -225,7 +374,7 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
     >
       <Fade in={open}>
       <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
-            <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
+          <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
         <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <IconButton
@@ -235,6 +384,25 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
               <h2 className='pageTitle'>Add Transaction</h2>
               <div></div>
               </Box>
+      {((!editItem && editRecurringItem) || (!editItem && !editRecurringItem)) && (<FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+        <OutlinedInput
+          id="outlined-adornment-recurring"
+          type="text"
+          readOnly={true}
+          value={"Repeating Transaction?"}
+          endAdornment={
+            <InputAdornment position="end">
+              <Switch
+                checked={recurring}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  setRecurring(event.target.checked? true : false);
+                }}
+                inputProps={{ 'aria-label': 'Recurring' }}
+              />
+            </InputAdornment>
+          }
+        />
+      </FormControl>)}
         <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
@@ -245,7 +413,24 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
             }}
           />
         </LocalizationProvider>
-        </FormControl>
+      </FormControl>
+      {recurring && (
+      <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+      <Autocomplete
+        id="outlined-adornment-frequency"
+        options={['7', '14', '28']}
+        freeSolo
+        value={frequency === 0 ? '' : String(frequency)}
+        onInputChange={(event, newValue) => {
+          if (newValue !== null) {
+            setFrequency(Number(newValue));
+          }
+        }}
+        renderInput={(params) => (
+          <TextField {...params} label="Frequency (Days)" variant="outlined" />
+        )}
+      />
+    </FormControl>)}
       <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
         <InputLabel htmlFor="outlined-adornment-category">Category</InputLabel>
         <Select
@@ -313,13 +498,13 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
   />
 </FormControl>
 
-      {editItem ? (
+      {editItem || editRecurringItem ? (
         <Box display={'flex'} flexDirection={'row'}>        
-          <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 1, marginRight: 2}} onClick={handleDeleteTransaction}>Delete</Button>
-          <Button variant="contained" color="success" fullWidth sx={{ marginTop: 1}} onClick={handleUpdateTransaction}>Update</Button>
+          <Button variant="outlined" color="error" fullWidth sx={{ marginTop: 1, marginRight: 2}} onClick={recurringItem? handleDeleteRecurringTransaction : handleDeleteTransaction}>Delete</Button>
+          <Button variant="contained" color="success" fullWidth sx={{ marginTop: 1}} onClick={recurringItem? handleUpdateRecurringTransaction : handleUpdateTransaction}>Update</Button>
         </Box>
       ) : (
-        <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={handleAddTransaction}>Add</Button>
+        <Button variant="outlined" fullWidth sx={{ marginTop: 1}} onClick={recurring? handleAddRecurringTransaction : handleAddTransaction}>Add</Button>
       )
       }
         </Box>
