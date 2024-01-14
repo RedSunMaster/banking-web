@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton, TextField } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton, TextField, Tooltip } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -99,6 +99,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
         if (response.status === 200) {
           setPostMsg("Successfully Deleted Category");
           setUpdateCategories(true);
+          setUpdateBalances(true);
           handleCloseCategory()
           handleClose()
           setInputValue("")
@@ -131,6 +132,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
         if (response.status === 200) {
           setPostMsg("Successfully Updated Transaction");
           setUpdateCategories(true);
+          setUpdateBalances(true);
           handleCloseCategory()
         } else {
           setPostMsg("Error" + response.data);
@@ -174,7 +176,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
 
     const theme = useTheme();
     return (
-      <><Fab
+      <><Tooltip title="Add Category"><Fab
         color="primary"
         aria-label="add_category"
         size='large'
@@ -183,7 +185,7 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
         sx={{ position: 'fixed', bottom: 32, right: 96 }}
       >
         <CategoryIcon />
-      </Fab><Modal
+      </Fab></Tooltip><Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
         open={openCategory}
@@ -198,10 +200,11 @@ export const AddCategoryModal = ({setUpdateCategories, setUpdateBalances, setOpe
             <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
         <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Tooltip title="Close">
               <IconButton
                 size='large'
                 onClick={handleCloseCategory}
-              ><CloseIcon /></IconButton>
+              ><CloseIcon /></IconButton></Tooltip>
               <h2 className='pageTitle'>{chosenCategory? "Edit Category" : "Add Category"}</h2>
               <div></div>
               </Box>

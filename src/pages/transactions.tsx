@@ -7,7 +7,7 @@ import { LineChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, useTheme, Menu, IconButton, List } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, useTheme, Menu, IconButton, List, Tooltip, OutlinedInput } from '@mui/material';
 import dayjs from 'dayjs';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -28,10 +28,9 @@ import FlagIcon from '@mui/icons-material/Flag';
 import FlagItem from '../types/FlagItem';
 import { FlagPicker } from '../components/transactionFlagMenu';
 import Transaction from '../types/Transaction';
-import AddRecurringTransactionModal from '../components/addRecurringTransactionModal';
 import RecurringTransactionItem from '../types/RecurringTransaction';
-
-
+import PlaylistRemoveIcon from '@mui/icons-material/PlaylistRemove';
+import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 
 
 interface TransactionGroup {
@@ -82,6 +81,33 @@ export const Transactions = () => {
       setPickedFlagTransactionTransactionId(transaction);
       setIndex(index);
     };
+
+  
+    const handleTrackTransaction = async (index: number) => {
+      try {
+        const authToken = Cookies.get("authToken");
+        const data = {
+          "transaction_id": index,
+        };
+        const response = await axios.patch(`${rootUrl}/api/trackTransactions`, data, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (response.status === 200) {
+          setPostMsg("Transaction Altered");
+          setUpdateTransactions(true);
+          handleCloseFlag()
+        } else {
+          setPostMsg("Error" + response.data);
+        }
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          // Handle Axios error
+          const responseData = error.response?.data;
+          setPostMsg("Error: " + responseData)
+        }
+      }
+      setOpenAlert(true);
+    };
     
     const handleCloseFlags = () => {
       setPickedFlagTransactionTransactionId(null)
@@ -101,6 +127,9 @@ export const Transactions = () => {
     const [recurringItem, setRecurringItem] = React.useState<RecurringTransactionItem | undefined>(undefined)
 
     const [filterTransactions, setFilterTransactions] = React.useState<TransactionItem[]>([])
+    const [unSearchedTransactions, setUnSearchedTransactions] = React.useState<TransactionItem[]>([])
+    const [filterSearch, setFilterSearch] = React.useState('')
+
     const [filterRecTransactions, setFilterRecTransactions] = React.useState<RecurringTransactionItem[]>([])
 
     const [filterBalance, setFilterBalance] = React.useState<BalanceItem>()
@@ -166,7 +195,17 @@ export const Transactions = () => {
       }
   }, []);
 
-
+    React.useEffect(() => {
+      if (filterSearch != "") {
+        setFilterTransactions(
+          unSearchedTransactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()))
+        )
+      } else {
+        setFilterTransactions(
+          unSearchedTransactions
+        )
+      }
+    }, [filterSearch])
 
 
     React.useEffect(() => {
@@ -179,10 +218,16 @@ export const Transactions = () => {
             setFilterCategory(category);
             setCategory(category)
             setFilterBalance(balances.find((balance) => balance.Category === category))
-            setFilterTransactions(
-              transactions.filter(
-                (transaction) => transaction.Category === category)
+            setUnSearchedTransactions(transactions.filter((transaction) => transaction.Category === category))
+            if (filterSearch != "") {
+              setFilterTransactions(
+                transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === category)
               )
+            } else {
+              setFilterTransactions(
+                transactions.filter((transaction) => transaction.Category === category)
+              )
+            }
             setFilterRecTransactions(
               recurringTransactions.filter(
                 (transaction) => transaction.Category === category)
@@ -191,22 +236,42 @@ export const Transactions = () => {
             setFilterCategory(categories[0].categoryName)
             setCategory(categories[0].categoryName)
             setFilterBalance(balances.find((balance) => balance.Category === categories[0].categoryName))
-            setFilterTransactions(
+            setUnSearchedTransactions(
               transactions.filter(
                 (transaction) => transaction.Category === categories[0].categoryName
               )
             );
+            if (filterSearch != "") {
+              setFilterTransactions(
+                transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === categories[0].categoryName)
+              )
+            } else {
+              setFilterTransactions(
+                transactions.filter(
+                  (transaction) => transaction.Category === categories[0].categoryName
+                )              )
+            }
             setFilterRecTransactions(
               recurringTransactions.filter(
                 (transaction) => transaction.Category === categories[0].categoryName)
               )
           }
         } else {
-            setFilterTransactions(
+            setUnSearchedTransactions(
               transactions.filter(
                 (transaction) => transaction.Category === filterCategory
               )
             );
+            if (filterSearch != "") {
+              setFilterTransactions(
+                transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === filterCategory)
+              )
+            } else {
+              setFilterTransactions(
+                transactions.filter(
+                  (transaction) => transaction.Category === filterCategory
+                )              )
+            }
             setFilterRecTransactions(
               recurringTransactions.filter(
                 (transaction) => transaction.Category === filterCategory)
@@ -303,7 +368,7 @@ export const Transactions = () => {
       const transactionFlags = transactionFlagIds?.map((id) =>
         flagItems.find((flag) => flag.flagId === Number(id))
       );
-    
+      console.log(transaction.Tracked)
       return (
         <ListItem style={style} key={index} sx={{ display: "flex" }}>
           <ListItemButton id="edit-transaction-button" onClick={() => {handleSetItem(transaction, handleOpen);}}>
@@ -331,9 +396,23 @@ export const Transactions = () => {
           <Typography align="right" variant="body2">
             ${transaction?.Amount}
           </Typography>
+          <Tooltip title="Add Flag">
           <IconButton ref={refs[index]} key={transaction.transactionID} className={index.toString()} onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleClickFlags(event, transaction, index)}>
             <FlagIcon />
           </IconButton>
+          </Tooltip>
+          {transaction.Tracked? 
+          <Tooltip title="Don't Track">
+          <IconButton ref={refs[index]} key={transaction.transactionID} className={index.toString()} onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleTrackTransaction(transaction.transactionID)}>
+            <PlaylistRemoveIcon style={{ color: 'green' }} />
+          </IconButton>
+          </Tooltip> : 
+          <Tooltip title="Track">
+          <IconButton ref={refs[index]} key={transaction.transactionID} className={index.toString()} onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleTrackTransaction(transaction.transactionID)}>
+            <PlaylistAddIcon style={{ color: 'red' }} />
+          </IconButton>
+          </Tooltip>
+          }
         </ListItem>
       );
     }
@@ -357,7 +436,7 @@ export const Transactions = () => {
                 ? "Due Later Today"
                 : calculateRemainingDays(recTransaction.Date, recTransaction.Frequency) < 0
                 ? `Due ${Math.abs(calculateRemainingDays(recTransaction.Date, recTransaction.Frequency))} Days Ago`
-                : `${calculateRemainingDays(recTransaction.Date, recTransaction.Frequency)} Days Remaining`
+                : `${calculateRemainingDays(recTransaction.Date, recTransaction.Frequency)} Day(s) Remaining`
             }
           />
 
@@ -372,7 +451,7 @@ export const Transactions = () => {
     function calculateRemainingDays(startDate: Date, frequency: number) {
       const endDate = dayjs(startDate).add(frequency, 'day');
       const today = dayjs();
-      return endDate.diff(today, 'day');
+      return endDate.diff(today, 'day')+1;
     }
     
     function renderAlikeRow(props: ListChildComponentProps) {
@@ -426,26 +505,23 @@ export const Transactions = () => {
 
 
 
-    const filteredTransactionsLineChart = filterTransactions.filter(
+    const filteredTransactionsLineChart = unSearchedTransactions.filter(
       (transaction) =>
         transaction.Amount < 0 &&
-        !transaction.Description.includes("Balancing") &&
-        !transaction.Description.includes("Trans")
+        transaction.Tracked
     );
 
     const totalFilteredTransactionsLineChart = transactions.filter(
       (transaction) =>
         transaction.Amount < 0 &&
-        !transaction.Description.includes("Balancing") &&
-        !transaction.Description.includes("Trans")
+        transaction.Tracked
     );
 
-    const filteredStatsTransactions = filterTransactions.filter((transaction) => {
+    const filteredStatsTransactions = unSearchedTransactions.filter((transaction) => {
       const transactionDate = new Date(transaction.Date);
       return (
         transaction.Amount < 0 &&
-        !transaction.Description.includes("Balancing") &&
-        !transaction.Description.includes("Trans") &&
+        transaction.Tracked &&
         ((transactionDate >= startOfLastMonth && transactionDate <= endOfLastMonth) ||
           (transactionDate >= startOfCurrentMonth && transactionDate <= endOfCurrentMonth))
       );
@@ -612,7 +688,7 @@ export const Transactions = () => {
                   </Grid>
                   <Grid>
                   <Typography variant="h6">
-                    Number of Transactions: <b>{filterTransactions.length}</b>
+                    Number of Transactions: <b>{unSearchedTransactions.length}</b>
                   </Typography>
                   </Grid>
                 </Grid>
@@ -623,21 +699,32 @@ export const Transactions = () => {
           <Grid xs={2} sm={2} md={6} lg={8} xl={6}>
           <Card elevation={4}>
               <CardContent sx={{bgcolor: theme.palette.info.main}}>
+              <Box justifyContent="center" sx={{ display: 'flex', flexDirection: 'column', width: '100%'}}>
                 <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
                 <InputLabel htmlFor="outlined-adornment-filter">Filter</InputLabel>
                 <Select
                   label="Filter"
                   className='select'
+                  fullWidth
                   value={filterCategory}
                   onChange={(event: SelectChangeEvent<string>) => {
                     const newCategory = event.target.value as string;
                     setFilterCategory(newCategory);
                     setCategory(newCategory);
-                    setFilterTransactions(
+                    setUnSearchedTransactions(
                       transactions.filter(
                         (transaction) => transaction.Category === newCategory
                       )
                     );
+                    if (filterSearch != "") {
+                      setFilterTransactions(
+                        transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === newCategory)
+                      )
+                    } else {
+                      setFilterTransactions(
+                        unSearchedTransactions
+                      )
+                    }
                     setFilterRecTransactions(
                       recurringTransactions.filter(
                         (transaction) => transaction.Category === newCategory)
@@ -656,6 +743,18 @@ export const Transactions = () => {
                   ))}
                 </Select>
               </FormControl>
+              <FormControl fullWidth sx={{ marginTop: 1 }} variant="outlined">
+                <InputLabel htmlFor="outlined-adornment-filter">Filter</InputLabel>
+                <OutlinedInput
+                  fullWidth
+                  id="outlined-adornment-fName"
+                  label="First Name"
+                  type="text"
+                  value={filterSearch}
+                  onChange={(event) => setFilterSearch(event.target.value)}
+                />
+              </FormControl>
+              </Box>
               </CardContent>
             </Card>
             <Card elevation={4} sx={{height:700}}>

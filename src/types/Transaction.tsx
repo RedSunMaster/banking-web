@@ -8,6 +8,7 @@ interface TransactionItem {
     Transaction: string;
     Flags: string;
     recurringId?: number;
+    Tracked: boolean;
   }
 
 export default TransactionItem

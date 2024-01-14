@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton, Tooltip } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -167,10 +167,11 @@ export const AddFlagModal = ({setUpdateFlags,setUpdateTransactions, setOpenAlert
             <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
         <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Tooltip title="Close">
               <IconButton
                 size='large'
                 onClick={handleCloseFlag}
-              ><CloseIcon /></IconButton>
+              ><CloseIcon /></IconButton></Tooltip>
               <h2 className='pageTitle'>{chosenFlag? "Edit Flag" : "Add Flag"}</h2>
               <div></div>
               </Box>

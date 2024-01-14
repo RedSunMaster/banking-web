@@ -8,7 +8,7 @@ import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, Autocomplete, Button, FormControl, IconButton, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar, Switch, TextField, useTheme } from '@mui/material';
+import { Alert, Autocomplete, Button, FormControl, IconButton, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar, Switch, TextField, Tooltip, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
 import axios, { AxiosError } from 'axios';
 import checkIsLoggedIn from '../auth/auth';
@@ -172,6 +172,7 @@ export const Settings = () => {
                     <ListItem>                   
                       <ListItemText>{category.categoryName}</ListItemText>                   
                       <Box sx={{ flexGrow: 1 }} />
+                      <Tooltip title="Edit Category">
                       <IconButton
                         size="medium"
                         aria-label="account of current user"
@@ -182,6 +183,7 @@ export const Settings = () => {
                         >
                         <EditIcon />
                       </IconButton>
+                      </Tooltip>
                     </ListItem>
                   </Box>
                 ))}
@@ -199,6 +201,7 @@ export const Settings = () => {
                     <ListItem>      
                       <ListItemText>{flag.flagName}</ListItemText>                
                       <Box sx={{ flexGrow: 1 }} />
+                      <Tooltip title="Edit Flag">
                       <IconButton
                         size="small"
                         aria-label="Edit Flag"
@@ -207,6 +210,7 @@ export const Settings = () => {
                       >
                         <EditIcon />
                       </IconButton>
+                      </Tooltip>
                     </ListItem>
                   </Box>
                 ))}

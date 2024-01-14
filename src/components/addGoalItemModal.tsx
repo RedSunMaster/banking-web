@@ -1,4 +1,4 @@
-import { Fab, Modal, Fade, Box, FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, OutlinedInput, Button, useTheme, Grid, IconButton, Typography } from "@mui/material";
+import { Fab, Modal, Fade, Box, FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, OutlinedInput, Button, useTheme, Grid, IconButton, Typography, Tooltip } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios, { AxiosError } from "axios";
@@ -173,7 +173,7 @@ interface AddGoalItemProps {
       }
   
     return (
-        <>
+        <><Tooltip title="Add Goal">
         <Fab
         color="primary"
         aria-label="add"
@@ -183,7 +183,7 @@ interface AddGoalItemProps {
         sx={{ position: 'fixed', bottom: 32, right: 32}}
       >
         <AddIcon />
-      </Fab>
+      </Fab></Tooltip>
 
       <Modal
         aria-labelledby="transition-modal-title"
@@ -198,10 +198,11 @@ interface AddGoalItemProps {
             <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
         <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Tooltip title="Close">
               <IconButton
                 size='large'
                 onClick={handleClose}
-              ><CloseIcon /></IconButton>
+              ><CloseIcon /></IconButton></Tooltip>
               <h2 className='pageTitle'>Start New Goal</h2>
               <div></div>
               </Box>

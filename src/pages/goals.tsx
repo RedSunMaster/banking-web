@@ -8,7 +8,7 @@ import { ScatterChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Button, IconButton, Alert, Snackbar, useTheme, CircularProgress } from '@mui/material';
+import { Button, IconButton, Alert, Snackbar, useTheme, CircularProgress, Tooltip } from '@mui/material';
 import axios, { AxiosError } from 'axios';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -289,9 +289,11 @@ export const Goals = () => {
       return (
         <ListItem style={style} key={item?.goalId} sx={{ display: 'flex' }}
         secondaryAction={
+          <Tooltip title="Complete Goal">
           <IconButton edge="end" aria-label="achieved" onClick={() => handleGoalSuccess(item.goalId)}>
             <CheckIcon />
           </IconButton>
+          </Tooltip>
         }
         >
           <ListItemButton onClick={() => {handleSetItem(item, handleOpen);}}>

@@ -1,4 +1,4 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, InputAdornment, MenuItem, Select, SelectChangeEvent, Switch, useTheme, Grid, IconButton, Autocomplete, TextField } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, InputAdornment, MenuItem, Select, SelectChangeEvent, Switch, useTheme, Grid, IconButton, Autocomplete, TextField, Tooltip } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
@@ -353,7 +353,7 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
 
 
   return (
-      <>      <Fab
+      <><Tooltip title="Add Transaction"><Fab
       color="primary"
       aria-label="add"
       size='large'
@@ -362,7 +362,7 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
       sx={{ position: 'fixed', bottom: 32, right: 32}}
     >
       <AddIcon />
-    </Fab>
+    </Fab></Tooltip>
     <Modal
       aria-labelledby="transition-modal-title"
       aria-describedby="transition-modal-description"
@@ -377,10 +377,10 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
           <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
         <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <IconButton
+      <Tooltip title="Close"><IconButton
                 size='large'
                 onClick={handleClose}
-              ><CloseIcon /></IconButton>
+              ><CloseIcon /></IconButton></Tooltip>
               <h2 className='pageTitle'>Add Transaction</h2>
               <div></div>
               </Box>

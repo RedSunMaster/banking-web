@@ -35,13 +35,48 @@ code {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100wh;
+  width: 100vw;
   height: 100vh;
   border-radius: 12px;
   padding: 16px 32px 24px 32px;
   overflow: auto;
   box-shadow: 16;
   background-color: white;
+}
+
+
+@media (min-width: 768px){
+  .modalCalculator {
+    position: fixed; /* Change from relative to fixed */
+    bottom:0; /* Position at the bottom */
+    left: 0; /* Position on the left */
+    transform: none; /* Remove the transform property */
+    width: 25vw !important; /* Adjust width as needed */
+    height: 100vh; /* Adjust height as needed */
+    border-radius: 12px;
+    padding: 16px 32px 24px 32px;
+    overflow: auto;
+    box-shadow: 16;
+    background-color: white;
+  }
+}
+
+
+@media (max-width: 768px){
+  .modalCalculator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
+    border-radius: 12px;
+    padding: 16px 32px 24px 32px;
+    overflow: auto;
+    box-shadow: 16;
+    background-color: white;
+  }
+
 }
 
 

@@ -1,4 +1,4 @@
-import { Fab, Modal, Fade, Box, FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, OutlinedInput, Button, useTheme, Grid, IconButton } from "@mui/material";
+import { Fab, Modal, Fade, Box, FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, OutlinedInput, Button, useTheme, Grid, IconButton, Tooltip } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios, { AxiosError } from "axios";
@@ -181,7 +181,7 @@ interface AddOwedItemProps {
 
     return (
         <>
-        <Fab
+        <Tooltip title="Add Owed Item"><Fab
         color="primary"
         aria-label="add"
         size='large'
@@ -190,7 +190,7 @@ interface AddOwedItemProps {
         sx={{ position: 'fixed', bottom: 32, right: 32}}
       >
         <AddIcon />
-      </Fab>
+      </Fab></Tooltip>
 
       <Modal
         aria-labelledby="transition-modal-title"
@@ -205,10 +205,10 @@ interface AddOwedItemProps {
             <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
         <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <IconButton
+              <Tooltip title="Close"><IconButton
                 size='large'
                 onClick={handleClose}
-              ><CloseIcon /></IconButton>
+              ><CloseIcon /></IconButton></Tooltip>
               <h2 className='pageTitle'>Log Owed Item</h2>
               <div></div>
               </Box>

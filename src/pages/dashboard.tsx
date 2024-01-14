@@ -9,7 +9,7 @@ import 'react-virtualized/styles.css'; // only needs to be imported once
 import TransactionItem from '../types/Transaction';
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, Checkbox, CircularProgress, IconButton, List, ListItem, ListItemText, Snackbar, useTheme } from '@mui/material';
+import { Alert, Checkbox, CircularProgress, IconButton, List, ListItem, ListItemText, Snackbar, Tooltip, useTheme } from '@mui/material';
 import { AutoSizer } from 'react-virtualized';
 import { useNavigate } from 'react-router-dom';
 import checkIsLoggedIn from '../auth/auth';
@@ -373,15 +373,13 @@ export const Dashboard = () => {
   const filteredTransactions = transactions.filter(
     (transaction) =>
       transaction.Amount < 0 &&
-      !transaction.Description.includes("Balance") &&
-      !transaction.Description.includes("Trans")
+      transaction.Tracked
   );
 
   const filteredDepositTransactions = transactions.filter(
     (transaction) =>
       transaction.Amount > 0 &&
-      !transaction.Description.includes("Balance") &&
-      !transaction.Description.includes("Trans")
+      transaction.Tracked
   );
 
   const groupedTransactions = filteredTransactions.reduce((acc, transaction) => {
@@ -673,7 +671,7 @@ export const Dashboard = () => {
                 ? "Due Later Today"
                 : calculateRemainingDays(recTransaction.Date, recTransaction.Frequency) < 0
                 ? `Due ${Math.abs(calculateRemainingDays(recTransaction.Date, recTransaction.Frequency))} Days Ago`
-                : `${calculateRemainingDays(recTransaction.Date, recTransaction.Frequency)} Days Remaining`
+                : `${calculateRemainingDays(recTransaction.Date, recTransaction.Frequency)} Day(s) Remaining`
             }
           />
 
@@ -687,7 +685,7 @@ export const Dashboard = () => {
     function calculateRemainingDays(startDate: Date, frequency: number) {
       const endDate = dayjs(startDate).add(frequency, 'day');
       const today = dayjs();
-      return endDate.diff(today, 'day');
+      return endDate.diff(today, 'day')+1;
     }
 
 
@@ -757,16 +755,19 @@ export const Dashboard = () => {
                     <div key={index}>
                       <Typography variant="h6">
                         {balance.Balance} <b style={{color: 'green'}}>${balance.Total}</b>
+                        <Tooltip title="Delete Balance">
                         <IconButton onClick={() => handleDeleteBalance(balance.balanceId)}>
                           <DeleteIcon />
-                        </IconButton>
+                        </IconButton></Tooltip>
                       </Typography>
 
                     </div>
                   ))}
+                  <Tooltip title="Add Balance">
                   <IconButton aria-label="add balance" sx={{bgcolor: theme.palette.primary.main, color: theme.palette.text.primary }} style={{ border: '1px solid', borderBlockColor: theme.palette.text.primary, backgroundColor: theme.palette.primary.main }} onClick={() => handleOpenBalance()}>
                     <AddIcon />
                   </IconButton>
+                  </Tooltip>
                   </Grid>
                 </Grid>
               </CardContent>

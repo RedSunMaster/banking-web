@@ -14,7 +14,7 @@ import {
   Typography,
   Avatar,
   ListItemIcon,
-  ListItemButton, Icon, Modal, ThemeProvider, createTheme, Grid
+  ListItemButton, Icon, Modal, ThemeProvider, createTheme, Grid, Dialog, Popper, Tooltip
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles'; // Correct import here
@@ -233,27 +233,30 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
               ))}
             </Box>
           <Box sx={{ flexGrow: 0 }}>
+          <Tooltip title="Refresh">
             <IconButton
               size='large'
               onClick={() => {navigate(0)}}
               sx={{marginRight:'10px'}}
-            ><RefreshIcon/></IconButton>
+            ><RefreshIcon/></IconButton></Tooltip>
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
+          <Tooltip title="Calculator">
             <IconButton
               size='large'
               onClick={handleModalToggle}
               sx={{marginRight:'10px'}}
-            ><CalculateIcon/></IconButton>
+            ><CalculateIcon/></IconButton></Tooltip>
           </Box>
 
             <Box sx={{ flexGrow: 0 }}>
+            <Tooltip title="Dark Mode?">
               <IconButton
                 size='large'
                 onClick={updateDarkMode}
                 sx={{marginRight:'10px'}}
-              >{isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}</IconButton>
+              >{isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}</IconButton></Tooltip>
             </Box>
             <Box sx={{ flexGrow: 0 }}>
               <Avatar {...(isLoggedIn ? stringAvatar(user.fName + " " + user.lName) : {})} onClick={() => handleToggleDrawer('right')} />
@@ -354,28 +357,32 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
 
       )}
     </div>
-      <Modal
-      open={true}
-      className={openCalculatorModal ? '' : 'hidden'} // Add this line
-      onClose={() => setOpenCalculatorModal(false)}
-      aria-labelledby="modal-title"
-      aria-describedby="modal-description">
-      <Grid container justifyContent="center" alignItems="top" style={{ minHeight: '100vh' }}>
-      <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
-      <Box className={'modal'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <IconButton
-                size='large'
-                onClick={() => setOpenCalculatorModal(false)}
-              ><CloseIcon /></IconButton>
-              <h2 className='pageTitle'>Calculator</h2>
-              <div></div>
-              </Box>
+    <Popper
+  open={true} 
+  className={openCalculatorModal ? '' : 'hidden'} // Add this line
+  aria-labelledby="modal-title"
+  aria-describedby="modal-description"
+  style={{ position: 'fixed', zIndex: 4000 }} // Add this line
+>
+  <Grid container style={{ minHeight: '100%' }}>
+    <Grid item xs={12} sm={8} md={6} lg={5} xl={4}>
+      <Box className={'modalCalculator'} sx={{bgcolor: theme.palette.secondary.main, width:'auto', position: 'relative' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Tooltip title="Close">
+          <IconButton
+            size='large'
+            onClick={() => setOpenCalculatorModal(false)}
+          ><CloseIcon /></IconButton>
+        </Tooltip>
+          <h2 className='pageTitle'>Calculator</h2>
+          <div></div>
+        </Box>
         <Calculator></Calculator>
       </Box>
-      </Grid>
-      </Grid>
-    </Modal>
+    </Grid>
+  </Grid>
+</Popper>
+
     </>
   );
 }
