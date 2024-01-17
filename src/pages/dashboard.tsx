@@ -9,7 +9,7 @@ import 'react-virtualized/styles.css'; // only needs to be imported once
 import TransactionItem from '../types/Transaction';
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, Checkbox, CircularProgress, IconButton, List, ListItem, ListItemText, Snackbar, Tooltip, useTheme } from '@mui/material';
+import { Alert, Checkbox, IconButton, List, ListItem, ListItemText, Snackbar, Tooltip, useTheme } from '@mui/material';
 import { AutoSizer } from 'react-virtualized';
 import { useNavigate } from 'react-router-dom';
 import checkIsLoggedIn from '../auth/auth';
@@ -26,12 +26,10 @@ import dayjs from 'dayjs';
 
 
 export const Dashboard = () => {
-  const { categories, balances, filteredBalances, customBalances, transactions, goalItems, flagItems, recurringTransactions, setUpdateFlags, setUpdateGoalItems,setUpdateRecTransactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser, count, setUpdateCount } = React.useContext(DatabaseInformationContext);
+  const { categories, balances, filteredBalances, customBalances, transactions, goalItems, flagItems, recurringTransactions, setUpdateFlags, setUpdateGoalItems,setUpdateRecTransactions, owedItems, user, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser, count, setUpdateCount } = React.useContext(DatabaseInformationContext);
   const [openAlert, setOpenAlert] = React.useState(false);
   const [postMsg, setPostMsg] = React.useState('')
   const [open, setOpen] = React.useState(false);
-
-  const [runTutorial, setRunTutorial] = React.useState(true);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -56,7 +54,7 @@ export const Dashboard = () => {
   
 
 
-  const fetchTutorialState = async () => {
+  const fetchTutorialState = React.useCallback(async () => {
     try {
       const authToken = Cookies.get('authToken');
       const response = await axios.get<TutorialResponse[]>(`${rootUrl}/api/tutorial`, {
@@ -69,9 +67,10 @@ export const Dashboard = () => {
     } catch (error) {
       return false;
     }
-  };
+  }, [rootUrl]); // Include all dependencies that the function relies on
   
-  const updateTutorialState = async () => {
+  
+  const updateTutorialState = React.useCallback(async () => {
     try {
       const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
       const authToken = Cookies.get('authToken');
@@ -79,13 +78,13 @@ export const Dashboard = () => {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       fetchTutorialState().then((hadTutorial) => {
-        console.log(hadTutorial)
         setHadTutorial(hadTutorial);
       });
     } catch (error) {
+      // Handle the error appropriately
     }
-  };  
-
+  }, [setHadTutorial,fetchTutorialState]); // Include all dependencies that the function relies on
+  
   const [stepIndex, setStepIndex] = React.useState(0);
 
 
@@ -94,9 +93,10 @@ export const Dashboard = () => {
 
   React.useEffect(() => {
     if (count >= 4 && !hadTutorial) {
-      updateTutorialState()
+      updateTutorialState();
     }
-  }, [count]);
+  }, [count, hadTutorial, updateTutorialState]);
+  
 
 
 
@@ -311,10 +311,9 @@ export const Dashboard = () => {
 
   React.useLayoutEffect(() => {
     document.addEventListener("visibilitychange", onVisibilityChange);
-
     return () =>
       document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, []);
+  });
 
   React.useEffect(() => {
     checkIsLoggedIn().then((result) => {
@@ -349,7 +348,7 @@ export const Dashboard = () => {
     fetchTutorialState().then((hadTutorial) => {
       setHadTutorial(hadTutorial)
     })
-  }, []);
+  });
 
 
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
@@ -515,90 +514,11 @@ export const Dashboard = () => {
       }
     };
 
-    const notAchievedItems = goalItems.filter((goalItem) => goalItem.achieved == false);
 
-    function renderRow(props: ListChildComponentProps) {
-      const { index, style } = props;
-      const item = notAchievedItems[index];
-    
-      // Filter transactions by category
-      const categoryTransactions = transactions.filter(transaction => transaction.Category === item.category);
-      const savedMoney = categoryTransactions.filter(transaction => transaction.Description === item.uniqueCode);
-    
-      const totalSavedMoney = savedMoney.reduce((total, transaction) => total + Math.abs(transaction.Amount), 0);
-    
-      let daysToGoal;
-      let endDate;
-      let dailySavings;
-    
-      // Get the current date
-      const today = new Date();
-      const remainingAmount = item.amount - totalSavedMoney;
-
-      // If item.endDate is not null, calculate the amount it would take per day to reach the goal
-      if (item.endDate != null) {
-        const startDate = today > new Date(item.startDate) ? today : new Date(item.startDate);
-        endDate = new Date(item.endDate);
-        const timeDiff = Math.abs(endDate.getTime() - startDate.getTime());
-        daysToGoal = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    
-        // Calculate daily savings based on remaining amount and days until endDate
-        dailySavings = remainingAmount / daysToGoal;
-      } else {
-        // Estimate days to goal based on the total goal amount and the total saved money so far
-        const startDate = today > new Date(item.startDate) ? today : new Date(item.startDate);
-        endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + (item.amount/5)); // Set the end date to 60 days from the current date
-        const timeDiff = Math.abs(endDate.getTime() - startDate.getTime());
-        daysToGoal = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days to goal based on the current date
-    
-        // Calculate daily savings based on remaining amount and days to goal
-        dailySavings = remainingAmount / daysToGoal;
-      }
-    
-      const progress = Math.min((totalSavedMoney / item.amount) * 100, 100);
-    
-      // Rest of the code...
-    
-      return (
-        <ListItem style={style} key={item?.goalId} sx={{ display: 'flex' }}
-        >
-          <ListItemText 
-            primary={item?.goalName} 
-          />
-    
-          <Box sx={{ flexGrow: 1 }} />
-          <Typography align="right" variant="body2" marginX={2}>
-            ${item?.amount-totalSavedMoney}
-          </Typography>
-          <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-          <CircularProgress variant="determinate" value={progress} sx={{color:'green'}} />
-          <Box
-            sx={{
-              top: 0,
-              left: 0,
-              bottom: 0,
-              right: 0,
-              position: 'absolute',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Typography
-              variant="caption"
-              component="div"
-              color="text.secondary"
-            >{`${Math.round(progress)}%`}</Typography>
-          </Box>
-        </Box>
-      </ListItem>
-    );
-    }
     
     function renderRowOwed(props: ListChildComponentProps) {
       const { index, style } = props;
-      const item = owedItems.filter((owedItem) => owedItem.Payed == false)[index];
+      const item = owedItems.filter((owedItem) => owedItem.Payed === false)[index];
     
       return (
         <ListItem style={style} key={item?.ID} sx={{ display: 'flex' }}
@@ -612,10 +532,6 @@ export const Dashboard = () => {
       );
     }
 
-    const totalOwed = owedItems.filter((owedItem) => owedItem.Payed == false).reduce(
-      (sum, owedItem) => sum + owedItem.Amount,
-      0
-    );
     function renderTransactionRow(props: ListChildComponentProps) {
       const { index, style } = props;
       const transaction = transactions[index];
@@ -623,7 +539,12 @@ export const Dashboard = () => {
       const transactionFlags = transactionFlagIds?.map((id) =>
         flagItems.find((flag) => flag.flagId === Number(id))
       );
-    
+          
+      let runningTotal = totalBalance;
+      for (let i = 0; i < index; i++) {
+        runningTotal -= transactions[i]?.Amount || 0;
+      }
+
       return (
         <ListItem style={style} key={index} sx={{ display: "flex" }}>
             <Box sx={{ position: "relative" }}>
@@ -647,7 +568,10 @@ export const Dashboard = () => {
             />
           <Box sx={{ flexGrow: 1 }} />
           <Typography align="right" variant="body2">
-            ${transaction?.Amount}
+          ${transaction?.Amount}
+          <Typography component="div" variant="caption" sx={{ color: 'text.secondary' }}>
+            ${runningTotal.toFixed(2)}
+          </Typography>
           </Typography>
         </ListItem>
       );
@@ -901,7 +825,7 @@ export const Dashboard = () => {
                           width={width}
                           height={height - 30}
                           itemSize={75}
-                          itemCount={owedItems.filter((owedItem) => owedItem.Payed == false).length}
+                          itemCount={owedItems.filter((owedItem) => owedItem.Payed === false).length}
                           overscanCount={5}
                           style={{marginTop:30}}
                         >
@@ -994,7 +918,7 @@ export const Dashboard = () => {
           <Joyride
               stepIndex={stepIndex}
               callback={(data: CallBackProps) => {
-                const { status, action, type, index } = data;
+                const { status, action, type } = data;
                 if (status === STATUS.FINISHED) {
                   console.log("Ended")
                   setUpdateCount(true)

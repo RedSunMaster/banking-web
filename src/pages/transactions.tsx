@@ -7,7 +7,7 @@ import { LineChart } from '@mui/x-charts';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, useTheme, Menu, IconButton, List, Tooltip, OutlinedInput } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Alert, Snackbar, useTheme, IconButton, Tooltip, OutlinedInput } from '@mui/material';
 import dayjs from 'dayjs';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -41,7 +41,7 @@ interface TransactionGroup {
 
 
 export const Transactions = () => {
-    const { categories, balances, transactions, goalItems, user,recurringTransactions, flagItems,setUpdateRecTransactions, setUpdateGoalItems, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateFlags } = React.useContext(DatabaseInformationContext);
+    const { categories, balances, transactions, goalItems,recurringTransactions, flagItems,setUpdateRecTransactions, setUpdateGoalItems, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateFlags } = React.useContext(DatabaseInformationContext);
     const [category, setCategory] = React.useState('');
     const [openAlert, setOpenAlert] = React.useState(false);
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
@@ -49,13 +49,6 @@ export const Transactions = () => {
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-
-
-    const [openRec, setOpenRec] = React.useState(false);
-    const handleOpenRec = () => setOpenRec(true);
-    const handleCloseRec = () => setOpenRec(false);
-
-    const [canOpen, setCanOpen] = React.useState(false);
 
     const [openCategory, setOpenCategory] = React.useState(false);
 
@@ -67,19 +60,14 @@ export const Transactions = () => {
     const handleOpenFlag = () => setOpenFlag(true);
     const handleCloseFlag = () => setOpenFlag(false);
   
-    const [selectedIndex, setIndex] = React.useState<number>(0);
-
-    const [openTransactionId, setOpenTransactionId] = React.useState<number | null>(null);
     const [pickedFlagTransaction, setPickedFlagTransactionTransactionId] = React.useState<Transaction | null>(null);
 
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
 
 
     const handleClickFlags = (event: React.MouseEvent<HTMLButtonElement>, transaction: Transaction, index: number) => {
-      setOpenTransactionId(transaction.transactionID);
       setAnchorEl(event.currentTarget)
       setPickedFlagTransactionTransactionId(transaction);
-      setIndex(index);
     };
 
   
@@ -112,8 +100,6 @@ export const Transactions = () => {
     const handleCloseFlags = () => {
       setPickedFlagTransactionTransactionId(null)
       setAnchorEl(null);
-      setOpenTransactionId(null);
-      setIndex(0);
     };
   
 
@@ -153,15 +139,16 @@ export const Transactions = () => {
     };
     
 
-    const onVisibilityChange = () => {
+    const onVisibilityChange = React.useCallback(() => {
       if (document.visibilityState === "visible") {
         checkIsLoggedIn().then((result) => {
           if (!result) {
-              navigate('/login')
+            navigate('/login');
           }
-        })
+        });
       }
-    };
+    }, [navigate]); // Include all dependencies that the function relies on
+    
   
     const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
@@ -170,22 +157,23 @@ export const Transactions = () => {
   
       return () =>
         document.removeEventListener("visibilitychange", onVisibilityChange);
-    }, []);
+    }, [onVisibilityChange]);
 
     React.useEffect(() => {
       checkIsLoggedIn().then((result) => {
         if (!result) {
-            navigate('/login')
+          navigate('/login');
         }
-      })
+      });
+    
       if (transactions.length === 0) {
-          setUpdateTransactions(true);
+        setUpdateTransactions(true);
       }
       if (categories.length === 0) {
-          setUpdateCategories(true);
+        setUpdateCategories(true);
       }
       if (balances.length === 0) {
-          setUpdateBalances(true);
+        setUpdateBalances(true);
       }
       if (flagItems.length === 0) {
         setUpdateFlags(true);
@@ -193,10 +181,23 @@ export const Transactions = () => {
       if (recurringTransactions.length === 0) {
         setUpdateRecTransactions(true);
       }
-  }, []);
+    }, [
+      balances.length,
+      categories.length,
+      flagItems.length,
+      navigate,
+      recurringTransactions.length,
+      setUpdateBalances,
+      setUpdateCategories,
+      setUpdateFlags,
+      setUpdateRecTransactions,
+      setUpdateTransactions,
+      transactions.length,
+    ]);
+    
 
     React.useEffect(() => {
-      if (filterSearch != "") {
+      if (filterSearch !== "") {
         setFilterTransactions(
           unSearchedTransactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()))
         )
@@ -205,7 +206,7 @@ export const Transactions = () => {
           unSearchedTransactions
         )
       }
-    }, [filterSearch])
+    }, [filterSearch, unSearchedTransactions])
 
 
     React.useEffect(() => {
@@ -219,7 +220,7 @@ export const Transactions = () => {
             setCategory(category)
             setFilterBalance(balances.find((balance) => balance.Category === category))
             setUnSearchedTransactions(transactions.filter((transaction) => transaction.Category === category))
-            if (filterSearch != "") {
+            if (filterSearch !== "") {
               setFilterTransactions(
                 transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === category)
               )
@@ -241,7 +242,7 @@ export const Transactions = () => {
                 (transaction) => transaction.Category === categories[0].categoryName
               )
             );
-            if (filterSearch != "") {
+            if (filterSearch !== "") {
               setFilterTransactions(
                 transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === categories[0].categoryName)
               )
@@ -262,7 +263,7 @@ export const Transactions = () => {
                 (transaction) => transaction.Category === filterCategory
               )
             );
-            if (filterSearch != "") {
+            if (filterSearch !== "") {
               setFilterTransactions(
                 transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === filterCategory)
               )
@@ -281,7 +282,7 @@ export const Transactions = () => {
           }
       }
     }
-    }, [transactions, balances]);
+    }, [transactions, balances, filterCategory,categories,filterSearch,recurringTransactions]);
 
     React.useEffect(() => {
       if (recurringTransactions) {
@@ -307,7 +308,7 @@ export const Transactions = () => {
 
           }
     }
-    }, [recurringTransactions]);
+    }, [recurringTransactions, categories, filterCategory]);
 
 
 
@@ -359,8 +360,7 @@ export const Transactions = () => {
 
 
 
-
-
+  
     function renderRow(props: ListChildComponentProps) {
       const { index, style } = props;
       const transaction = filterTransactions[index];
@@ -368,7 +368,11 @@ export const Transactions = () => {
       const transactionFlags = transactionFlagIds?.map((id) =>
         flagItems.find((flag) => flag.flagId === Number(id))
       );
-      console.log(transaction.Tracked)
+      
+      let runningTotal = filterBalance?.Amount || 0;
+      for (let i = 0; i < index; i++) {
+        runningTotal -= filterTransactions[i]?.Amount || 0;
+      }
       return (
         <ListItem style={style} key={index} sx={{ display: "flex" }}>
           <ListItemButton id="edit-transaction-button" onClick={() => {handleSetItem(transaction, handleOpen);}}>
@@ -394,7 +398,10 @@ export const Transactions = () => {
           </ListItemButton>
           <Box sx={{ flexGrow: 1 }} />
           <Typography align="right" variant="body2">
-            ${transaction?.Amount}
+          ${transaction?.Amount}
+          <Typography component="div" variant="caption" sx={{ color: 'text.secondary' }}>
+            ${runningTotal.toFixed(2)}
+          </Typography>
           </Typography>
           <Tooltip title="Add Flag">
           <IconButton ref={refs[index]} key={transaction.transactionID} className={index.toString()} onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleClickFlags(event, transaction, index)}>
@@ -716,7 +723,7 @@ export const Transactions = () => {
                         (transaction) => transaction.Category === newCategory
                       )
                     );
-                    if (filterSearch != "") {
+                    if (filterSearch !== "") {
                       setFilterTransactions(
                         transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === newCategory)
                       )
@@ -776,7 +783,7 @@ export const Transactions = () => {
                 flagItems={flagItems}
                 transaction={pickedFlagTransaction}
                 anchorEl={anchorEl}
-                open={pickedFlagTransaction? true : false && canOpen}
+                open={pickedFlagTransaction? true : false && false}
                 handleCloseFlags={handleCloseFlags}
                 handleOpenFlag={handleOpenFlag}
                 handleFlagChange={handleFlagChange} />

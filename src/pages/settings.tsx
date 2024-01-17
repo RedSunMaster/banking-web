@@ -3,28 +3,23 @@ import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography/Typography';
 import CardContent from '@mui/material/CardContent';
-import Cookies from 'js-cookie';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import Masonry from '@mui/lab/Masonry';
 import { DatabaseInformationContext } from '../utils/DatabaseInformation';
-import { Alert, Autocomplete, Button, FormControl, IconButton, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar, Switch, TextField, Tooltip, useTheme } from '@mui/material';
-import dayjs from 'dayjs';
-import axios, { AxiosError } from 'axios';
+import { Alert, IconButton, List, ListItem, ListItemText, Snackbar, Tooltip, useTheme } from '@mui/material';
 import checkIsLoggedIn from '../auth/auth';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgress } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import { Edit } from '@mui/icons-material';
 import AddCategoryModal from '../components/addCategoryModal';
 import AddFlagModal from '../components/addFlagModal';
 import CategoryItem from '../types/CategoryItem';
 import FlagItem from '../types/FlagItem';
 
 export const Settings = () => {
-  const { categories, balances, transactions, owedItems, user, flagItems, setUpdateFlags, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, count, setUpdateCount  } = React.useContext(DatabaseInformationContext);
+  const { categories, balances, flagItems, setUpdateFlags, setUpdateCategories, setUpdateBalances, setUpdateTransactions} = React.useContext(DatabaseInformationContext);
   const [openAlert, setOpenAlert] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
   const [openCategory, setOpenCategory] = React.useState(false);
 
   const [editCategory, setEditCategory] = React.useState<CategoryItem>();
@@ -48,15 +43,16 @@ export const Settings = () => {
 
   const navigate = useNavigate()
 
-  const onVisibilityChange = () => {
+  const onVisibilityChange = React.useCallback(() => {
     if (document.visibilityState === "visible") {
       checkIsLoggedIn().then((result) => {
         if (!result) {
-            navigate('/login')
+          navigate('/login');
         }
-      })
+      });
     }
-  };
+  }, [navigate]); // Include all dependencies that the function relies on
+  
 
 
   React.useLayoutEffect(() => {
@@ -64,7 +60,7 @@ export const Settings = () => {
 
     return () =>
       document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, []);
+  }, [onVisibilityChange]);
 
   React.useEffect(() => {
     checkIsLoggedIn().then((result) => {
@@ -78,7 +74,7 @@ export const Settings = () => {
     if (flagItems.length === 0) {
       setUpdateFlags(true)
     }
-  }, []);
+  }, [categories.length, flagItems.length, navigate, setUpdateCategories, setUpdateFlags]);
 
 
     
@@ -90,7 +86,6 @@ export const Settings = () => {
 
     setOpenAlert(false);
   };
-  const values = [1, 0.5, 0.25]; // 
 
   const handleSetCategory = (item: CategoryItem | undefined, callback: () => void) => {
     setEditCategory(item);
@@ -134,7 +129,7 @@ export const Settings = () => {
           {postMsg}
         </Alert>
         </Snackbar>
-        {isLoading ? (
+        {false ? (
             <CircularProgress sx={{zIndex:9999999999999999999}} />
           ) : categories.length === 0 && balances.length === 0 ? (
           // Display a message if there are no transactions

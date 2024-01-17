@@ -1,7 +1,7 @@
 import { Menu, MenuItem } from "@mui/material";
 import FlagItem from "../types/FlagItem";
 import Transaction from "../types/Transaction";
-import { Check, FormatAlignCenter } from "@mui/icons-material";
+import { Check } from "@mui/icons-material";
 
 interface FlagPickerProps {
     flagItems: FlagItem[],

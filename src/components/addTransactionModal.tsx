@@ -54,25 +54,26 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
   const theme = useTheme();
   const [notAchievedItems, setNotAchievedItems] = React.useState<GoalItem[]>([])
 
-  const updateState = (data: TransactionItem | undefined) => {
-    setCategory(data ? data.Category: inputCategory);
+  const updateState = React.useCallback((data: TransactionItem | undefined) => {
+    setCategory(data ? data.Category : inputCategory);
     setDescription(data ? data.Description : "");
     setAmount(data ? Math.abs(data.Amount) : 0);
     setDate(data ? dayjs(data.Date) : dayjs());
     setTransaction(data ? data.Transaction : "Withdraw");
-  };
-
-  const updateRecState = (data: RecurringTransactionItem | undefined) => {
-    setFrequency(data ? data.Frequency : 0)
+  }, [inputCategory, setCategory, setDescription, setAmount, setDate, setTransaction]);
+  
+  const updateRecState = React.useCallback((data: RecurringTransactionItem | undefined) => {
+    setFrequency(data ? data.Frequency : 0);
     setRecurring(data ? true : false);
     if (!item) {
-      setCategory(data ? data.Category: inputCategory);
+      setCategory(data ? data.Category : inputCategory);
       setDescription(data ? data.Description : "");
       setAmount(data ? Math.abs(data.Amount) : 0);
       setDate(data ? dayjs(data.Date) : dayjs());
       setTransaction(data ? data.Transaction : "Withdraw");
     }
-  };
+  }, [inputCategory, item, setCategory, setDescription, setAmount, setDate, setTransaction, setFrequency, setRecurring]);
+  
   
   
 
@@ -81,24 +82,24 @@ export const AddTransactionModal = ({categories, setUpdateTransactions, setUpdat
   React.useEffect(() => {
     updateState(editItem);
     updateRecState(editRecurringItem);
-  }, [editItem, editRecurringItem]);
+  }, [editItem, editRecurringItem, updateRecState, updateState]);
   
   React.useEffect(() => {
     setEditItem(item);
     setEditRecurringItem(recurringItem);
     updateState(item);
     updateRecState(recurringItem);
-  }, [item, recurringItem]);
+  }, [item, recurringItem, updateRecState, updateState]);
 
   React.useEffect(() => {
     setUpdateGoalItems(true);
-  }, [])
+  }, [setUpdateGoalItems])
   
 
   React.useEffect(() => {
     try {
       if (goalItems.length !== 0) {
-        const notAchievedItems = goalItems.filter((goalItem) => goalItem.achieved == false);
+        const notAchievedItems = goalItems.filter((goalItem) => goalItem.achieved === false);
         setNotAchievedItems(notAchievedItems);
       }
     } catch (error) {

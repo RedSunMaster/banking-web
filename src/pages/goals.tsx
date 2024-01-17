@@ -29,12 +29,12 @@ import Joyride, { ACTIONS, CallBackProps, EVENTS, STATUS, Step } from 'react-joy
 export const Goals = () => {
     const { categories, user, transactions, goalItems, setUpdateUser, setUpdateCategories, setUpdateTransactions, setUpdateGoalItems, count, setUpdateCount } = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
-    const [edit, setEdit] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const [openAlert, setOpenAlert] = React.useState(false);
     const [item, setItem] = React.useState<GoalItem | undefined>(undefined)
     const [postMsg, setPostMsg] = React.useState('')
+    const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
     const [achievedItems, setAchievedItems] = React.useState<GoalItem[]>([])
     const [notAchievedItems, setNotAchievedItems] = React.useState<GoalItem[]>([])
@@ -43,6 +43,7 @@ export const Goals = () => {
     const [stepIndex, setStepIndex] = React.useState(0);
 
   
+    const navigate = useNavigate()
 
     
     const [hadTutorial, setHadTutorial] = React.useState(true);
@@ -53,7 +54,7 @@ export const Goals = () => {
     
 
 
-    const fetchTutorialState = async () => {
+    const fetchTutorialState = React.useCallback(async () => {
       try {
         const authToken = Cookies.get('authToken');
         const response = await axios.get<TutorialResponse[]>(`${rootUrl}/api/tutorial`, {
@@ -66,11 +67,11 @@ export const Goals = () => {
       } catch (error) {
         return false;
       }
-    };
+    }, [rootUrl]); // Include all dependencies that the function relies on
     
-    const updateTutorialState = async () => {
+    
+    const updateTutorialState = React.useCallback(async () => {
       try {
-        const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
         const authToken = Cookies.get('authToken');
         await axios.patch(`${rootUrl}/api/tutorial`, null, {
           headers: { Authorization: `Bearer ${authToken}` },
@@ -79,11 +80,31 @@ export const Goals = () => {
           setHadTutorial(hadTutorial);
         });
       } catch (error) {
+        // Handle the error appropriately
       }
-    };  
-
-
+    }, [setHadTutorial,fetchTutorialState, rootUrl]); // Include all dependencies that the function relies on
+    
+    const onVisibilityChange = React.useCallback(() => {
+      if (document.visibilityState === "visible") {
+        checkIsLoggedIn().then((result) => {
+          if (!result) {
+            navigate('/login');
+          }
+        });
+      }
+    }, [navigate]); // Include all dependencies that the function relies on
+    
   
+  
+    React.useLayoutEffect(() => {
+      document.addEventListener("visibilitychange", onVisibilityChange);
+  
+      return () =>
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+    }, [onVisibilityChange]);
+
+
+
     const steps: Step[] = [
       {
         target: '.goalFab',
@@ -110,7 +131,7 @@ export const Goals = () => {
       if (count >= 4 && !hadTutorial) {
         updateTutorialState()
       }
-    }, [count]);
+    }, [count, hadTutorial, updateTutorialState]);
 
     const handleGoalSuccess = async (id: number) => {
       try{
@@ -146,24 +167,9 @@ export const Goals = () => {
       callback();
     };
 
-    const navigate = useNavigate()
 
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        checkIsLoggedIn().then((result) => {
-          if (!result) {
-              navigate('/login')
-          }
-        })
-      }
-    };
-  
-    React.useLayoutEffect(() => {
-      document.addEventListener("visibilitychange", onVisibilityChange);
-  
-      return () =>
-        document.removeEventListener("visibilitychange", onVisibilityChange);
-    }, []);
+
+
 
     React.useEffect(() => {
       checkIsLoggedIn().then((result) => {
@@ -174,6 +180,7 @@ export const Goals = () => {
     if (categories.length === 0) {
         setUpdateCategories(true);
     }
+    console.log(goalItems.length)
     if (goalItems.length === 0) {
       setUpdateGoalItems(true);
     }
@@ -186,15 +193,27 @@ export const Goals = () => {
     fetchTutorialState().then((hadTutorial) => {
       setHadTutorial(hadTutorial)
     })
-  }, []);
+  }, [categories.length,
+    goalItems.length,
+    user.email,
+    transactions.length, 
+    hadTutorial,
+    fetchTutorialState,
+    setUpdateCategories,
+    setUpdateGoalItems,
+    setUpdateTransactions,
+    setUpdateUser,
+    navigate
+    ]);
 
 
 
 
   React.useEffect(() => {
-    const notAchievedItems = goalItems.filter((goalItem) => goalItem.achieved == false);
+    const notAchievedItems = goalItems.filter((goalItem) => Boolean(goalItem.achieved) === false);
+    console.log(notAchievedItems)
     setNotAchievedItems(notAchievedItems);
-    setAchievedItems(goalItems.filter((goalItem) => goalItem.achieved == true));
+    setAchievedItems(goalItems.filter((goalItem) => Boolean(goalItem.achieved) === true));
   }, [goalItems, setUpdateGoalItems]);
   
 
@@ -208,8 +227,6 @@ export const Goals = () => {
     };
 
 
-
-  const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
   const handleSwitchTab = () => {
     setAchievedTab(!achievedTab)
@@ -480,7 +497,7 @@ export const Goals = () => {
           <Joyride
               stepIndex={stepIndex}
               callback={(data: CallBackProps) => {
-                const { status, action, type, index } = data;
+                const { status, action, type } = data;
                 if (status === STATUS.FINISHED) {
                   console.log("Ended")
                   setUpdateCount(true)

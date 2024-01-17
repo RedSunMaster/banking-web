@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 export const Account = () => {
-    const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
+    const { user, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const [email, setEmail] = useState('');
   const [fName, setfName] = useState('');
   const [lName, setlName] = useState('');
@@ -25,24 +25,23 @@ export const Account = () => {
 
     const navigate = useNavigate()
     
-    const onVisibilityChange = () => {
-        if (document.visibilityState === "visible") {
-          checkIsLoggedIn().then((result) => {
-            if (!result) {
-                navigate('/login')
-            }
-          })
-        }
-      };
+    const onVisibilityChange = React.useCallback(() => {
+      if (document.visibilityState === "visible") {
+        checkIsLoggedIn().then((result) => {
+          if (!result) {
+            navigate('/login');
+          }
+        });
+      }
+    }, [navigate]); // Include all dependencies that the function relies on
     
-
-
-      React.useLayoutEffect(() => {
-        document.addEventListener("visibilitychange", onVisibilityChange);
-    
-        return () =>
-          document.removeEventListener("visibilitychange", onVisibilityChange);
-      }, []);
+  
+    React.useLayoutEffect(() => {
+      document.addEventListener("visibilitychange", onVisibilityChange);
+  
+      return () =>
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+    }, [onVisibilityChange]);
 
 
     React.useEffect(() => {
@@ -54,7 +53,7 @@ export const Account = () => {
     if (user.fName === "") {
         setUpdateUser(true);
     }
-    }, []);
+    }, [navigate, setUpdateUser, user.fName]);
 
   React.useEffect(() => {
 

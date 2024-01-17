@@ -53,22 +53,23 @@ interface AddOwedItemProps {
 
 
     const theme = useTheme();
-    const updateState = (data: OwedItem | undefined) => {
-        setCategory(data ? data.Category: '');
-        setDescription(data ? data.Description : "");
-        setAmount(data ? Math.abs(data.Amount) : 0);
-        setDate(data ? dayjs(data.Date) : dayjs());
-        setPerson(data ? data.Person : inputPerson);
-      };
+    const updateState = React.useCallback((data: OwedItem | undefined) => {
+      setCategory(data ? data.Category : '');
+      setDescription(data ? data.Description : "");
+      setAmount(data ? Math.abs(data.Amount) : 0);
+      setDate(data ? dayjs(data.Date) : dayjs());
+      setPerson(data ? data.Person : inputPerson);
+    }, [setCategory, setDescription, setAmount, setDate, setPerson, inputPerson]);
+    
       
       React.useEffect(() => {
         updateState(editItem);
-      }, [editItem]);
+      }, [editItem, updateState]);
       
       React.useEffect(() => {
         setEditItem(item);
         updateState(item);
-      }, [item]);
+      }, [item, updateState]);
       
 
     const handleAddOwedItem = async (event: React.MouseEvent<HTMLButtonElement>) => {

@@ -9,7 +9,7 @@ interface OwedItem {
     Description: string;
     Date: Date;
     "Days Elapsed": number;
-    Payed: boolean
+    Payed: boolean;
   }
 
 export default OwedItem

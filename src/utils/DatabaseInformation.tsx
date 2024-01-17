@@ -333,7 +333,7 @@ export const DatabaseInformationContext = React.createContext<{
         setCount(count + 1);
         setUpdateCount(false);
       }
-    }, [updateCount]);
+    }, [updateCount, count]);
 
 
     React.useEffect(() => {

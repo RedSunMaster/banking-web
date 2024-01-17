@@ -11,9 +11,11 @@ async function checkIsLoggedIn(): Promise<boolean> {
       if (response.status === 200) {
         return true
       } else {
+        localStorage.clear()
         return false
       }
     } catch (error) {
+      localStorage.clear()
       return false
     }
   }

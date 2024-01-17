@@ -21,9 +21,7 @@ interface AddCategoryModalProps {
 
 
 export const AddBalanceModal = ({categories, setUpdateBalances, setOpenAlert, setPostMsg,open, handleOpenCategory, handleCloseCategory}: AddCategoryModalProps) => {
-    const [balanceName, setBalanceName] = React.useState('') 
-    const [openCategory, setOpenCategory] = React.useState(false);
-    
+    const [balanceName, setBalanceName] = React.useState('')     
 
     const theme = useTheme();
     const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
@@ -50,7 +48,6 @@ export const AddBalanceModal = ({categories, setUpdateBalances, setOpenAlert, se
         });
         if (response.status === 200) {
           setPostMsg("Successfully Added Balance");
-          setOpenCategory(false);
           setUpdateBalances(true);
         } else {
           setPostMsg("Error" + response.data);

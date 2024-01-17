@@ -1,11 +1,10 @@
-import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton, TextField, Tooltip } from "@mui/material";
+import { Modal, Fade, Box, FormControl, InputLabel, OutlinedInput, Button, Fab, useTheme, Grid, IconButton, Tooltip } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import React from "react";
 import { SwatchesPicker } from "react-color";
 import CategoryIcon from '@mui/icons-material/Category';
 import CloseIcon from '@mui/icons-material/Close';
-import Joyride, { CallBackProps, STATUS } from "react-joyride";
 import CategoryItem from "../types/CategoryItem";
 
 

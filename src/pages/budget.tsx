@@ -22,7 +22,7 @@ interface EnteredValues {
 }
 
 export const Budget = () => {
-  const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, count, setUpdateCount  } = React.useContext(DatabaseInformationContext);
+  const { categories, balances, setUpdateCategories, setUpdateBalances, setUpdateTransactions, count, setUpdateCount  } = React.useContext(DatabaseInformationContext);
   const [openAlert, setOpenAlert] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -30,8 +30,8 @@ export const Budget = () => {
   const [postMsg, setPostMsg] = React.useState('')
   const [toCategory, setToCategory] = React.useState('')
   const [fromCategory, setFromCategory] = React.useState('')
-  const [enteredValues, setEnteredValues] = React.useState<EnteredValues>({});
-  const [income, setIncome] = React.useState(0)
+  const [income, setIncome] = React.useState(localStorage.getItem('cachedIncome')? Number(localStorage.getItem('cachedIncome')) : 0)
+  const [enteredValues, setEnteredValues] = React.useState<EnteredValues>(localStorage.getItem('cachedEnteredValues')? JSON.parse(localStorage.getItem('cachedEnteredValues')!!) : {});
   const [transferAmount, setTransferAmount] = React.useState(0)
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
   const [distributeByPercentage, setDistributeByPercentage] = React.useState(false);
@@ -61,7 +61,8 @@ export const Budget = () => {
     },
   ];
 
-  const fetchTutorialState = async () => {
+
+  const fetchTutorialState = React.useCallback(async () => {
     try {
       const authToken = Cookies.get('authToken');
       const response = await axios.get<TutorialResponse[]>(`${rootUrl}/api/tutorial`, {
@@ -74,11 +75,12 @@ export const Budget = () => {
     } catch (error) {
       return false;
     }
-  };
+  }, [rootUrl]); // Include all dependencies that the function relies on
   
-  const updateTutorialState = async () => {
+  const navigate = useNavigate()
+
+  const updateTutorialState = React.useCallback(async () => {
     try {
-      const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
       const authToken = Cookies.get('authToken');
       await axios.patch(`${rootUrl}/api/tutorial`, null, {
         headers: { Authorization: `Bearer ${authToken}` },
@@ -87,8 +89,29 @@ export const Budget = () => {
         setHadTutorial(hadTutorial);
       });
     } catch (error) {
+      // Handle the error appropriately
     }
-  };  
+  }, [setHadTutorial,fetchTutorialState, rootUrl]); // Include all dependencies that the function relies on
+  
+  const onVisibilityChange = React.useCallback(() => {
+    if (document.visibilityState === "visible") {
+      checkIsLoggedIn().then((result) => {
+        if (!result) {
+          navigate('/login');
+        }
+      });
+    }
+  }, [navigate]); // Include all dependencies that the function relies on
+  
+
+
+  React.useLayoutEffect(() => {
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () =>
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [onVisibilityChange]);
+
 
   const handleNext = () => {
     setStepIndex((prevStepIndex) => prevStepIndex + 1);
@@ -99,30 +122,11 @@ export const Budget = () => {
     if (count >= 4 && !hadTutorial) {
       updateTutorialState()
     }
-  }, [count]);
+  }, [count, hadTutorial, updateTutorialState]);
 
 
   const theme = useTheme();
 
-  const navigate = useNavigate()
-
-  const onVisibilityChange = () => {
-    if (document.visibilityState === "visible") {
-      checkIsLoggedIn().then((result) => {
-        if (!result) {
-            navigate('/login')
-        }
-      })
-    }
-  };
-
-
-  React.useLayoutEffect(() => {
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    return () =>
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, []);
 
   React.useEffect(() => {
     checkIsLoggedIn().then((result) => {
@@ -139,7 +143,22 @@ export const Budget = () => {
     fetchTutorialState().then((hadTutorial) => {
       setHadTutorial(hadTutorial)
     })
-  }, []);
+    const cachedEnteredValues = localStorage.getItem('cachedEnteredValues');
+    if (cachedEnteredValues) {
+      const arrayOfItems = JSON.parse(cachedEnteredValues)
+      setEnteredValues(arrayOfItems);
+    }
+    const cachedIncome = localStorage.getItem('cachedIncome');
+    if (cachedIncome) {
+      setIncome(Number(cachedIncome));
+    }
+  }, [categories.length,
+    balances.length,
+    fetchTutorialState,
+    hadTutorial,
+    navigate, setUpdateBalances,
+    setUpdateCategories
+    ]);
 
 
 
@@ -147,7 +166,6 @@ export const Budget = () => {
     // Convert enteredValues from value to percentage or vice versa
     const convertedValues = Object.fromEntries(
       Object.entries(enteredValues).map(([category, value]) => {
-        const balance = balances.find((balance) => balance.Category === category)?.Amount || 0;
         if (distributeByPercentage) {
           // Convert from value to percentage
           return [category, Number(((value / income) * 100).toFixed(2))];
@@ -159,21 +177,8 @@ export const Budget = () => {
     );
 
     setEnteredValues(convertedValues);
-  }, [distributeByPercentage]);
-  
-  
-
-  // React.useEffect(() => {
-  //   setSum(Number(Object.values(enteredValues).reduce((acc, value) => acc + value, 0)))
-  //   if (distributeByPercentage) {
-  //     setLeftToDistribute(Number((100 - sum).toFixed(4)))
-  //   }
-  //   else {
-  //     setLeftToDistribute(income - sum);
-  //   }
-  // }, [enteredValues])
+  }, [distributeByPercentage, enteredValues, income]);
     
-  
   const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
@@ -190,7 +195,7 @@ export const Budget = () => {
       try {
         for (const category in enteredValues) {
           const value = distributeByPercentage ? (enteredValues[category] / 100 * income) : enteredValues[category];
-          if (value != 0) {
+          if (value !== 0) {
             const authToken = Cookies.get("authToken");
             const date = dayjs(new Date()).format("YYYY-MM-DD").toString();
             const data = {
@@ -206,6 +211,8 @@ export const Budget = () => {
             });
             if (response.status === 200) {
               setPostMsg("Successfully Distributed Income");
+              localStorage.setItem('cachedEnteredValues', JSON.stringify(enteredValues));
+              localStorage.setItem('cachedIncome', income.toString());
               setUpdateTransactions(true);
               setUpdateBalances(true);
             } else {
@@ -223,7 +230,7 @@ export const Budget = () => {
       }
       setOpenAlert(true);
     } else {
-      setPostMsg("Error: " + "Have not reached full allocation");
+      setPostMsg("Error: Have not reached full allocation");
       setOpenAlert(true);
     }
     setIsLoading(false);
@@ -234,7 +241,7 @@ export const Budget = () => {
   const handleTransfer = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     try {
-        if (transferAmount != 0) {
+        if (transferAmount !== 0) {
           const authToken = Cookies.get("authToken");
           const date = dayjs(new Date()).format("YYYY-MM-DD").toString();
           const toData = {
@@ -327,6 +334,7 @@ export const Budget = () => {
                       id="outlined-adornment-lNmae"
                       label="Income"
                       type="text"
+                      value={income === 0? '' : income}
                       onChange={(event) => {
                         let value = event.target.value;
                           setIncome(Number(value))
@@ -478,7 +486,7 @@ export const Budget = () => {
           <Joyride
               stepIndex={stepIndex}
               callback={(data: CallBackProps) => {
-                const { status, action, type, index } = data;
+                const { status, action, type } = data;
                 if (status === STATUS.FINISHED) {
                   console.log("Ended")
                   setUpdateCount(true)

@@ -29,8 +29,6 @@ import Joyride, { ACTIONS, CallBackProps, EVENTS, STATUS, Step } from 'react-joy
 export const MoneyOwed = () => {
     const { categories, user, owedItems, setUpdateUser, setUpdateCategories, setUpdateBalances, setUpdateOwedItems, count, setUpdateCount } = React.useContext(DatabaseInformationContext);
     const [open, setOpen] = React.useState(false);
-    const [edit, setEdit] = React.useState(false);
-    const [person, setPerson] = React.useState('');
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const [openAlert, setOpenAlert] = React.useState(false);
@@ -53,8 +51,9 @@ export const MoneyOwed = () => {
     }
     
 
+    const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
-    const fetchTutorialState = async () => {
+    const fetchTutorialState = React.useCallback(async () => {
       try {
         const authToken = Cookies.get('authToken');
         const response = await axios.get<TutorialResponse[]>(`${rootUrl}/api/tutorial`, {
@@ -67,11 +66,11 @@ export const MoneyOwed = () => {
       } catch (error) {
         return false;
       }
-    };
+    }, [rootUrl]); // Include all dependencies that the function relies on
     
-    const updateTutorialState = async () => {
+    
+    const updateTutorialState = React.useCallback(async () => {
       try {
-        const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
         const authToken = Cookies.get('authToken');
         await axios.patch(`${rootUrl}/api/tutorial`, null, {
           headers: { Authorization: `Bearer ${authToken}` },
@@ -80,8 +79,10 @@ export const MoneyOwed = () => {
           setHadTutorial(hadTutorial);
         });
       } catch (error) {
+        // Handle the error appropriately
       }
-    };  
+    }, [setHadTutorial,fetchTutorialState, rootUrl]); // Include all dependencies that the function relies on
+    
 
     const [stepIndex, setStepIndex] = React.useState(0);
   
@@ -144,22 +145,24 @@ export const MoneyOwed = () => {
 
     const navigate = useNavigate()
 
-    const onVisibilityChange = () => {
+    const onVisibilityChange = React.useCallback(() => {
       if (document.visibilityState === "visible") {
         checkIsLoggedIn().then((result) => {
           if (!result) {
-              navigate('/login')
+            navigate('/login');
           }
-        })
+        });
       }
-    };
+    }, [navigate]); // Include all dependencies that the function relies on
+    
+  
   
     React.useLayoutEffect(() => {
       document.addEventListener("visibilitychange", onVisibilityChange);
   
       return () =>
         document.removeEventListener("visibilitychange", onVisibilityChange);
-    }, []);
+    }, [onVisibilityChange]);
 
     React.useEffect(() => {
       checkIsLoggedIn().then((result) => {
@@ -170,6 +173,7 @@ export const MoneyOwed = () => {
     if (categories.length === 0) {
         setUpdateCategories(true);
     }
+
     if (owedItems.length === 0) {
         setUpdateOwedItems(true);
     }
@@ -179,7 +183,14 @@ export const MoneyOwed = () => {
     fetchTutorialState().then((hadTutorial) => {
       setHadTutorial(hadTutorial)
     })
-  }, []);
+  }, [categories.length,
+    owedItems.length,
+    user.email,
+    fetchTutorialState,
+    navigate,
+    setUpdateCategories,
+    setUpdateOwedItems,
+    setUpdateUser]);
 
 
   React.useEffect(() => {
@@ -187,7 +198,7 @@ export const MoneyOwed = () => {
     if (count >= 4 && !hadTutorial) {
       updateTutorialState()
     }
-  }, [count]);
+  }, [count, hadTutorial, updateTutorialState]);
 
 
 
@@ -196,9 +207,10 @@ export const MoneyOwed = () => {
   React.useEffect(() => {
     try {
       if (owedItems.length !== 0) {
-        const notPayedItems = owedItems.filter((owedItem) => owedItem.Payed == false);
+        console.log(owedItems)
+        const notPayedItems = owedItems.filter((owedItem) => Boolean(owedItem.Payed) === false);
         setNotPayedItems(notPayedItems);
-        setPayedItems(owedItems.filter((owedItem) => owedItem.Payed == true));
+        setPayedItems(owedItems.filter((owedItem) => Boolean(owedItem.Payed) === true));
         if (filterPerson === "") {
           setFilterPerson(notPayedItems[0].Person);
           const firstPerson = notPayedItems[0].Person;
@@ -208,8 +220,9 @@ export const MoneyOwed = () => {
         }
       }
     } catch (error) {
+      console.log(error)
     }
-  }, [owedItems]);
+  }, [owedItems, filterPerson]);
   
     
 
@@ -224,7 +237,6 @@ export const MoneyOwed = () => {
 
 
 
-  const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
 
   const handleSwitchTab = () => {
     setPayedTab(!payedTab)
@@ -475,7 +487,6 @@ export const MoneyOwed = () => {
                         onChange={(event: SelectChangeEvent<string>) => {
                           const newPerson = event.target.value as string;
                           setFilterPerson(newPerson);
-                          setPerson(newPerson);
                           setfilterPersonItems(
                             notPayedItems.filter((item) => item.Person === newPerson)
                           );
@@ -527,7 +538,7 @@ export const MoneyOwed = () => {
           <Joyride
               stepIndex={stepIndex}
               callback={(data: CallBackProps) => {
-                const { status, action, type, index } = data;
+                const { status, action, type } = data;
                 if (status === STATUS.FINISHED) {
                   console.log("Ended")
                   setUpdateCount(true)

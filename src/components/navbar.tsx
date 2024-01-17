@@ -14,7 +14,7 @@ import {
   Typography,
   Avatar,
   ListItemIcon,
-  ListItemButton, Icon, Modal, ThemeProvider, createTheme, Grid, Dialog, Popper, Tooltip
+  ListItemButton, Icon, Grid, Popper, Tooltip
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles'; // Correct import here
@@ -34,12 +34,10 @@ import FlagIcon from '@mui/icons-material/Flag';
 import McNutLogo from '../mcnutlogo.svg';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import Calculator from 'awesome-react-calculator'
-import { ReactCalculator } from "simple-react-calculator";
 import CloseIcon from '@mui/icons-material/Close';
 
 import SettingsIcon from '@mui/icons-material/Settings';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { AutoSizer } from 'react-virtualized';
 
 
 const drawerWidth = 240;
@@ -68,41 +66,12 @@ const settings = [
 ];
 
 export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDarkMode, setIsDarkMode }) => {
-  const { categories, balances, transactions, owedItems, user, setUpdateValues, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser } = React.useContext(DatabaseInformationContext);
+  const {  user, setUpdateUser } = React.useContext(DatabaseInformationContext);
   const theme = useTheme(); // This line automatically gets the current theme object
   document.documentElement.style.setProperty('--background-color', theme.palette.mode === 'dark' ? '#141314' : '#e0dee0');
   document.documentElement.style.setProperty('--color', theme.palette.mode === 'dark' ? 'white' : 'black');
 
-  const [open, setOpen] = React.useState(false);
-
-  const themeOptions = createTheme({
-    typography: {
-      fontFamily: 'Poppins, sans-serif',
-    },
-    palette: {
-      mode: 'light',
-      primary: {
-        main: '#aeb2af',
-      },
-      secondary: {
-        main: '#ebeaeb',
-      },
-      background: {
-        default: '#fdfcfd',
-      },
-      text: {
-        primary: '#100f10',
-      },
-      info: {
-        main: '#e0dee0',
-      }
   
-    },
-  });
-
-  const openCalculator = () => {
-    setOpen(true);
-  };
   const navigate = useNavigate();
   const [openCalculatorModal, setOpenCalculatorModal] = React.useState(false);
   const handleModalToggle = () => {
@@ -126,38 +95,9 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
     if (user.fName === "") {
         setUpdateUser(true);
     }
-  }, [user]);
+  }, [user, setUpdateUser]);
 
-
-  React.useEffect(() => {
-    if (isLoggedIn) {
-      setUpdateUser(true);
-      fetchDarkMode().then((darkMode) => {
-        setIsDarkMode(darkMode);
-      });
-    }
-  }, [isLoggedIn]);
-  
-
-  const logoutUser = async () => {
-    try {
-      const authToken = Cookies.get('authToken');
-      await axios.post(`${rootUrl}/api/logout`, null, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      Cookies.remove('authToken');
-      setIsLoggedIn(false);
-      navigate('/login');
-    } catch (error) {
-    }
-  };
-
-
-  interface DarkModeResponse {
-    darkMode: boolean;
-  }
-  
-  const fetchDarkMode = async () => {
+  const fetchDarkMode = React.useCallback(async () => {
     try {
       const authToken = Cookies.get('authToken');
       const response = await axios.get<DarkModeResponse[]>(`${rootUrl}/api/darkMode`, {
@@ -170,7 +110,39 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
     } catch (error) {
       return false;
     }
+  }, [rootUrl]); // Include all dependencies that the function relies on
+  
+
+  React.useEffect(() => {
+    if (isLoggedIn) {
+      setUpdateUser(true);
+      fetchDarkMode().then((darkMode) => {
+        setIsDarkMode(darkMode);
+      });
+    }
+  }, [isLoggedIn, fetchDarkMode, setIsDarkMode, setUpdateUser]);
+  
+
+  const logoutUser = async () => {
+    try {
+      const authToken = Cookies.get('authToken');
+      await axios.post(`${rootUrl}/api/logout`, null, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      Cookies.remove('authToken');
+      localStorage.clear()
+      setIsLoggedIn(false);
+      navigate('/login');
+    } catch (error) {
+    }
   };
+
+
+  interface DarkModeResponse {
+    darkMode: boolean;
+  }
+  
+
   
 
   const updateDarkMode = async () => {
@@ -201,7 +173,7 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
         <Container maxWidth={false}>
           <Toolbar>
             <Icon>
-              <img src={McNutLogo} height={25} width={25}/>
+              <img src={McNutLogo} alt='McNut Enterprise' height={25} width={25}/>
             </Icon>
             <Box
               sx={{
@@ -234,11 +206,13 @@ export const NavBar: React.FC<NavBarProps> = ({ isLoggedIn, setIsLoggedIn, isDar
             </Box>
           <Box sx={{ flexGrow: 0 }}>
           <Tooltip title="Refresh">
-            <IconButton
-              size='large'
-              onClick={() => {navigate(0)}}
-              sx={{marginRight:'10px'}}
-            ><RefreshIcon/></IconButton></Tooltip>
+          <IconButton
+            size='large'
+            onClick={() => { window.location.reload() }}
+            sx={{ marginRight: '10px' }}
+          >
+            <RefreshIcon/>
+          </IconButton></Tooltip>
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
