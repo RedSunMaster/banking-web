@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import checkIsLoggedIn from '../auth/auth';
 import { AddCategoryModal } from '../components/addCategoryModal';
 import AddTransactionModal from '../components/addTransactionModal';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 import AddIcon from '@mui/icons-material/Add';
 import AddBalanceModal from '../components/addBalanceModal';
@@ -23,10 +23,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import Joyride, {CallBackProps, STATUS, ACTIONS,EVENTS, Step} from 'react-joyride';
 import dayjs from 'dayjs';
-
+import { DragHandle } from '@mui/icons-material';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import BalanceItem from '../types/BalanceItem';
 
 export const Dashboard = () => {
   const { categories, balances, filteredBalances, customBalances, transactions, goalItems, flagItems, recurringTransactions, setUpdateFlags, setUpdateGoalItems,setUpdateRecTransactions, owedItems, user, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateOwedItems, setUpdateUser, count, setUpdateCount } = React.useContext(DatabaseInformationContext);
+  const [tempBalances, setTempBalances] = React.useState<BalanceItem[]>([])
   const [openAlert, setOpenAlert] = React.useState(false);
   const [postMsg, setPostMsg] = React.useState('')
   const [open, setOpen] = React.useState(false);
@@ -97,6 +100,8 @@ export const Dashboard = () => {
     }
   }, [count, hadTutorial, updateTutorialState]);
   
+  
+
 
 
 
@@ -316,11 +321,6 @@ export const Dashboard = () => {
   });
 
   React.useEffect(() => {
-    checkIsLoggedIn().then((result) => {
-      if (!result) {
-          navigate('/login')
-      }
-    })
     if (user.fName === "") {
       setUpdateUser(true);
     }
@@ -331,24 +331,29 @@ export const Dashboard = () => {
         setUpdateBalances(true);
     }
     if (transactions.length === 0) {
-      setUpdateTransactions(true);
+        setUpdateTransactions(true);
     }
     if (owedItems.length === 0) {
-      setUpdateOwedItems(true);
+        setUpdateOwedItems(true);
     }
     if (goalItems.length === 0) {
-      setUpdateGoalItems(true);
+        setUpdateGoalItems(true);
     }
     if (flagItems.length === 0) {
-      setUpdateFlags(true)
+        setUpdateFlags(true)
     }
     if (recurringTransactions.length === 0) {
-      setUpdateRecTransactions(true)
+        setUpdateRecTransactions(true)
     }
     fetchTutorialState().then((hadTutorial) => {
-      setHadTutorial(hadTutorial)
+        setHadTutorial(hadTutorial)
     })
-  });
+  }, []);
+
+
+  React.useEffect(() => {
+    setTempBalances(balances)
+  },[balances])
 
 
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
@@ -487,7 +492,7 @@ export const Dashboard = () => {
     }));
     
 
-    const totalBalance = balances.reduce(
+    const totalBalance = tempBalances.reduce(
       (sum, balance) => sum + balance.Amount,
       0
     );
@@ -611,6 +616,55 @@ export const Dashboard = () => {
       const today = dayjs();
       return endDate.diff(today, 'day')+1;
     }
+    const handleDragEnd = async (result: DropResult) => {
+      if (!result.destination) {
+        return;
+      }
+    
+      const items = Array.from(tempBalances);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
+    
+      // Update the sortId of each item according to its new position
+      const updatedItems = items.map((item, index) => ({
+        ...item,
+        sortId: index  // Assuming sortId starts from 0
+      }));
+      setTempBalances(updatedItems)
+      // Find the items that have changed
+      const changedItems = updatedItems.filter((item, index) => item.sortId !== tempBalances[index].SortId);
+    
+      for (const item of changedItems) {
+        try {
+          const authToken = Cookies.get("authToken");
+          const data = {
+            "categoryName": item.Category,
+            "sortId": item.sortId,
+          };
+      
+          const response = await axios.patch(`${rootUrl}/api/reorder`, data, {
+            headers: { Authorization: `Bearer ${authToken}` },
+          });
+          if (response.status === 200) {
+    
+          } else {
+            setPostMsg("Error" + response.data);
+          }
+        } catch (error) {
+          if (error instanceof AxiosError) {
+            // Handle Axios error
+            const responseData = error.response?.data;
+            setPostMsg("Error: " + responseData)
+          }
+        }
+        setOpenAlert(true);
+      }
+      setPostMsg("Successfully Updated Order");
+      setUpdateCategories(true);
+      setUpdateBalances(true);    
+    };
+    
+    
 
 
     return (
@@ -701,48 +755,65 @@ export const Dashboard = () => {
           <Grid xs={2} sm={4} md={4} lg={8} xl={6}>
             <Card elevation={4} >
               <CardContent sx={{bgcolor: theme.palette.info.main}}>
-              <List sx={{width:'100%'}}>
-                {balances.map((balance) => (
-                  <Box 
-                    sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}
-                    onClick={(event) => {
-                      // Check if the target is not the checkbox
-                      if ((event.target as HTMLInputElement).type !== 'checkbox') {
-                        navigate(`/transactions?category=${balance.Category}`)
-                      }
-                    }}
-                  >
-                    <ListItem>
-                      <Checkbox
-                        color='primary'
-                        checked={filteredBalances.map((balance) => balance.Category).includes(balance.Category)}
-                        onChange={async (event) => {
-                          try {
-                            const authToken = Cookies.get("authToken");
-                            const data = {
-                              "action": event.target.checked ? 'add' : 'remove',
-                              "categoryName": balance.Category
-                            };
-                            const response = await axios.patch(`${rootUrl}/api/filteredCategories`, data, {
-                              headers: { Authorization: `Bearer ${authToken}` },
-                            });
-                            if (response.status === 200) {
-                              setUpdateBalances(true);
-                            }
-                          } catch(error) {
-                            
-                          }
-                        }}
-                      />
-                      <ListItemText primary={balance.Category.toUpperCase()}/>
-                      <Box sx={{ flexGrow: 1 }} />
-                      <Typography align="right" variant="body2">
-                        {<b>${balance?.Amount}</b>}
-                      </Typography>
-                    </ListItem>
-                  </Box>
-                ))}
-              </List>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="balances">
+                  {(provided) => (
+                    <List sx={{width:'100%'}} {...provided.droppableProps} ref={provided.innerRef}>
+                      {tempBalances.map((balance, index) => (
+                        <Draggable key={balance.Category} draggableId={balance.Category} index={index}>
+                          {(provided) => (
+                            <Box 
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              sx={{border: '4px solid ' + balance.Colour + '40', borderRadius: '10px', padding: '5px', backgroundColor: balance.Colour + '40', marginBottom:'5px'}}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                // Check if the target is not the checkbox
+                                if ((event.target as HTMLInputElement).type !== 'checkbox') {
+                                  navigate(`/transactions?category=${balance.Category}`)
+                                }
+                              }}
+                            >
+                              <ListItem>
+                                <div {...provided.dragHandleProps}>
+                                  <DragHandle />
+                                </div>
+                                <Checkbox
+                                  color='primary'
+                                  checked={filteredBalances.map((balance) => balance.Category).includes(balance.Category)}
+                                  onChange={async (event) => {
+                                    try {
+                                      const authToken = Cookies.get("authToken");
+                                      const data = {
+                                        "action": event.target.checked ? 'add' : 'remove',
+                                        "categoryName": balance.Category
+                                      };
+                                      const response = await axios.patch(`${rootUrl}/api/filteredCategories`, data, {
+                                        headers: { Authorization: `Bearer ${authToken}` },
+                                      });
+                                      if (response.status === 200) {
+                                        setUpdateBalances(true);
+                                      }
+                                    } catch(error) {
+                                      
+                                    }
+                                  }}
+                                />
+                                <ListItemText primary={balance.Category.toUpperCase()}/>
+                                <Box sx={{ flexGrow: 1 }} />
+                                <Typography align="right" variant="body2">
+                                  {<b>${balance?.Amount}</b>}
+                                </Typography>
+                              </ListItem>
+                            </Box>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </List>
+                  )}
+                </Droppable>
+              </DragDropContext>
 
 
               </CardContent>

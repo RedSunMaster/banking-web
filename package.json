@@ -29,6 +29,7 @@
     "env-cmd": "^10.1.0",
     "js-cookie": "^3.0.5",
     "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-chartjs-2": "^5.2.0",
     "react-color": "^2.19.3",
     "react-dom": "^18.2.0",
@@ -70,6 +71,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-color": "^3.0.6",
     "@types/react-virtualized": "^9.21.22",
     "@types/react-window": "^1.8.5",

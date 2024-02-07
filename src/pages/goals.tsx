@@ -172,15 +172,9 @@ export const Goals = () => {
 
 
     React.useEffect(() => {
-      checkIsLoggedIn().then((result) => {
-        if (!result) {
-            navigate('/login')
-        }
-      })
     if (categories.length === 0) {
         setUpdateCategories(true);
     }
-    console.log(goalItems.length)
     if (goalItems.length === 0) {
       setUpdateGoalItems(true);
     }
@@ -193,18 +187,7 @@ export const Goals = () => {
     fetchTutorialState().then((hadTutorial) => {
       setHadTutorial(hadTutorial)
     })
-  }, [categories.length,
-    goalItems.length,
-    user.email,
-    transactions.length, 
-    hadTutorial,
-    fetchTutorialState,
-    setUpdateCategories,
-    setUpdateGoalItems,
-    setUpdateTransactions,
-    setUpdateUser,
-    navigate
-    ]);
+  },[]);
 
 
 

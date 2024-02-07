@@ -30,12 +30,15 @@ export const Budget = () => {
   const [postMsg, setPostMsg] = React.useState('')
   const [toCategory, setToCategory] = React.useState('')
   const [fromCategory, setFromCategory] = React.useState('')
-  const [income, setIncome] = React.useState(localStorage.getItem('cachedIncome')? Number(localStorage.getItem('cachedIncome')) : 0)
+  const [income, setIncome] = React.useState(() => {
+    const cachedIncome = localStorage.getItem('cachedIncome');
+    return cachedIncome ? cachedIncome : '0'; // Store as a string
+  });
+  
   const [enteredValues, setEnteredValues] = React.useState<EnteredValues>(localStorage.getItem('cachedEnteredValues')? JSON.parse(localStorage.getItem('cachedEnteredValues')!!) : {});
   const [transferAmount, setTransferAmount] = React.useState(0)
   const rootUrl = process.env.NODE_ENV === "production" ? "https://banking.mcnut.net:8080" : ""
-  const [distributeByPercentage, setDistributeByPercentage] = React.useState(false);
-
+  const [distributeByPercentage, setDistributeByPercentage] = React.useState(false)
   
   const [hadTutorial, setHadTutorial] = React.useState(true);
 
@@ -60,7 +63,6 @@ export const Budget = () => {
       disableBeacon: true,
     },
   ];
-
 
   const fetchTutorialState = React.useCallback(async () => {
     try {
@@ -129,11 +131,7 @@ export const Budget = () => {
 
 
   React.useEffect(() => {
-    checkIsLoggedIn().then((result) => {
-      if (!result) {
-          navigate('/login')
-      }
-    })
+
     if (categories.length === 0) {
         setUpdateCategories(true);
     }
@@ -143,41 +141,27 @@ export const Budget = () => {
     fetchTutorialState().then((hadTutorial) => {
       setHadTutorial(hadTutorial)
     })
-    const cachedEnteredValues = localStorage.getItem('cachedEnteredValues');
-    if (cachedEnteredValues) {
-      const arrayOfItems = JSON.parse(cachedEnteredValues)
-      setEnteredValues(arrayOfItems);
-    }
-    const cachedIncome = localStorage.getItem('cachedIncome');
-    if (cachedIncome) {
-      setIncome(Number(cachedIncome));
-    }
-  }, [categories.length,
-    balances.length,
-    fetchTutorialState,
-    hadTutorial,
-    navigate, setUpdateBalances,
-    setUpdateCategories
-    ]);
+  }, []);
 
 
 
-  React.useEffect(() => {
-    // Convert enteredValues from value to percentage or vice versa
-    const convertedValues = Object.fromEntries(
-      Object.entries(enteredValues).map(([category, value]) => {
-        if (distributeByPercentage) {
-          // Convert from value to percentage
-          return [category, Number(((value / income) * 100).toFixed(2))];
-        } else {
-          // Convert from percentage to value
-          return [category, Number(((value / 100) * income).toFixed(2))];
-        }
-      })
-    );
-
-    setEnteredValues(convertedValues);
-  }, [distributeByPercentage, enteredValues, income]);
+    React.useEffect(() => {
+      setEnteredValues(prevValues => {
+        const convertedValues = Object.fromEntries(
+          Object.entries(prevValues).map(([category, value]) => {
+            if (distributeByPercentage) {
+              // Convert from value to percentage
+              return [category, Number(((value / Number(income)) * 100).toFixed(2))];
+            } else {
+              // Convert from percentage to value
+              return [category, Number(((value / 100) * Number(income)).toFixed(2))];
+            }
+          })
+        );
+        return convertedValues;
+      });
+    }, [distributeByPercentage, income]);
+    
     
   const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
@@ -191,10 +175,10 @@ export const Budget = () => {
   const handleDistributeBudget = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     setIsLoading(true);
-    if ((distributeByPercentage && Number(sum.toFixed(2)) === 100) || (!distributeByPercentage && Number(sum.toFixed(2)) === income)) {
+    if ((distributeByPercentage && Number(sum.toFixed(2)) === 100) || (!distributeByPercentage && Number(sum.toFixed(2)) === Number(income))) {
       try {
         for (const category in enteredValues) {
-          const value = distributeByPercentage ? (enteredValues[category] / 100 * income) : enteredValues[category];
+          const value = distributeByPercentage ? (enteredValues[category] / 100 * Number(income)) : enteredValues[category];
           if (value !== 0) {
             const authToken = Cookies.get("authToken");
             const date = dayjs(new Date()).format("YYYY-MM-DD").toString();
@@ -211,9 +195,22 @@ export const Budget = () => {
             });
             if (response.status === 200) {
               setPostMsg("Successfully Distributed Income");
-              localStorage.setItem('cachedEnteredValues', JSON.stringify(enteredValues));
-              localStorage.setItem('cachedIncome', income.toString());
-              setUpdateTransactions(true);
+              if (distributeByPercentage) {
+                // Convert each value to percentage and multiply by 100 before storing
+                const valuesAsPercentages = Object.fromEntries(
+                  Object.entries(enteredValues).map(([category, value]) => {
+                    return [category, Number(((value / 100) * Number(income)))];
+                  })
+                );
+                localStorage.setItem('cachedEnteredValues', JSON.stringify(valuesAsPercentages));
+              } else {
+                localStorage.setItem('cachedEnteredValues', JSON.stringify(enteredValues));
+              }
+              
+              const numericIncome = Number(income);
+              // Don't forget to update the localStorage with the numeric value when necessary
+              localStorage.setItem('cachedIncome', numericIncome.toString());              setUpdateTransactions(true);
+              setUpdateTransactions(true)
               setUpdateBalances(true);
             } else {
               setPostMsg("Error" + response.data);
@@ -293,7 +290,7 @@ export const Budget = () => {
   if (distributeByPercentage) {
     leftToAllocate = Number((100 - sum).toFixed(4))
   } else {
-    leftToAllocate = income - sum;
+    leftToAllocate = Number(income) - sum;
   }
   
 
@@ -329,18 +326,20 @@ export const Budget = () => {
                   </Grid>
                   <Grid>
                   <FormControl sx={{width:200}}>
-                      <InputLabel htmlFor="outlined-adornment-fName">Income</InputLabel>
-                      <OutlinedInput
-                      id="outlined-adornment-lNmae"
-                      label="Income"
-                      type="text"
-                      value={income === 0? '' : income}
-                      onChange={(event) => {
-                        let value = event.target.value;
-                          setIncome(Number(value))
-                      }}
-                    />
-
+                      <Autocomplete
+                        id="outlined-adornment-description"
+                        options={[]}
+                        freeSolo
+                        value={income ? income : ''}
+                        onInputChange={(event, newValue) => {
+                          if (newValue !== null) {
+                            setIncome(newValue)
+                          }
+                        }}
+                        renderInput={(params) => (
+                          <TextField {...params} label={"Income"} variant="outlined" />
+                        )}
+                      />
 
 
 
@@ -352,10 +351,10 @@ export const Budget = () => {
                   <span
                     style={{
                       fontWeight: 'bold',
-                      color: ((distributeByPercentage && Number(sum.toFixed(2)) === 100) || (!distributeByPercentage && Number(sum.toFixed(2)) === income)) ? 'green' : 'red',
+                      color: ((distributeByPercentage && Number(sum.toFixed(2)) === 100) || (!distributeByPercentage && Number(sum.toFixed(2)) === Number(income))) ? 'green' : 'red',
                     }}
                   >
-                    {distributeByPercentage ? `${sum.toFixed(2)}%` : `${(sum / income * 100).toFixed(2)}%`}
+                    {distributeByPercentage ? `${sum.toFixed(2)}%` : `${(sum / Number(income) * 100).toFixed(2)}%`}
                   </span>
                 </Typography>
 
@@ -388,7 +387,7 @@ export const Budget = () => {
                     <ListItem>                      
                       <ListItemText
                         primary={balance.Category.toUpperCase()}
-                        secondary={`${balance.Amount} (${distributeByPercentage ? (balance.Amount + (enteredValues[balance.Category] || 0) / 100 * income).toFixed(2) : (balance.Amount + (isNaN(enteredValues[balance.Category]) ? 0 : +enteredValues[balance.Category])).toFixed(2)})`}
+                        secondary={`${balance.Amount} (${distributeByPercentage ? (balance.Amount + (enteredValues[balance.Category] || 0) / 100 * Number(income)).toFixed(2) : (balance.Amount + (isNaN(enteredValues[balance.Category]) ? 0 : +enteredValues[balance.Category])).toFixed(2)})`}
                       />
                       <Box sx={{ flexGrow: 1 }} />
 

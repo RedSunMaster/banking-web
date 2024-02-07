@@ -42,6 +42,7 @@ interface TransactionGroup {
 
 export const Transactions = () => {
     const { categories, balances, transactions, goalItems,recurringTransactions, flagItems,setUpdateRecTransactions, setUpdateGoalItems, setUpdateCategories, setUpdateBalances, setUpdateTransactions, setUpdateFlags } = React.useContext(DatabaseInformationContext);
+    const [tempTransactions, setTempTransactions] = React.useState<TransactionItem[]>([])
     const [category, setCategory] = React.useState('');
     const [openAlert, setOpenAlert] = React.useState(false);
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',]
@@ -63,7 +64,9 @@ export const Transactions = () => {
     const [pickedFlagTransaction, setPickedFlagTransactionTransactionId] = React.useState<Transaction | null>(null);
 
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
-
+    React.useEffect(() => {
+      setTempTransactions(transactions)
+    },[transactions])
 
     const handleClickFlags = (event: React.MouseEvent<HTMLButtonElement>, transaction: Transaction, index: number) => {
       setAnchorEl(event.currentTarget)
@@ -160,11 +163,7 @@ export const Transactions = () => {
     }, [onVisibilityChange]);
 
     React.useEffect(() => {
-      checkIsLoggedIn().then((result) => {
-        if (!result) {
-          navigate('/login');
-        }
-      });
+
     
       if (transactions.length === 0) {
         setUpdateTransactions(true);
@@ -181,19 +180,7 @@ export const Transactions = () => {
       if (recurringTransactions.length === 0) {
         setUpdateRecTransactions(true);
       }
-    }, [
-      balances.length,
-      categories.length,
-      flagItems.length,
-      navigate,
-      recurringTransactions.length,
-      setUpdateBalances,
-      setUpdateCategories,
-      setUpdateFlags,
-      setUpdateRecTransactions,
-      setUpdateTransactions,
-      transactions.length,
-    ]);
+    }, []);
     
 
     React.useEffect(() => {
@@ -209,80 +196,36 @@ export const Transactions = () => {
     }, [filterSearch, unSearchedTransactions])
 
 
-    React.useEffect(() => {
-      if (transactions) {
-        if (transactions.length !== 0) {
-        if (filterCategory === "") {
-          const urlParams = new URLSearchParams(window.location.search);
-          const category = urlParams.get('category');
-          if (category) {
-            setFilterCategory(category);
-            setCategory(category)
-            setFilterBalance(balances.find((balance) => balance.Category === category))
-            setUnSearchedTransactions(transactions.filter((transaction) => transaction.Category === category))
-            if (filterSearch !== "") {
-              setFilterTransactions(
-                transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === category)
-              )
-            } else {
-              setFilterTransactions(
-                transactions.filter((transaction) => transaction.Category === category)
-              )
-            }
-            setFilterRecTransactions(
-              recurringTransactions.filter(
-                (transaction) => transaction.Category === category)
-              )
-          } else {
-            setFilterCategory(categories[0].categoryName)
-            setCategory(categories[0].categoryName)
-            setFilterBalance(balances.find((balance) => balance.Category === categories[0].categoryName))
-            setUnSearchedTransactions(
-              transactions.filter(
-                (transaction) => transaction.Category === categories[0].categoryName
-              )
-            );
-            if (filterSearch !== "") {
-              setFilterTransactions(
-                transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === categories[0].categoryName)
-              )
-            } else {
-              setFilterTransactions(
-                transactions.filter(
-                  (transaction) => transaction.Category === categories[0].categoryName
-                )              )
-            }
-            setFilterRecTransactions(
-              recurringTransactions.filter(
-                (transaction) => transaction.Category === categories[0].categoryName)
-              )
-          }
-        } else {
-            setUnSearchedTransactions(
-              transactions.filter(
-                (transaction) => transaction.Category === filterCategory
-              )
-            );
-            if (filterSearch !== "") {
-              setFilterTransactions(
-                transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === filterCategory)
-              )
-            } else {
-              setFilterTransactions(
-                transactions.filter(
-                  (transaction) => transaction.Category === filterCategory
-                )              )
-            }
-            setFilterRecTransactions(
-              recurringTransactions.filter(
-                (transaction) => transaction.Category === filterCategory)
-              )
-            setFilterBalance(balances.find((balance) => balance.Category === filterCategory))
+    // Use useMemo to memoize categories and balances if they are derived from props or state
+const memoizedCategories = React.useMemo(() => categories, [categories]);
+const memoizedBalances = React.useMemo(() => balances, [balances]);
 
-          }
-      }
+React.useEffect(() => {
+  // Only run this effect if transactions and balances are not empty
+  if (transactions.length > 0 && memoizedBalances.length > 0) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryFromURL = urlParams.get('category') || memoizedCategories[0].categoryName;
+    const filteredTransactions = transactions.filter((transaction) => transaction.Category === categoryFromURL);
+    const filteredRecurringTransactions = recurringTransactions.filter((transaction) => transaction.Category === categoryFromURL);
+    const balanceForCategory = memoizedBalances.find((balance) => balance.Category === categoryFromURL);
+
+    setFilterCategory(categoryFromURL);
+    setCategory(categoryFromURL);
+    setFilterBalance(balanceForCategory);
+    setUnSearchedTransactions(filteredTransactions);
+
+    if (filterSearch !== "") {
+      setFilterTransactions(
+        filteredTransactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()))
+      );
+    } else {
+      setFilterTransactions(filteredTransactions);
     }
-    }, [transactions, balances, filterCategory,categories,filterSearch,recurringTransactions]);
+
+    setFilterRecTransactions(filteredRecurringTransactions);
+  }
+}, [transactions, memoizedBalances, memoizedCategories, filterSearch, recurringTransactions]);
+
 
     React.useEffect(() => {
       if (recurringTransactions) {
@@ -518,7 +461,7 @@ export const Transactions = () => {
         transaction.Tracked
     );
 
-    const totalFilteredTransactionsLineChart = transactions.filter(
+    const totalFilteredTransactionsLineChart = tempTransactions.filter(
       (transaction) =>
         transaction.Amount < 0 &&
         transaction.Tracked
@@ -594,7 +537,7 @@ export const Transactions = () => {
     }, {} as Record<number, TransactionItem[]>);
 
     const monthlySums = Object.entries(groupedTransactions).map(([year, transactions]) => {
-      const sums = transactions.reduce((acc, transaction) => {
+      const sums = tempTransactions.reduce((acc, transaction) => {
         const month = transaction.Date.getMonth();
         acc[month] += transaction.Amount;
         return acc;
@@ -719,13 +662,13 @@ export const Transactions = () => {
                     setFilterCategory(newCategory);
                     setCategory(newCategory);
                     setUnSearchedTransactions(
-                      transactions.filter(
+                      tempTransactions.filter(
                         (transaction) => transaction.Category === newCategory
                       )
                     );
                     if (filterSearch !== "") {
                       setFilterTransactions(
-                        transactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === newCategory)
+                        tempTransactions.filter((transaction) => transaction.Description.toLowerCase().trim().includes(filterSearch.toLowerCase().trim()) && transaction.Category === newCategory)
                       )
                     } else {
                       setFilterTransactions(

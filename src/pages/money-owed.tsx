@@ -165,11 +165,7 @@ export const MoneyOwed = () => {
     }, [onVisibilityChange]);
 
     React.useEffect(() => {
-      checkIsLoggedIn().then((result) => {
-        if (!result) {
-            navigate('/login')
-        }
-      })
+
     if (categories.length === 0) {
         setUpdateCategories(true);
     }
@@ -183,14 +179,7 @@ export const MoneyOwed = () => {
     fetchTutorialState().then((hadTutorial) => {
       setHadTutorial(hadTutorial)
     })
-  }, [categories.length,
-    owedItems.length,
-    user.email,
-    fetchTutorialState,
-    navigate,
-    setUpdateCategories,
-    setUpdateOwedItems,
-    setUpdateUser]);
+  }, []);
 
 
   React.useEffect(() => {
@@ -208,9 +197,10 @@ export const MoneyOwed = () => {
     try {
       if (owedItems.length !== 0) {
         console.log(owedItems)
-        const notPayedItems = owedItems.filter((owedItem) => Boolean(owedItem.Payed) === false);
+        const notPayedItems = owedItems.filter((owedItem) => owedItem.Payed === false);
+        console.log(notPayedItems)
         setNotPayedItems(notPayedItems);
-        setPayedItems(owedItems.filter((owedItem) => Boolean(owedItem.Payed) === true));
+        setPayedItems(owedItems.filter((owedItem) => owedItem.Payed === true));
         if (filterPerson === "") {
           setFilterPerson(notPayedItems[0].Person);
           const firstPerson = notPayedItems[0].Person;

@@ -266,17 +266,14 @@ export const DatabaseInformationContext = React.createContext<{
     const [balances, setBalances] = React.useState<BalanceItem[]>([]);
     const [filteredBalances, setFilteredBalances] = React.useState<BalanceItem[]>([]);
     const [customBalances, setCustomBalances] = React.useState<TotalItem[]>([]);
-
     const [transactions, setTransactions] = React.useState<TransactionItem[]>([]);
     const [recurringTransactions, setRecTransactions] = React.useState<RecurringTransactionItem[]>([]);
-
     const [owedItems, setOwedItems] = React.useState<OwedItem[]>([]);
     const [goalItems, setGoalItems] = React.useState<GoalItem[]>([]);
     const [flagItems, setFlagItems] = React.useState<FlagItem[]>([]);
 
 
     const [count, setCount] = React.useState(0);
-
     const [updateCount, setUpdateCount] = React.useState(false);
 
 
@@ -286,7 +283,6 @@ export const DatabaseInformationContext = React.createContext<{
     const [updateBalances, setUpdateBalances] = React.useState(false);
     const [updateTransactions, setUpdateTransactions] = React.useState(false);
     const [updateRecTransactions, setUpdateRecTransactions] = React.useState(false);
-
     const [updateOwedItems, setUpdateOwedItems] = React.useState(false);
     const [updateGoalItems, setUpdateGoalItems] = React.useState(false);
     const [updateUser, setUpdateUser] = React.useState(false);

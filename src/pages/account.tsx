@@ -45,15 +45,10 @@ export const Account = () => {
 
 
     React.useEffect(() => {
-        checkIsLoggedIn().then((result) => {
-            if (!result) {
-                navigate('/login')
-            }
-          })
-    if (user.fName === "") {
-        setUpdateUser(true);
-    }
-    }, [navigate, setUpdateUser, user.fName]);
+        if (user.fName === "") {
+            setUpdateUser(true);
+        }
+    }, []);
 
   React.useEffect(() => {
 
